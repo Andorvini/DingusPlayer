@@ -29,14 +29,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class Main {
     public static void main(String[] args) {
 
-//        if(System.getProperty("os.name").toLowerCase().contains("windows")) {
-//            System.out.println("Fuck you,run it in the container,no fucking windows support");
-//        } else if (System.getProperty("os.name").toLowerCase().contains("unix")) {
-//            System.out.println("Good boy,using env variables to retrieve discord token");
-//            String token = System.getenv("DISCORD_TOKEN");
-//        }
-
-        String token = "MTA3NDgwMTUxOTUyMzgwNzI1Mg.Go5QpG.9HCAary0_stbChbU0usTdQ2XhTZlzluRzJfL4A";
+        String token = null;
+        token = System.getenv("DP_DISCORD_TOKEN");
+        if (token == null) {
+            System.out.println("DP_DISCORD_TOKEN environment variable not set");
+            System.exit(1);
+        }
 
         AtomicBoolean loopVar = new AtomicBoolean(false);
 
