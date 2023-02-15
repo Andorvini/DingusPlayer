@@ -1,0 +1,19 @@
+version: "3"
+
+services:
+  web-landing:
+    image: docker-registry.internal.rferee.dev/andorvini-external/dingus-player/bot:latest
+    container_name: "andorvini-discord-dingus-player"
+    restart: unless-stopped
+    environment:
+      DP_DISCORD_TOKEN: ???
+
+networks:
+  default:
+    driver: bridge
+    name: "alpha-network-dingus-player"
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.16.19.0/24
+          gateway: 172.16.19.1
