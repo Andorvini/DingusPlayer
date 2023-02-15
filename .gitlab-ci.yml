@@ -14,6 +14,10 @@ include:
   - template: Security/Container-Scanning.gitlab-ci.yml
 
 maven-build:
+  needs:
+    - sast
+  dependencies:
+    - sast
   stage: build-artifact
   image: docker.io/library/maven:3-amazoncorretto-19
   script:
@@ -28,6 +32,8 @@ maven-build:
 docker-image-build:
   needs:
     - maven-build
+  dependencies:
+    - maven-build
   stage: build-image
   image: docker.io/library/docker:20-git
   script:
@@ -39,6 +45,8 @@ docker-image-build:
 
 container_scanning:
   needs:
+    - docker-image-build
+  dependencies:
     - docker-image-build
   stage: post-test
   variables:
@@ -54,6 +62,8 @@ container_scanning:
 
 portainer-trigger:
   needs:
+    - container_scanning
+  dependencies:
     - container_scanning
   when: on_success
   stage: deploy
