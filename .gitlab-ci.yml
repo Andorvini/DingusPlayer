@@ -3,6 +3,7 @@ stages:
   - build-artifact
   - build-image
   - post-test
+  - deploy
 
 sast:
   stage: test
@@ -25,6 +26,8 @@ maven-build:
     - if: $CI_COMMIT_BRANCH == "master"
 
 docker-image-build:
+  needs:
+    - maven-build
   stage: build-image
   image: docker.io/library/docker:20-git
   script:
@@ -35,6 +38,8 @@ docker-image-build:
     - if: $CI_COMMIT_BRANCH == "master"
 
 container_scanning:
+  needs:
+    - docker-image-build
   stage: post-test
   variables:
     CS_DISABLE_DEPENDENCY_LIST: "true"
@@ -46,3 +51,15 @@ container_scanning:
     SECURE_LOG_LEVEL: "debug"
   rules:
     - if: $CI_COMMIT_BRANCH == "master"
+
+portainer-trigger:
+  needs:
+    - container_scanning
+  when: on_success
+  stage: deploy
+  image: docker.io/library/alpine:3.17
+  before_script:
+    - apk add --no-cache curl
+  script:
+    - curl -f -X POST $PORTAINER_WEBHOOK
+
