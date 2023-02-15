@@ -12,6 +12,7 @@ import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason;
+import okhttp3.*;
 import org.javacord.api.DiscordApi;
 import org.javacord.api.DiscordApiBuilder;
 import org.javacord.api.audio.AudioSource;
@@ -19,6 +20,7 @@ import org.javacord.api.entity.server.Server;
 import org.javacord.api.entity.user.User;
 import org.javacord.api.interaction.*;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -77,7 +79,7 @@ public class Main {
                 .createGlobal(api)
                 .join();
 
-        SlashCommand sseblo = SlashCommand.with("sseblo","Play sseblo",
+        SlashCommand sseblo = SlashCommand.with("sseblo","Convert text into voice using sseblobotapi",
                 Arrays.asList(
                         SlashCommandOption.create(SlashCommandOptionType.STRING, "text", "Text you want to voice", true)
                 ))
@@ -330,8 +332,76 @@ public class Main {
                             .join();
 
                 }
-            }
+            } else if (interaction.getFullCommandName().equals("sseblo")) {
+                Server server = interaction.getServer().get();
+                String textToConvert = interaction.getOptionByName("text").get().getStringValue().get();
 
+                String convertedUrl = getUrl(textToConvert);
+
+
+
+                interaction.getUser().getConnectedVoiceChannel(server).get().connect().thenAccept(audioConnection -> {
+
+                    AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
+                    AudioSourceManager sourceManager = new HttpAudioSourceManager();
+                    playerManager.registerSourceManager(sourceManager);
+                    AudioPlayer player = playerManager.createPlayer();
+
+                    interaction.createImmediateResponder().setContent("Playing \"" + textToConvert + "\" with Alyona Flirt ").respond();
+
+                    AudioSource source = new LavaplayerAudioSource(api, player);
+                    audioConnection.setAudioSource(source);
+
+                    playerManager.loadItem(convertedUrl, new AudioLoadResultHandler() {
+
+                        @Override
+                        public void trackLoaded(AudioTrack track) {
+                            player.addListener(new AudioEventAdapter() {
+                                @Override
+                                public void onPlayerPause(AudioPlayer player) {
+                                    // Player was paused
+                                }
+
+                                @Override
+                                public void onPlayerResume(AudioPlayer player) {
+                                    // Player was resumed
+                                }
+
+                                @Override
+                                public void onTrackEnd(AudioPlayer player, AudioTrack track, AudioTrackEndReason endReason) {
+                                    // Track finished playing
+                                    if (endReason == AudioTrackEndReason.FINISHED.FINISHED) {
+                                        if (loopVar.get() == true) {
+                                            player.playTrack(track.makeClone());
+                                            System.out.println("loop engaged");
+                                        } else {
+                                            System.out.println("loop disengaged");
+                                        }
+                                    }
+                                }
+                            });
+
+                            player.playTrack(track);
+                        }
+
+                        @Override
+                        public void noMatches() {
+                            System.out.println("No matches found for the provided URL.");
+                        }
+
+                        @Override
+                        public void loadFailed(FriendlyException e) {
+                            System.out.println("Failed to load track.");
+                            e.printStackTrace();
+                        }
+
+                        @Override
+                        public void playlistLoaded(AudioPlaylist playlist) {
+                            System.out.println("Cannot load playlist from direct URL.");
+                        }
+                    });
+                });
+            }
         });
 
         api.addServerVoiceChannelMemberJoinListener(serverVoiceChannelMemberJoinEvent -> {
@@ -343,7 +413,7 @@ public class Main {
             * 998958761618190421L = Sukran = rferee = https://storage.rferee.dev/assets/media/audio/sukran.mp3
             * 394085232266969090L = doka swarm = andorvini = https://storage.rferee.dev/assets/media/audio/dokaswam.mp3
             * 483991031306780683L = yubico = vapronwa = https://storage.rferee.dev/assets/media/audio/v_nalicii_yubico.mp3
-            * 731939675438317588 = clown = clown(sasha) =
+            * 731939675438317588 = clown = clown(sasha) = https://storage.rferee.dev/assets/media/audio/clown_short.mp3
              */
 
             if (user.getId() == 998958761618190421L || user.getId() == 394085232266969090L || user.getId() == 483991031306780683L || user.getId() == 731939675438317588L) {
@@ -411,5 +481,41 @@ public class Main {
                 });
             }
         });
+    }
+
+    public static String getUrl(String text) {
+        try {
+
+            OkHttpClient okHttpClient = new OkHttpClient();
+
+            String requestUrl = "https://api.sosanie-ebla-bot-premium.vapronva.pw/tts/request/wav";
+
+            RequestBody body = RequestBody.create(MediaType.parse("application/json"),
+                    "{\"query\":\"" + text + "\"," +
+                            "\"user_id\": 1,"  +
+                            "\"voice\": {"+
+                            "          \"speakerLang\": \"ru\"," +
+                            "          \"speakerName\": \"alyona\"," +
+                            "          \"speakerEmotion\": \"flirt\"," +
+                            "          \"company\": \"tinkoff\"" +
+                            "}}");
+
+            Request.Builder requestBuilder = new Request.Builder()
+                    .url(requestUrl)
+                    .post(body)
+                    .addHeader("X-API-key", System.getenv("API_KEY"));
+
+            Call call = okHttpClient.newCall(requestBuilder.build());
+
+            Response response = call.execute();
+            String responseBody = response.body().string();
+
+            return responseBody;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return "1";
     }
 }
