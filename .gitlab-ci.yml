@@ -23,8 +23,6 @@ maven-build:
       - target/*-spring-boot.jar
   rules:
     - if: $CI_COMMIT_BRANCH == "master"
-    - if: $CI_COMMIT_MESSAGE =~ /\[ci\]/
-      when: manual
 
 docker-image-build:
   stage: build-image
@@ -35,8 +33,6 @@ docker-image-build:
     - docker image push --all-tags $CI_REGISTRY_IMAGE/bot
   rules:
     - if: $CI_COMMIT_BRANCH == "master"
-    - if: $CI_COMMIT_MESSAGE =~ /\[ci\]/
-      when: manual
 
 container_scanning:
   stage: post-test
@@ -50,5 +46,3 @@ container_scanning:
     SECURE_LOG_LEVEL: "debug"
   rules:
     - if: $CI_COMMIT_BRANCH == "master"
-    - if: $CI_COMMIT_MESSAGE =~ /\[ci\]/
-      when: manual
