@@ -15,14 +15,21 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason;
 import okhttp3.*;
 import org.javacord.api.DiscordApi;
 import org.javacord.api.DiscordApiBuilder;
+import org.javacord.api.audio.AudioConnection;
 import org.javacord.api.audio.AudioSource;
+import org.javacord.api.entity.channel.ServerVoiceChannel;
+import org.javacord.api.entity.channel.TextChannel;
+import org.javacord.api.entity.message.Message;
+import org.javacord.api.entity.message.MessageSet;
 import org.javacord.api.entity.server.Server;
 import org.javacord.api.entity.user.User;
+import org.javacord.api.event.interaction.SlashCommandCreateEvent;
 import org.javacord.api.interaction.*;
 
-import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 
 public class Main {
@@ -86,89 +93,40 @@ public class Main {
                 .createGlobal(api)
                 .join();
 
+        SlashCommand clear = SlashCommand.with("clear","Delete specified number of messages",
+                Arrays.asList(
+                        SlashCommandOption.create(SlashCommandOptionType.LONG,"count","Message count",true)
+                ))
+                .createGlobal(api)
+                .join();
+
         api.addSlashCommandCreateListener(slashCommandCreateEvent -> {
             SlashCommandInteraction interaction = slashCommandCreateEvent.getSlashCommandInteraction();
-            Server interactionServer = slashCommandCreateEvent.getInteraction().getServer().get();
+            Server server = slashCommandCreateEvent.getInteraction().getServer().get();
 
-            if (interaction.getFullCommandName().equals("join")) {
+            if (interaction.getFullCommandName().equals("phony")) {
+                if (interaction.getUser().getConnectedVoiceChannel(server).isPresent()) {
+                    AtomicReference<String> trackUrl = new AtomicReference<>("https://storage.rferee.dev/assets/media/audio/phony-ru.flac");
+                    String interactionOption = interaction.getOptionByName("version").get().getStringValue().get();
 
-            } else if (interaction.getFullCommandName().equals("phony")) {
-                if (interaction.getUser().getConnectedVoiceChannel(interactionServer).isPresent()) {
-                    interaction.getUser().getConnectedVoiceChannel(interactionServer).get().connect().thenAccept(audioConnection -> {
-                        String trackUrl = "https://storage.rferee.dev/assets/media/audio/phony-ru.flac";
-                        String interactionOption = interaction.getOptionByName("version").get().getStringValue().get();
+                    if (interactionOption.equals("rus")) {
+                        System.out.println("Playing russian remix");
+                        trackUrl.set("https://storage.rferee.dev/assets/media/audio/phony-ru.flac");
+                    } else if (interactionOption.equals("original")) {
+                        System.out.println("Playing original");
+                        trackUrl.set("https://storage.rferee.dev/assets/media/audio/phony-jp.flac");
+                    }
 
-                        System.out.println(interactionOption);
-
-                        if (interactionOption.equals("rus")) {
-                            System.out.println("Playing russian remix");
-                            trackUrl = "https://storage.rferee.dev/assets/media/audio/phony-ru.flac";
-                        } else if (interactionOption.equals("original")) {
-                            System.out.println("Playing original");
-                            trackUrl = "https://storage.rferee.dev/assets/media/audio/phony-jp.flac";
-                        }
-
-                        AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
-                        AudioSourceManager sourceManager = new HttpAudioSourceManager();
-                        playerManager.registerSourceManager(sourceManager);
-                        AudioPlayer player = playerManager.createPlayer();
-
-                        AudioSource source = new LavaplayerAudioSource(api, player);
-                        audioConnection.setAudioSource(source);
-
-                        playerManager.loadItem(trackUrl, new AudioLoadResultHandler() {
-                            @Override
-                            public void trackLoaded(AudioTrack track) {
-                                player.addListener(new AudioEventAdapter() {
-                                    @Override
-                                    public void onPlayerPause(AudioPlayer player) {
-                                        // Player was paused
-                                    }
-
-                                    @Override
-                                    public void onPlayerResume(AudioPlayer player) {
-                                        // Player was resumed
-                                    }
-
-                                    @Override
-                                    public void onTrackEnd(AudioPlayer player, AudioTrack track, AudioTrackEndReason endReason) {
-                                        // Track finished playing
-                                        if (endReason == AudioTrackEndReason.FINISHED.FINISHED) {
-                                            if (loopVar.get() == true) {
-                                                player.playTrack(track.makeClone());
-                                                System.out.println("loop engaged");
-                                            } else {
-                                                System.out.println("loop disengaged");
-                                            }
-                                        }
-                                    }
-                                });
-
-                                slashCommandCreateEvent.getInteraction()
-                                        .respondLater()
-                                        .thenAccept(message -> {
-                                            message.setContent("Now playing \"" + track.getInfo().title + "\"").update();
-                                        });
-                                player.playTrack(track);
-                            }
-
-                            @Override
-                            public void noMatches() {
-                                System.out.println("No matches found for the provided URL.");
-                            }
-
-                            @Override
-                            public void loadFailed(FriendlyException e) {
-                                System.out.println("Failed to load track.");
-                                e.printStackTrace();
-                            }
-
-                            @Override
-                            public void playlistLoaded(AudioPlaylist playlist) {
-                                System.out.println("Cannot load playlist from direct URL.");
-                            }
+                    if (api.getYourself().getConnectedVoiceChannel(server).isEmpty()) {
+                        interaction.getUser().getConnectedVoiceChannel(server).get().connect().thenAccept(audioConnection -> {
+                            System.out.println("connecting");
+                            mp3Player(api, audioConnection, trackUrl.get(), loopVar, slashCommandCreateEvent,0, server);
                         });
-                    });
+                    } else {
+                        AudioConnection audioConnection = server.getAudioConnection().get();
+                        System.out.println("already connected");
+                        mp3Player(api, audioConnection, trackUrl.get(), loopVar, slashCommandCreateEvent, 0, server);
+                    }
                 } else {
                     interaction.createImmediateResponder()
                             .setContent("You are not connected to a voice channel")
@@ -176,61 +134,17 @@ public class Main {
                             .join();
                 }
             } else if (interaction.getFullCommandName().equals("play")) {
-                if (interaction.getUser().getConnectedVoiceChannel(interactionServer).isPresent()) {
-                    String trackUrl = interaction.getOptionByName("url").get().getStringValue().get();
+                if (interaction.getUser().getConnectedVoiceChannel(server).isPresent()) {
+                    String trackUrl = interaction.getOptionByName("url").get().getStringValue().get().replaceAll("\\[", "%5B").replaceAll("]", "%5D");
 
-                    String newTrackUrl = trackUrl.replaceAll("\\[", "%5B").replaceAll("]", "%5D");
-
-                    interaction.getUser().getConnectedVoiceChannel(interactionServer).get().connect().thenAccept(audioConnection -> {
-                        AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
-                        playerManager.registerSourceManager(new YoutubeAudioSourceManager());
-                        AudioPlayer player = playerManager.createPlayer();
-                        AudioSource source = new LavaplayerAudioSource(api, player);
-                        audioConnection.setAudioSource(source);
-
-                        playerManager.loadItem(newTrackUrl, new AudioLoadResultHandler() {
-                            @Override
-                            public void trackLoaded(AudioTrack track) {
-                                System.out.println("Track loaded");
-                                slashCommandCreateEvent.getInteraction()
-                                                .respondLater()
-                                                .thenAccept(message -> {
-                                                    message.setContent("Now playing \"" + track.getInfo().title + "\"").update();
-                                                });
-                                player.playTrack(track);
-
-                                player.addListener(new AudioEventAdapter() {
-                                    @Override
-                                    public void onTrackEnd(AudioPlayer player, AudioTrack track, AudioTrackEndReason endReason) {
-                                        if (endReason == AudioTrackEndReason.FINISHED) {
-                                            if (loopVar.get() == true) {
-                                                player.playTrack(track.makeClone());
-                                                System.out.println("loop engaged");
-                                            } else {
-                                                System.out.println("loop disengaged");
-                                            }
-                                        }
-                                    }
-                                });
-                            }
-
-                            @Override
-                            public void playlistLoaded(AudioPlaylist playlist) {
-
-                            }
-
-                            @Override
-                            public void noMatches() {
-
-                            }
-
-                            @Override
-                            public void loadFailed(FriendlyException exception) {
-                                System.out.println("Failed to load track");
-                            }
-
+                    if (api.getYourself().getConnectedVoiceChannel(server).isEmpty()) {
+                        interaction.getUser().getConnectedVoiceChannel(server).get().connect().thenAccept(audioConnection -> {
+                            youtubePlayer(api, audioConnection, trackUrl, slashCommandCreateEvent, loopVar);
                         });
-                    });
+                    } else {
+                        AudioConnection audioConnection = server.getAudioConnection().get();
+                        youtubePlayer(api, audioConnection, trackUrl, slashCommandCreateEvent, loopVar);
+                    }
                 } else {
                     interaction.createImmediateResponder()
                             .setContent("You are not connected to a voice channel")
@@ -252,79 +166,25 @@ public class Main {
                             .join();
                 }
             } else if (interaction.getFullCommandName().equals("mp3")) {
-                Server server = interaction.getServer().get();
-                interaction.getUser().getConnectedVoiceChannel(server).get().connect().thenAccept(audioConnection -> {
-                    String trackUrl = interaction.getOptionByName("urlMP3").get().getStringValue().get();
-                    String newTrackUrl = trackUrl.replaceAll("\\[", "%5B").replaceAll("]", "%5D");
-                    AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
-                    AudioSourceManager sourceManager = new HttpAudioSourceManager();
-                    playerManager.registerSourceManager(sourceManager);
-                    AudioPlayer player = playerManager.createPlayer();
+                AtomicReference<String> trackUrl = new AtomicReference<>(interaction.getOptionByName("urlMP3").get().getStringValue().get().replaceAll("\\[", "%5B").replaceAll("]", "%5D"));
+                    if (api.getYourself().getConnectedVoiceChannel(server).isEmpty()) {
+                        interaction.getUser().getConnectedVoiceChannel(server).get().connect().thenAccept(audioConnection -> {
+                            System.out.println("connecting");
+                            mp3Player(api, audioConnection, trackUrl.get(), loopVar, slashCommandCreateEvent,0, server);
+                        });
+                    } else {
+                        AudioConnection audioConnection = server.getAudioConnection().get();
+                        System.out.println("already connected");
+                        mp3Player(api, audioConnection, trackUrl.get(), loopVar, slashCommandCreateEvent, 0, server);
+                    }
 
-                    AudioSource source = new LavaplayerAudioSource(api, player);
-                    audioConnection.setAudioSource(source);
-
-                    playerManager.loadItem(newTrackUrl, new AudioLoadResultHandler() {
-                        @Override
-                        public void trackLoaded(AudioTrack track) {
-                            player.addListener(new AudioEventAdapter() {
-                                @Override
-                                public void onPlayerPause(AudioPlayer player) {
-                                    // Player was paused
-                                }
-
-                                @Override
-                                public void onPlayerResume(AudioPlayer player) {
-                                    // Player was resumed
-                                }
-
-                                @Override
-                                public void onTrackEnd(AudioPlayer player, AudioTrack track, AudioTrackEndReason endReason) {
-                                    // Track finished playing
-                                    if (endReason == AudioTrackEndReason.FINISHED.FINISHED) {
-                                        if (loopVar.get() == true) {
-                                            player.playTrack(track.makeClone());
-                                            System.out.println("loop engaged");
-                                        } else {
-                                            System.out.println("loop disengaged");
-                                        }
-                                    }
-                                }
-                            });
-
-                            slashCommandCreateEvent.getInteraction()
-                                                    .respondLater()
-                                                    .thenAccept(message -> {
-                                                        message.setContent("Now playing \"" + track.getInfo().title + "\"").update();
-                                                    });
-                            player.playTrack(track);
-                        }
-
-                        @Override
-                        public void noMatches() {
-                            System.out.println("No matches found for the provided URL.");
-                        }
-
-                        @Override
-                        public void loadFailed(FriendlyException e) {
-                            System.out.println("Failed to load track.");
-                            e.printStackTrace();
-                        }
-
-                        @Override
-                        public void playlistLoaded(AudioPlaylist playlist) {
-                            System.out.println("Cannot load playlist from direct URL.");
-                        }
-                    });
-                });
             } else if (interaction.getFullCommandName().equals("leave")) {
-                Server server = interaction.getServer().get();
                 if (server.getConnectedVoiceChannel(api.getYourself()).isPresent()) {
                     interaction.createImmediateResponder()
                             .setContent("Leaving voice channel \"" + server.getConnectedVoiceChannel(api.getYourself()).get().getName() + "\"" )
                             .respond()
                             .join();
-                    server.getConnectedVoiceChannel(api.getYourself()).get().disconnect();
+                        server.getConnectedVoiceChannel(api.getYourself()).get().disconnect();
                 } else {
                     interaction.createImmediateResponder()
                             .setContent("I am not connected to a voice channel")
@@ -333,74 +193,32 @@ public class Main {
 
                 }
             } else if (interaction.getFullCommandName().equals("sseblo")) {
-                Server server = interaction.getServer().get();
                 String textToConvert = interaction.getOptionByName("text").get().getStringValue().get();
 
                 String convertedUrl = getUrl(textToConvert);
-
-
+                interaction.createImmediateResponder().setContent("Playing \"" + textToConvert + "\" with Alyona Flirt ").respond();
 
                 interaction.getUser().getConnectedVoiceChannel(server).get().connect().thenAccept(audioConnection -> {
-
-                    AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
-                    AudioSourceManager sourceManager = new HttpAudioSourceManager();
-                    playerManager.registerSourceManager(sourceManager);
-                    AudioPlayer player = playerManager.createPlayer();
-
-                    interaction.createImmediateResponder().setContent("Playing \"" + textToConvert + "\" with Alyona Flirt ").respond();
-
-                    AudioSource source = new LavaplayerAudioSource(api, player);
-                    audioConnection.setAudioSource(source);
-
-                    playerManager.loadItem(convertedUrl, new AudioLoadResultHandler() {
-
-                        @Override
-                        public void trackLoaded(AudioTrack track) {
-                            player.addListener(new AudioEventAdapter() {
-                                @Override
-                                public void onPlayerPause(AudioPlayer player) {
-                                    // Player was paused
-                                }
-
-                                @Override
-                                public void onPlayerResume(AudioPlayer player) {
-                                    // Player was resumed
-                                }
-
-                                @Override
-                                public void onTrackEnd(AudioPlayer player, AudioTrack track, AudioTrackEndReason endReason) {
-                                    // Track finished playing
-                                    if (endReason == AudioTrackEndReason.FINISHED.FINISHED) {
-                                        if (loopVar.get() == true) {
-                                            player.playTrack(track.makeClone());
-                                            System.out.println("loop engaged");
-                                        } else {
-                                            System.out.println("loop disengaged");
-                                        }
-                                    }
-                                }
-                            });
-
-                            player.playTrack(track);
-                        }
-
-                        @Override
-                        public void noMatches() {
-                            System.out.println("No matches found for the provided URL.");
-                        }
-
-                        @Override
-                        public void loadFailed(FriendlyException e) {
-                            System.out.println("Failed to load track.");
-                            e.printStackTrace();
-                        }
-
-                        @Override
-                        public void playlistLoaded(AudioPlaylist playlist) {
-                            System.out.println("Cannot load playlist from direct URL.");
-                        }
-                    });
+                    mp3Player(api,audioConnection,convertedUrl,loopVar,slashCommandCreateEvent,0, server);
                 });
+            } else if (interaction.getFullCommandName().equals("clear")) {
+                long count = interaction.getOptionByName("count").get().getLongValue().get() + 1;
+                TextChannel channel = interaction.getChannel().get();
+
+                MessageSet messagesToDelete = channel.getMessages((int) count).join();
+
+                interaction.createImmediateResponder()
+                        .setContent("Deleted " + count + " messages")
+                        .respond()
+                        .join();
+
+                try {
+                    Thread.sleep(2000);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+
+                channel.bulkDelete(messagesToDelete);
             }
         });
 
@@ -429,59 +247,130 @@ public class Main {
                         trackUrl = "https://storage.rferee.dev/assets/media/audio/clown_short.mp3";
                     }
 
-                    AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
-                    AudioSourceManager sourceManager = new HttpAudioSourceManager();
-                    playerManager.registerSourceManager(sourceManager);
-                    AudioPlayer player = playerManager.createPlayer();
-
-                    AudioSource source = new LavaplayerAudioSource(api, player);
-                    audioConnection.setAudioSource(source);
-                    playerManager.loadItem(trackUrl, new AudioLoadResultHandler() {
-                        @Override
-                        public void trackLoaded(AudioTrack track) {
-                            player.addListener(new AudioEventAdapter() {
-                                @Override
-                                public void onPlayerPause(AudioPlayer player) {
-                                    // Player was paused
-                                }
-
-                                @Override
-                                public void onPlayerResume(AudioPlayer player) {
-                                    // Player was resumed
-                                }
-
-                                @Override
-                                public void onTrackEnd(AudioPlayer player, AudioTrack track, AudioTrackEndReason endReason) {
-                                    // Track finished playing
-                                    if (endReason == AudioTrackEndReason.FINISHED.FINISHED) {
-                                        server.getConnectedVoiceChannel(api.getYourself()).get().disconnect();
-                                    }
-                                }
-                            });
-
-                            player.playTrack(track);
-                        }
-
-                        @Override
-                        public void noMatches() {
-                            System.out.println("No matches found for the provided URL.");
-                        }
-
-                        @Override
-                        public void loadFailed(FriendlyException e) {
-                            System.out.println("Failed to load track.");
-                            e.printStackTrace();
-                        }
-
-                        @Override
-                        public void playlistLoaded(AudioPlaylist playlist) {
-                            System.out.println("Cannot load playlist from direct URL.");
-                        }
-                    });
+                    mp3Player(api, audioConnection, trackUrl, loopVar, null, 1,server);
                 });
             }
         });
     }
+
+    // ============= YOUTUBE PLAYER METHOD ===============
+
+    public static void youtubePlayer(DiscordApi api, AudioConnection audioConnection, String trackUrl, SlashCommandCreateEvent slashCommandCreateEvent, AtomicBoolean loopVar){
+        AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
+        playerManager.registerSourceManager(new YoutubeAudioSourceManager());
+        AudioPlayer player = playerManager.createPlayer();
+        AudioSource source = new LavaplayerAudioSource(api, player);
+        audioConnection.setAudioSource(source);
+        playerManager.loadItem(trackUrl, new AudioLoadResultHandler() {
+            @Override
+            public void trackLoaded(AudioTrack track) {
+                System.out.println("Track loaded");
+                slashCommandCreateEvent.getInteraction()
+                        .respondLater()
+                        .thenAccept(message -> {
+                            message.setContent("Now playing \"" + track.getInfo().title + "\"").update();
+                        });
+                player.playTrack(track);
+
+                player.addListener(new AudioEventAdapter() {
+                    @Override
+                    public void onTrackEnd(AudioPlayer player, AudioTrack track, AudioTrackEndReason endReason) {
+                        if (endReason == AudioTrackEndReason.FINISHED) {
+                            if (loopVar.get() == true) {
+                                player.playTrack(track.makeClone());
+                                System.out.println("loop engaged");
+                            } else {
+                                System.out.println("loop disengaged");
+                            }
+                        }
+                    }
+                });
+            }
+
+            @Override
+            public void playlistLoaded(AudioPlaylist playlist) {
+
+            }
+
+            @Override
+            public void noMatches() {
+
+            }
+
+            @Override
+            public void loadFailed(FriendlyException exception) {
+                System.out.println("Failed to load track");
+            }
+
+        });
+    }
+
+    // =============== MP3 OR OTHER FORMATS PLAYER ===================
+
+    public static void mp3Player(DiscordApi api, AudioConnection audioConnection, String trackUrl, AtomicBoolean loopVar, SlashCommandCreateEvent slashCommandCreateEvent,int a, Server server){
+        AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
+        AudioSourceManager sourceManager = new HttpAudioSourceManager();
+        playerManager.registerSourceManager(sourceManager);
+        AudioPlayer player = playerManager.createPlayer();
+        AudioSource source = new LavaplayerAudioSource(api, player);
+        audioConnection.setAudioSource(source);
+        playerManager.loadItem(trackUrl, new AudioLoadResultHandler() {
+            @Override
+            public void trackLoaded(AudioTrack track) {
+                player.addListener(new AudioEventAdapter() {
+                    @Override
+                    public void onPlayerPause(AudioPlayer player) {
+                        // Player was paused
+                    }
+
+                    @Override
+                    public void onPlayerResume(AudioPlayer player) {
+                        // Player was resumed
+                    }
+
+                    @Override
+                    public void onTrackEnd(AudioPlayer player, AudioTrack track, AudioTrackEndReason endReason) {
+                        // Track finished playing
+                        if (endReason == AudioTrackEndReason.FINISHED.FINISHED) {
+                            if (loopVar.get() == true) {
+                                player.playTrack(track.makeClone());
+                            } else if (a == 1){
+                                server.getConnectedVoiceChannel(api.getYourself()).get().disconnect();
+                            }
+                        }
+                    }
+                });
+
+                if (a == 0) {
+                slashCommandCreateEvent.getInteraction()
+                        .respondLater()
+                        .thenAccept(message -> {
+                            message.setContent("Now playing \"" + track.getInfo().title + "\"").update();
+                        });
+                }
+                player.playTrack(track);
+            }
+
+            @Override
+            public void noMatches() {
+                System.out.println("No matches found for the provided URL.");
+            }
+
+            @Override
+            public void loadFailed(FriendlyException e) {
+                System.out.println("Failed to load track.");
+                e.printStackTrace();
+            }
+
+            @Override
+            public void playlistLoaded(AudioPlaylist playlist) {
+                System.out.println("Cannot load playlist from direct URL.");
+            }
+        });
+    }
+
+
+
 
     public static String getUrl(String text) {
         try {
