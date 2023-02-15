@@ -6,7 +6,6 @@ import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.player.DefaultAudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.player.event.AudioEventAdapter;
 import com.sedmelluq.discord.lavaplayer.source.AudioSourceManager;
-import com.sedmelluq.discord.lavaplayer.source.AudioSourceManagers;
 import com.sedmelluq.discord.lavaplayer.source.http.HttpAudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeAudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
@@ -66,6 +65,10 @@ public class Main {
 
         SlashCommand leave =
                 SlashCommand.with("leave","Leave voice channel")
+                .createGlobal(api)
+                .join();
+
+        SlashCommand pause = SlashCommand.with("pause","Pause music")
                 .createGlobal(api)
                 .join();
 
