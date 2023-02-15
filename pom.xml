@@ -14,19 +14,6 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
-    <repositories>
-        <repository>
-            <id>dv8tion</id>
-            <name>m2-dv8tion</name>
-            <url>https://m2.dv8tion.net/releases</url>
-        </repository>
-        <repository>
-            <id>central</id>
-            <name>Maven Central Repository</name>
-            <url>https://repo.maven.apache.org/maven2</url>
-        </repository>
-    </repositories>
-
     <dependencies>
         <dependency>
             <groupId>org.javacord</groupId>
@@ -37,6 +24,11 @@
             <groupId>com.sedmelluq</groupId>
             <artifactId>lavaplayer</artifactId>
             <version>LATEST</version>
+            <repository>
+                <id>dv8tion</id>
+                <name>m2-dv8tion</name>
+                <url>https://m2.dv8tion.net/releases</url>
+            </repository>
         </dependency>
 
     </dependencies>
