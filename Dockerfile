@@ -1,6 +1,9 @@
-FROM docker.io/library/amazoncorretto:19-alpine-jdk
+FROM debian:11-slim
 
 WORKDIR /usr/src/app
+
+RUN apt update
+RUN apt install openjdk-19-jdk-headless 
 
 COPY ./target/*.jar ./app.jar
 
