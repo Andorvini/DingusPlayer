@@ -1,4 +1,4 @@
-FROM debian:11-slim
+FROM docker.io/library/amazoncorretto:19-alpine-jdk
 
 WORKDIR /usr/src/app
 
