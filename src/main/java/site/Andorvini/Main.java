@@ -16,6 +16,7 @@ import org.javacord.api.DiscordApi;
 import org.javacord.api.DiscordApiBuilder;
 import org.javacord.api.audio.AudioSource;
 import org.javacord.api.entity.server.Server;
+import org.javacord.api.entity.user.User;
 import org.javacord.api.interaction.SlashCommand;
 import org.javacord.api.interaction.SlashCommandInteraction;
 import org.javacord.api.interaction.SlashCommandOption;
@@ -40,14 +41,14 @@ public class Main {
         DiscordApi api = new DiscordApiBuilder().setToken(token).login().join();
 
         SlashCommand play =
-                SlashCommand.with("play","Play music from provided Yotube URL",
+                SlashCommand.with("play","Play music from provided Youtube URL",
                                 Arrays.asList(
                                         SlashCommandOption.create(SlashCommandOptionType.STRING, "url", "Youtube url", true)
                                 ))
                 .createGlobal(api)
                 .join();
 
-        SlashCommand phony = SlashCommand.with("phony","Play ANTIPOTHY WORLD")
+        SlashCommand phony = SlashCommand.with("phony","Play ANTIPATHY WORLD")
                 .createGlobal(api)
                 .join();
 
@@ -58,7 +59,7 @@ public class Main {
         SlashCommand test =
                 SlashCommand.with("mp3","Play MP3 from Direct URL",
                                 Arrays.asList(
-                                    SlashCommandOption.create(SlashCommandOptionType.STRING, "urlMP3", "Direct URL to MP3 file(ONLY HTTPS)", true)
+                                    SlashCommandOption.create(SlashCommandOptionType.STRING, "urlMP3", "Direct URL to MP3 or WAV file(ONLY HTTPS)", true)
                                 ))
                 .createGlobal(api)
                 .join();
@@ -225,7 +226,12 @@ public class Main {
                                 public void onTrackEnd(AudioPlayer player, AudioTrack track, AudioTrackEndReason endReason) {
                                     // Track finished playing
                                     if (endReason == AudioTrackEndReason.FINISHED.FINISHED) {
-                                        server.getConnectedVoiceChannel(api.getYourself()).get().disconnect();
+                                        if (loopVar.get() == true) {
+                                            player.playTrack(track.makeClone());
+                                            System.out.println("loop engaged");
+                                        } else {
+                                            System.out.println("loop disengaged");
+                                        }
                                     }
                                 }
                             });
@@ -268,8 +274,29 @@ public class Main {
 
         api.addServerVoiceChannelMemberJoinListener(serverVoiceChannelMemberJoinEvent -> {
             Server server = serverVoiceChannelMemberJoinEvent.getServer();
-            if (serverVoiceChannelMemberJoinEvent.getUser().getId() == 998958761618190421L ) {
+
+            User user = serverVoiceChannelMemberJoinEvent.getUser();
+
+            /*
+            * 998958761618190421L = Sukran = rferee = https://storage.rferee.dev/assets/media/audio/sukran.mp3
+            * 394085232266969090L = doka swarm = andorvini = https://storage.rferee.dev/assets/media/audio/dokaswam.mp3
+            * 483991031306780683L = yubico = vapronwa = https://storage.rferee.dev/assets/media/audio/v_nalicii_yubico.mp3
+            * 731939675438317588 = clown = clown(sasha) =
+             */
+
+            if (user.getId() == 998958761618190421L || user.getId() == 394085232266969090L || user.getId() == 483991031306780683L || user.getId() == 731939675438317588L) {
                 serverVoiceChannelMemberJoinEvent.getUser().getConnectedVoiceChannel(server).get().connect().thenAccept(audioConnection -> {
+                    String trackUrl = null;
+                    if (user.getId() == 998958761618190421L) {
+                        trackUrl = "https://storage.rferee.dev/assets/media/audio/sukran.mp3";
+                    } else if (user.getId() == 394085232266969090L) {
+                        trackUrl = "https://storage.rferee.dev/assets/media/audio/dokaswam.mp3";
+                    } else if (user.getId() == 483991031306780683L) {
+                        trackUrl = "https://storage.rferee.dev/assets/media/audio/v_nalicii_yubico.mp3";
+                    } else if (user.getId() == 731939675438317588L) {
+                        trackUrl = "https://storage.rferee.dev/assets/media/audio/clown_short.mp3";
+                    }
+
                     AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
                     AudioSourceManager sourceManager = new HttpAudioSourceManager();
                     playerManager.registerSourceManager(sourceManager);
@@ -277,8 +304,6 @@ public class Main {
 
                     AudioSource source = new LavaplayerAudioSource(api, player);
                     audioConnection.setAudioSource(source);
-
-                    String trackUrl = "https://storage.rferee.dev/assets/media/audio/sukran.mp3";
                     playerManager.loadItem(trackUrl, new AudioLoadResultHandler() {
                         @Override
                         public void trackLoaded(AudioTrack track) {
