@@ -14,10 +14,6 @@ include:
   - template: Security/Container-Scanning.gitlab-ci.yml
 
 maven-build:
-  needs:
-    - sast
-  dependencies:
-    - sast
   stage: build-artifact
   image: docker.io/library/maven:3-amazoncorretto-19
   script:
