@@ -33,7 +33,7 @@
         <dependency>
             <groupId>org.javacord</groupId>
             <artifactId>javacord</artifactId>
-            <version>3.7.0</version>
+            <version>LATEST</version>
             <type>pom</type>
         </dependency>
         <dependency>

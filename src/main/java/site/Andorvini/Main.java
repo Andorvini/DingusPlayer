@@ -1,36 +1,24 @@
 package site.Andorvini;
 
-import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;
-import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
-import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
-import com.sedmelluq.discord.lavaplayer.player.DefaultAudioPlayerManager;
-import com.sedmelluq.discord.lavaplayer.player.event.AudioEventAdapter;
-import com.sedmelluq.discord.lavaplayer.source.AudioSourceManager;
-import com.sedmelluq.discord.lavaplayer.source.http.HttpAudioSourceManager;
-import com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeAudioSourceManager;
-import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
-import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
-import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason;
 import okhttp3.*;
 import org.javacord.api.DiscordApi;
 import org.javacord.api.DiscordApiBuilder;
 import org.javacord.api.audio.AudioConnection;
-import org.javacord.api.audio.AudioSource;
-import org.javacord.api.entity.channel.ServerVoiceChannel;
 import org.javacord.api.entity.channel.TextChannel;
-import org.javacord.api.entity.message.Message;
 import org.javacord.api.entity.message.MessageSet;
+import org.javacord.api.entity.message.embed.EmbedBuilder;
 import org.javacord.api.entity.server.Server;
 import org.javacord.api.entity.user.User;
-import org.javacord.api.event.interaction.SlashCommandCreateEvent;
 import org.javacord.api.interaction.*;
 
+import java.awt.*;
 import java.util.Arrays;
-import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static site.Andorvini.Player.*;
 
 public class Main {
     public static void main(String[] args) {
@@ -69,14 +57,6 @@ public class Main {
                 .createGlobal(api)
                 .join();
 
-        SlashCommand mp3 =
-                SlashCommand.with("mp3","Play MP3 from Direct URL",
-                                Arrays.asList(
-                                    SlashCommandOption.create(SlashCommandOptionType.STRING, "urlMP3", "Direct URL to MP3 or WAV file(ONLY HTTPS)", true)
-                                ))
-                .createGlobal(api)
-                .join();
-
         SlashCommand leave =
                 SlashCommand.with("leave","Leave voice channel")
                 .createGlobal(api)
@@ -100,6 +80,10 @@ public class Main {
                 .createGlobal(api)
                 .join();
 
+        SlashCommand np = SlashCommand.with("np","Show what song is playing now")
+                .createGlobal(api)
+                .join();
+
         api.addSlashCommandCreateListener(slashCommandCreateEvent -> {
             SlashCommandInteraction interaction = slashCommandCreateEvent.getSlashCommandInteraction();
             Server server = slashCommandCreateEvent.getInteraction().getServer().get();
@@ -110,22 +94,18 @@ public class Main {
                     String interactionOption = interaction.getOptionByName("version").get().getStringValue().get();
 
                     if (interactionOption.equals("rus")) {
-                        System.out.println("Playing russian remix");
                         trackUrl.set("https://storage.rferee.dev/assets/media/audio/phony-ru.flac");
                     } else if (interactionOption.equals("original")) {
-                        System.out.println("Playing original");
                         trackUrl.set("https://storage.rferee.dev/assets/media/audio/phony-jp.flac");
                     }
 
                     if (api.getYourself().getConnectedVoiceChannel(server).isEmpty()) {
                         interaction.getUser().getConnectedVoiceChannel(server).get().connect().thenAccept(audioConnection -> {
-                            System.out.println("connecting");
-                            mp3Player(api, audioConnection, trackUrl.get(), loopVar, slashCommandCreateEvent,0, server);
+                            musicPlayer(api, audioConnection, trackUrl.get(), loopVar, slashCommandCreateEvent,0, server);
                         });
                     } else {
                         AudioConnection audioConnection = server.getAudioConnection().get();
-                        System.out.println("already connected");
-                        mp3Player(api, audioConnection, trackUrl.get(), loopVar, slashCommandCreateEvent, 0, server);
+                        musicPlayer(api, audioConnection, trackUrl.get(), loopVar, slashCommandCreateEvent, 0, server);
                     }
                 } else {
                     interaction.createImmediateResponder()
@@ -139,11 +119,11 @@ public class Main {
 
                     if (api.getYourself().getConnectedVoiceChannel(server).isEmpty()) {
                         interaction.getUser().getConnectedVoiceChannel(server).get().connect().thenAccept(audioConnection -> {
-                            youtubePlayer(api, audioConnection, trackUrl, slashCommandCreateEvent, loopVar);
+                            musicPlayer(api, audioConnection, trackUrl, loopVar, slashCommandCreateEvent,0, server);
                         });
                     } else {
                         AudioConnection audioConnection = server.getAudioConnection().get();
-                        youtubePlayer(api, audioConnection, trackUrl, slashCommandCreateEvent, loopVar);
+                        musicPlayer(api, audioConnection, trackUrl, loopVar, slashCommandCreateEvent,0, server);
                     }
                 } else {
                     interaction.createImmediateResponder()
@@ -158,26 +138,13 @@ public class Main {
                             .setContent("Looping is now enabled")
                             .respond()
                             .join();
-                } else if (loopVar.get() == true) {
+                } else {
                     loopVar.set(false);
                     interaction.createImmediateResponder()
                             .setContent("Looping is now disabled")
                             .respond()
                             .join();
                 }
-            } else if (interaction.getFullCommandName().equals("mp3")) {
-                AtomicReference<String> trackUrl = new AtomicReference<>(interaction.getOptionByName("urlMP3").get().getStringValue().get().replaceAll("\\[", "%5B").replaceAll("]", "%5D"));
-                    if (api.getYourself().getConnectedVoiceChannel(server).isEmpty()) {
-                        interaction.getUser().getConnectedVoiceChannel(server).get().connect().thenAccept(audioConnection -> {
-                            System.out.println("connecting");
-                            mp3Player(api, audioConnection, trackUrl.get(), loopVar, slashCommandCreateEvent,0, server);
-                        });
-                    } else {
-                        AudioConnection audioConnection = server.getAudioConnection().get();
-                        System.out.println("already connected");
-                        mp3Player(api, audioConnection, trackUrl.get(), loopVar, slashCommandCreateEvent, 0, server);
-                    }
-
             } else if (interaction.getFullCommandName().equals("leave")) {
                 if (server.getConnectedVoiceChannel(api.getYourself()).isPresent()) {
                     interaction.createImmediateResponder()
@@ -199,7 +166,7 @@ public class Main {
                 interaction.createImmediateResponder().setContent("Playing \"" + textToConvert + "\" with Alyona Flirt ").respond();
 
                 interaction.getUser().getConnectedVoiceChannel(server).get().connect().thenAccept(audioConnection -> {
-                    mp3Player(api,audioConnection,convertedUrl,loopVar,slashCommandCreateEvent,0, server);
+                    musicPlayer(api,audioConnection,convertedUrl,loopVar,slashCommandCreateEvent,0, server);
                 });
             } else if (interaction.getFullCommandName().equals("clear")) {
                 long count = interaction.getOptionByName("count").get().getLongValue().get() + 1;
@@ -219,6 +186,45 @@ public class Main {
                 }
 
                 channel.bulkDelete(messagesToDelete);
+            } else if (interaction.getFullCommandName().equals("pause")) {
+                if (Player.getPause()) {
+                    interaction.createImmediateResponder()
+                            .setContent("Unpaused")
+                            .respond()
+                            .join();
+                    Player.setPause(false);
+                } else {
+                    interaction.createImmediateResponder()
+                            .setContent("Paused")
+                            .respond()
+                            .join();
+                    Player.setPause(true);
+                }
+            } else if (interaction.getFullCommandName().equals("np")) {
+                AudioTrack audioTrackNowPlaying = Player.getAudioTrackNowPlaying();
+                TextChannel channel = interaction.getChannel().get();
+
+                long duration = audioTrackNowPlaying.getDuration();
+                long position = audioTrackNowPlaying.getPosition();
+
+                String identifier = audioTrackNowPlaying.getIdentifier();
+                if (identifier.startsWith("http")) {
+
+                } else {
+                    identifier = "https://www.youtube.com/watch?v=" + identifier;
+                }
+
+                EmbedBuilder embed = new EmbedBuilder()
+                        .setAuthor(audioTrackNowPlaying.getInfo().title, identifier , "https://indiefy.net/static/img/landing/distribution/icons/apple_music_icon.png")
+                        .setTitle("Duration")
+                        .setDescription(formatDuration(position) + " / " + formatDuration(duration))
+                        .addField("A field", "__Some text inside the field__")
+                        .setColor(Color.ORANGE);
+
+                interaction.createImmediateResponder()
+                        .addEmbeds(embed)
+                        .respond()
+                        .join();
             }
         });
 
@@ -235,142 +241,28 @@ public class Main {
              */
 
             if (user.getId() == 998958761618190421L || user.getId() == 394085232266969090L || user.getId() == 483991031306780683L || user.getId() == 731939675438317588L) {
-                serverVoiceChannelMemberJoinEvent.getUser().getConnectedVoiceChannel(server).get().connect().thenAccept(audioConnection -> {
-                    String trackUrl = null;
-                    if (user.getId() == 998958761618190421L) {
-                        trackUrl = "https://storage.rferee.dev/assets/media/audio/sukran.mp3";
-                    } else if (user.getId() == 394085232266969090L) {
-                        trackUrl = "https://storage.rferee.dev/assets/media/audio/dokaswam.mp3";
-                    } else if (user.getId() == 483991031306780683L) {
-                        trackUrl = "https://storage.rferee.dev/assets/media/audio/v_nalicii_yubico.mp3";
-                    } else if (user.getId() == 731939675438317588L) {
-                        trackUrl = "https://storage.rferee.dev/assets/media/audio/clown_short.mp3";
-                    }
-
-                    mp3Player(api, audioConnection, trackUrl, loopVar, null, 1,server);
-                });
-            }
-        });
-    }
-
-    // ============= YOUTUBE PLAYER METHOD ===============
-
-    public static void youtubePlayer(DiscordApi api, AudioConnection audioConnection, String trackUrl, SlashCommandCreateEvent slashCommandCreateEvent, AtomicBoolean loopVar){
-        AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
-        playerManager.registerSourceManager(new YoutubeAudioSourceManager());
-        AudioPlayer player = playerManager.createPlayer();
-        AudioSource source = new LavaplayerAudioSource(api, player);
-        audioConnection.setAudioSource(source);
-        playerManager.loadItem(trackUrl, new AudioLoadResultHandler() {
-            @Override
-            public void trackLoaded(AudioTrack track) {
-                System.out.println("Track loaded");
-                slashCommandCreateEvent.getInteraction()
-                        .respondLater()
-                        .thenAccept(message -> {
-                            message.setContent("Now playing \"" + track.getInfo().title + "\"").update();
-                        });
-                player.playTrack(track);
-
-                player.addListener(new AudioEventAdapter() {
-                    @Override
-                    public void onTrackEnd(AudioPlayer player, AudioTrack track, AudioTrackEndReason endReason) {
-                        if (endReason == AudioTrackEndReason.FINISHED) {
-                            if (loopVar.get() == true) {
-                                player.playTrack(track.makeClone());
-                                System.out.println("loop engaged");
-                            } else {
-                                System.out.println("loop disengaged");
-                            }
-                        }
-                    }
-                });
-            }
-
-            @Override
-            public void playlistLoaded(AudioPlaylist playlist) {
-
-            }
-
-            @Override
-            public void noMatches() {
-
-            }
-
-            @Override
-            public void loadFailed(FriendlyException exception) {
-                System.out.println("Failed to load track");
-            }
-
-        });
-    }
-
-    // =============== MP3 OR OTHER FORMATS PLAYER ===================
-
-    public static void mp3Player(DiscordApi api, AudioConnection audioConnection, String trackUrl, AtomicBoolean loopVar, SlashCommandCreateEvent slashCommandCreateEvent,int a, Server server){
-        AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
-        AudioSourceManager sourceManager = new HttpAudioSourceManager();
-        playerManager.registerSourceManager(sourceManager);
-        AudioPlayer player = playerManager.createPlayer();
-        AudioSource source = new LavaplayerAudioSource(api, player);
-        audioConnection.setAudioSource(source);
-        playerManager.loadItem(trackUrl, new AudioLoadResultHandler() {
-            @Override
-            public void trackLoaded(AudioTrack track) {
-                player.addListener(new AudioEventAdapter() {
-                    @Override
-                    public void onPlayerPause(AudioPlayer player) {
-                        // Player was paused
-                    }
-
-                    @Override
-                    public void onPlayerResume(AudioPlayer player) {
-                        // Player was resumed
-                    }
-
-                    @Override
-                    public void onTrackEnd(AudioPlayer player, AudioTrack track, AudioTrackEndReason endReason) {
-                        // Track finished playing
-                        if (endReason == AudioTrackEndReason.FINISHED.FINISHED) {
-                            if (loopVar.get() == true) {
-                                player.playTrack(track.makeClone());
-                            } else if (a == 1){
-                                server.getConnectedVoiceChannel(api.getYourself()).get().disconnect();
-                            }
-                        }
-                    }
-                });
-
-                if (a == 0) {
-                slashCommandCreateEvent.getInteraction()
-                        .respondLater()
-                        .thenAccept(message -> {
-                            message.setContent("Now playing \"" + track.getInfo().title + "\"").update();
-                        });
+                String trackUrl = null;
+                if (user.getId() == 998958761618190421L) {
+                    trackUrl = "https://storage.rferee.dev/assets/media/audio/sukran.mp3";
+                } else if (user.getId() == 394085232266969090L) {
+                    trackUrl = "https://storage.rferee.dev/assets/media/audio/dokaswam.mp3";
+                } else if (user.getId() == 483991031306780683L) {
+                    trackUrl = "https://storage.rferee.dev/assets/media/audio/v_nalicii_yubico.mp3";
+                } else if (user.getId() == 731939675438317588L) {
+                    trackUrl = "https://storage.rferee.dev/assets/media/audio/clown_short.mp3";
                 }
-                player.playTrack(track);
-            }
-
-            @Override
-            public void noMatches() {
-                System.out.println("No matches found for the provided URL.");
-            }
-
-            @Override
-            public void loadFailed(FriendlyException e) {
-                System.out.println("Failed to load track.");
-                e.printStackTrace();
-            }
-
-            @Override
-            public void playlistLoaded(AudioPlaylist playlist) {
-                System.out.println("Cannot load playlist from direct URL.");
+                if (api.getYourself().getConnectedVoiceChannel(server).isEmpty()) {
+                    String finalTrackUrl = trackUrl;
+                    serverVoiceChannelMemberJoinEvent.getUser().getConnectedVoiceChannel(server).get().connect().thenAccept(audioConnection -> {
+                        musicPlayer(api, audioConnection, finalTrackUrl, loopVar, null,1, server);
+                    });
+                } else {
+                    AudioConnection audioConnection = server.getAudioConnection().get();
+                    musicPlayer(api, audioConnection, trackUrl, loopVar, null,1, server);
+                }
             }
         });
     }
-
-
-
 
     public static String getUrl(String text) {
         try {
@@ -406,5 +298,14 @@ public class Main {
         }
 
         return "1";
+    }
+
+    public static String formatDuration(long millis) {
+        // Convert milliseconds to minutes and seconds
+        long minutes = TimeUnit.MILLISECONDS.toMinutes(millis);
+        long seconds = TimeUnit.MILLISECONDS.toSeconds(millis) - TimeUnit.MINUTES.toSeconds(minutes);
+
+        // Format the duration as a string
+        return String.format("%d:%02d", minutes, seconds);
     }
 }
