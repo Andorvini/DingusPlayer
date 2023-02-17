@@ -92,8 +92,10 @@ public class Player {
                             }
 
                         } else if (a == 1) {
-                            server.getConnectedVoiceChannel(api.getYourself()).get().disconnect();
-                            player.destroy();
+                            if (endReason == AudioTrackEndReason.FINISHED) {
+                                server.getConnectedVoiceChannel(api.getYourself()).get().disconnect();
+                                player.destroy();
+                            }
                         }
                     }
                 });
