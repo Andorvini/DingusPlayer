@@ -226,15 +226,15 @@ public class Main {
                     assert randomUser != null;
                     String trackUrl = getUrl(randomUser.getDisplayName(server));
 
-                    respondImmediately(interaction,randomUser.getMentionTag());
+                    respondImmediately(interaction,randomUser.getName());
 
                     if (api.getYourself().getConnectedVoiceChannel(server).isEmpty()) {
                         interaction.getUser().getConnectedVoiceChannel(server).get().connect().thenAccept(audioConnection -> {
-                            musicPlayer(api, audioConnection, trackUrl, loopVar, slashCommandCreateEvent,0, server);
+                            musicPlayer(api, audioConnection, trackUrl, loopVar, slashCommandCreateEvent,1, server);
                         });
                     } else {
                         AudioConnection audioConnection = server.getAudioConnection().get();
-                        musicPlayer(api, audioConnection, trackUrl, loopVar, slashCommandCreateEvent,0, server);
+                        musicPlayer(api, audioConnection, trackUrl, loopVar, slashCommandCreateEvent,1, server);
                     }
                 } else {
                     respondImmediately(interaction, "You are not connected to a voice channel");

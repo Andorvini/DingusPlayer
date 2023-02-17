@@ -88,7 +88,6 @@ public class Player {
                                     System.out.println("loop engaged");
                                 } else {
                                     System.out.println("loop disengaged");
-                                    server.getConnectedVoiceChannel(api.getYourself()).get().disconnect();
                                 }
                             }
 
