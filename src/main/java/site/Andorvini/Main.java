@@ -226,6 +226,8 @@ public class Main {
                     assert randomUser != null;
                     String trackUrl = getUrl(randomUser.getDisplayName(server));
 
+                    respondImmediately(interaction,randomUser.getMentionTag());
+
                     if (api.getYourself().getConnectedVoiceChannel(server).isEmpty()) {
                         interaction.getUser().getConnectedVoiceChannel(server).get().connect().thenAccept(audioConnection -> {
                             musicPlayer(api, audioConnection, trackUrl, loopVar, slashCommandCreateEvent,0, server);
