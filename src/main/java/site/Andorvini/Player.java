@@ -40,6 +40,10 @@ public class Player {
         return audioTrackNowPlaying;
     }
 
+    public static void stopPlaying() {
+        player.destroy();
+    }
+
 //    public static boolean isPlaying() {
 //        boolean isPlaying;;
 //
@@ -84,11 +88,13 @@ public class Player {
                                     System.out.println("loop engaged");
                                 } else {
                                     System.out.println("loop disengaged");
+                                    server.getConnectedVoiceChannel(api.getYourself()).get().disconnect();
                                 }
                             }
 
                         } else if (a == 1) {
-                            audioConnection.close().join();
+                            server.getConnectedVoiceChannel(api.getYourself()).get().disconnect();
+                            player.destroy();
                         }
                     }
                 });

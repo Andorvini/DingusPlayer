@@ -14,6 +14,8 @@ import org.javacord.api.interaction.*;
 
 import java.awt.*;
 import java.util.Arrays;
+import java.util.Random;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -25,8 +27,17 @@ public class Main {
 
         String token = null;
         token = System.getenv("DP_DISCORD_TOKEN");
+
+        String ssEbloApiToken = null;
+        ssEbloApiToken = System.getenv("API_KEY");
+
         if (token == null) {
             System.out.println("DP_DISCORD_TOKEN environment variable not set");
+            System.exit(1);
+        }
+
+        if (ssEbloApiToken == null) {
+            System.out.println("API_KEY environment variable not set");
             System.exit(1);
         }
 
@@ -84,11 +95,16 @@ public class Main {
                 .createGlobal(api)
                 .join();
 
+        SlashCommand randomPlayer = SlashCommand.with("random","Pick random user")
+                .createGlobal(api)
+                .join();
+
         api.addSlashCommandCreateListener(slashCommandCreateEvent -> {
             SlashCommandInteraction interaction = slashCommandCreateEvent.getSlashCommandInteraction();
             Server server = slashCommandCreateEvent.getInteraction().getServer().get();
+            String fullCommandName = interaction.getFullCommandName();
 
-            if (interaction.getFullCommandName().equals("phony")) {
+            if (fullCommandName.equals("phony")) {
                 if (interaction.getUser().getConnectedVoiceChannel(server).isPresent()) {
                     AtomicReference<String> trackUrl = new AtomicReference<>("https://storage.rferee.dev/assets/media/audio/phony-ru.flac");
                     String interactionOption = interaction.getOptionByName("version").get().getStringValue().get();
@@ -108,12 +124,9 @@ public class Main {
                         musicPlayer(api, audioConnection, trackUrl.get(), loopVar, slashCommandCreateEvent, 0, server);
                     }
                 } else {
-                    interaction.createImmediateResponder()
-                            .setContent("You are not connected to a voice channel")
-                            .respond()
-                            .join();
+                    respondImmediately(interaction, "You are not connected to a voice channel");
                 }
-            } else if (interaction.getFullCommandName().equals("play")) {
+            } else if (fullCommandName.equals("play")) {
                 if (interaction.getUser().getConnectedVoiceChannel(server).isPresent()) {
                     String trackUrl = interaction.getOptionByName("url").get().getStringValue().get().replaceAll("\\[", "%5B").replaceAll("]", "%5D");
 
@@ -126,40 +139,26 @@ public class Main {
                         musicPlayer(api, audioConnection, trackUrl, loopVar, slashCommandCreateEvent,0, server);
                     }
                 } else {
-                    interaction.createImmediateResponder()
-                            .setContent("You are not connected to a voice channel")
-                            .respond()
-                            .join();
+                    respondImmediately(interaction, "You are not connected to a voice channel");
                 }
-            } else if (interaction.getFullCommandName().equals("loop")) {
+            } else if (fullCommandName.equals("loop")) {
                 if (loopVar.get() == false) {
                     loopVar.set(true);
-                    interaction.createImmediateResponder()
-                            .setContent("Looping is now enabled")
-                            .respond()
-                            .join();
+                    respondImmediately(interaction,"Looping is now enabled");
                 } else {
                     loopVar.set(false);
-                    interaction.createImmediateResponder()
-                            .setContent("Looping is now disabled")
-                            .respond()
-                            .join();
+                    respondImmediately(interaction,"Looping is now disabled");
                 }
-            } else if (interaction.getFullCommandName().equals("leave")) {
+            } else if (fullCommandName.equals("leave")) {
                 if (server.getConnectedVoiceChannel(api.getYourself()).isPresent()) {
-                    interaction.createImmediateResponder()
-                            .setContent("Leaving voice channel \"" + server.getConnectedVoiceChannel(api.getYourself()).get().getName() + "\"" )
-                            .respond()
-                            .join();
-                        server.getConnectedVoiceChannel(api.getYourself()).get().disconnect();
-                } else {
-                    interaction.createImmediateResponder()
-                            .setContent("I am not connected to a voice channel")
-                            .respond()
-                            .join();
+                    respondImmediately(interaction, "Leaving voice channel \"" + server.getConnectedVoiceChannel(api.getYourself()).get().getName() + "\"");
 
+                    server.getConnectedVoiceChannel(api.getYourself()).get().disconnect();
+                    stopPlaying();
+                } else {
+                    respondImmediately(interaction, "I am not connected to a voice channel");
                 }
-            } else if (interaction.getFullCommandName().equals("sseblo")) {
+            } else if (fullCommandName.equals("sseblo")) {
                 String textToConvert = interaction.getOptionByName("text").get().getStringValue().get();
 
                 String convertedUrl = getUrl(textToConvert);
@@ -168,16 +167,13 @@ public class Main {
                 interaction.getUser().getConnectedVoiceChannel(server).get().connect().thenAccept(audioConnection -> {
                     musicPlayer(api,audioConnection,convertedUrl,loopVar,slashCommandCreateEvent,0, server);
                 });
-            } else if (interaction.getFullCommandName().equals("clear")) {
+            } else if (fullCommandName.equals("clear")) {
                 long count = interaction.getOptionByName("count").get().getLongValue().get() + 1;
                 TextChannel channel = interaction.getChannel().get();
 
                 MessageSet messagesToDelete = channel.getMessages((int) count).join();
 
-                interaction.createImmediateResponder()
-                        .setContent("Deleted " + count + " messages")
-                        .respond()
-                        .join();
+                respondImmediately(interaction, "Deleted " + count + " messages");
 
                 try {
                     Thread.sleep(2000);
@@ -186,21 +182,17 @@ public class Main {
                 }
 
                 channel.bulkDelete(messagesToDelete);
-            } else if (interaction.getFullCommandName().equals("pause")) {
+            } else if (fullCommandName.equals("pause")) {
                 if (Player.getPause()) {
-                    interaction.createImmediateResponder()
-                            .setContent("Unpaused")
-                            .respond()
-                            .join();
+                    respondImmediately(interaction, "Unpaused");
+
                     Player.setPause(false);
                 } else {
-                    interaction.createImmediateResponder()
-                            .setContent("Paused")
-                            .respond()
-                            .join();
+                    respondImmediately(interaction, "Paused");
+
                     Player.setPause(true);
                 }
-            } else if (interaction.getFullCommandName().equals("np")) {
+            } else if (fullCommandName.equals("np")) {
                 AudioTrack audioTrackNowPlaying = Player.getAudioTrackNowPlaying();
                 TextChannel channel = interaction.getChannel().get();
 
@@ -225,6 +217,26 @@ public class Main {
                         .addEmbeds(embed)
                         .respond()
                         .join();
+            } else if (fullCommandName.equals("random")) {
+                if (interaction.getUser().getConnectedVoiceChannel(server).isPresent()) {
+                    Set<User> userSet = interaction.getUser().getConnectedVoiceChannel(server).get().getConnectedUsers();
+
+                    User randomUser = userSet.stream().skip(new Random().nextInt(userSet.size())).findFirst().orElse(null);
+
+                    assert randomUser != null;
+                    String trackUrl = getUrl(randomUser.getDisplayName(server));
+
+                    if (api.getYourself().getConnectedVoiceChannel(server).isEmpty()) {
+                        interaction.getUser().getConnectedVoiceChannel(server).get().connect().thenAccept(audioConnection -> {
+                            musicPlayer(api, audioConnection, trackUrl, loopVar, slashCommandCreateEvent,0, server);
+                        });
+                    } else {
+                        AudioConnection audioConnection = server.getAudioConnection().get();
+                        musicPlayer(api, audioConnection, trackUrl, loopVar, slashCommandCreateEvent,0, server);
+                    }
+                } else {
+                    respondImmediately(interaction, "You are not connected to a voice channel");
+                }
             }
         });
 
@@ -307,5 +319,12 @@ public class Main {
 
         // Format the duration as a string
         return String.format("%d:%02d", minutes, seconds);
+    }
+
+    public static void respondImmediately(SlashCommandInteraction interaction,String text){
+        interaction.createImmediateResponder()
+                .setContent(text)
+                .respond()
+                .join();
     }
 }
