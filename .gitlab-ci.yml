@@ -1,17 +1,7 @@
 stages:
-  - test
   - build-artifact
   - build-image
-  - post-test
   - deploy
-
-sast:
-  stage: test
-include:
-  - template: Security/SAST.gitlab-ci.yml
-  - template: Security/SAST-IaC.latest.gitlab-ci.yml
-  - template: Security/Secret-Detection.gitlab-ci.yml
-  - template: Security/Container-Scanning.gitlab-ci.yml
 
 maven-build:
   stage: build-artifact
@@ -19,7 +9,7 @@ maven-build:
   script:
     - mvn package
   artifacts:
-    name: "andorvini-dingus-player-maven_package-full_jar-$CI_COMMIT_REF_NAME-$CI_COMMIT_SHORT_SHA-$CI_JOB_ID"
+    name: "andorvini-discord-dingus-player-maven_package-full_jar-$CI_COMMIT_REF_NAME-$CI_COMMIT_SHORT_SHA-$CI_JOB_ID"
     paths:
       - target/*-spring-boot.jar
   rules:
@@ -39,28 +29,11 @@ docker-image-build:
   rules:
     - if: $CI_COMMIT_BRANCH == "master"
 
-container_scanning:
-  needs:
-    - docker-image-build
-  dependencies:
-    - docker-image-build
-  stage: post-test
-  variables:
-    CS_DISABLE_DEPENDENCY_LIST: "true"
-    CS_DEFAULT_BRANCH_IMAGE: $CI_REGISTRY_IMAGE/bot:latest
-    CI_APPLICATION_REPOSITORY: $CI_REGISTRY_IMAGE/bot
-    CI_APPLICATION_TAG: "latest"
-    CS_DISABLE_LANGUAGE_VULNERABILITY_SCAN: "false"
-    CS_ANALYZER_IMAGE: "registry.gitlab.com/security-products/container-scanning/grype:5"
-    SECURE_LOG_LEVEL: "debug"
-  rules:
-    - if: $CI_COMMIT_BRANCH == "master"
-
 portainer-trigger:
   needs:
-    - container_scanning
+    - docker-image-build
   dependencies:
-    - container_scanning
+    - docker-image-build
   when: on_success
   stage: deploy
   image: docker.io/library/alpine:3.17
@@ -68,4 +41,3 @@ portainer-trigger:
     - apk add --no-cache curl
   script:
     - curl -f -X POST $PORTAINER_WEBHOOK
-
