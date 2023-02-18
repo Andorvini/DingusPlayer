@@ -1,21 +1,25 @@
 package site.Andorvini;
 
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
+
 import okhttp3.*;
+
 import org.javacord.api.DiscordApi;
 import org.javacord.api.DiscordApiBuilder;
 import org.javacord.api.audio.AudioConnection;
+import org.javacord.api.entity.activity.Activity;
+import org.javacord.api.entity.channel.ServerVoiceChannel;
 import org.javacord.api.entity.channel.TextChannel;
+import org.javacord.api.entity.channel.VoiceChannel;
 import org.javacord.api.entity.message.MessageSet;
 import org.javacord.api.entity.message.embed.EmbedBuilder;
 import org.javacord.api.entity.server.Server;
 import org.javacord.api.entity.user.User;
 import org.javacord.api.interaction.*;
+import org.javacord.api.entity.activity.ActivityType;
 
 import java.awt.*;
-import java.util.Arrays;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -24,6 +28,8 @@ import static site.Andorvini.Player.*;
 
 public class Main {
     public static void main(String[] args) {
+
+        // ============== TOKEN PROCCESING =============
 
         String token = null;
         token = System.getenv("DP_DISCORD_TOKEN");
@@ -41,10 +47,16 @@ public class Main {
             System.exit(1);
         }
 
+        // ============== BOT CREATION ==================
+
         AtomicBoolean loopVar = new AtomicBoolean(false);
 
         DiscordApi api = new DiscordApiBuilder().setToken(token).login().join();
 
+        // ================ ACVTIVITY SET =====================
+        api.updateActivity(ActivityType.LISTENING,"\"Antipathy World\"");
+
+        // ================== SLASH COMMAND CREATION ==================
         SlashCommand play =
                 SlashCommand.with("play","Play music from provided Youtube URL",
                                 Arrays. asList(
@@ -105,11 +117,33 @@ public class Main {
 
         api.addSlashCommandCreateListener(slashCommandCreateEvent -> {
             SlashCommandInteraction interaction = slashCommandCreateEvent.getSlashCommandInteraction();
-            Server server = slashCommandCreateEvent.getInteraction().getServer().get();
+            Server server = null;
             String fullCommandName = interaction.getFullCommandName();
 
-            if (fullCommandName.equals("phony")) {
-                if (interaction.getUser().getConnectedVoiceChannel(server).isPresent()) {
+            Optional<ServerVoiceChannel> optionalUserVoiceChannel = null;
+            ServerVoiceChannel userVoiceChannel = null;
+
+            Optional<ServerVoiceChannel> optionalBotVoiceChannel = null;
+            ServerVoiceChannel botVoiceChannel = null;
+
+            try {
+                server = slashCommandCreateEvent.getInteraction().getServer().get();
+                optionalUserVoiceChannel = interaction.getUser().getConnectedVoiceChannel(server);
+                userVoiceChannel = optionalUserVoiceChannel.get();
+
+                optionalBotVoiceChannel = api.getYourself().getConnectedVoiceChannel(server);
+                botVoiceChannel = optionalBotVoiceChannel.get();
+            } catch (NoSuchElementException e) {
+                System.out.println("[WARN] Maybe personal messages use");
+            }
+
+            if (!interaction.getChannel().get().getType().isServerChannelType()) {
+                interaction.createImmediateResponder()
+                        .setContent("Use this bot only on server!")
+                        .respond()
+                        .join();
+            } else if (fullCommandName.equals("phony")) {
+                if (optionalUserVoiceChannel.isPresent()) {
                     AtomicReference<String> trackUrl = new AtomicReference<>("https://storage.rferee.dev/assets/media/audio/phony-ru.flac");
                     String interactionOption = interaction.getOptionByName("version").get().getStringValue().get();
 
@@ -119,9 +153,10 @@ public class Main {
                         trackUrl.set("https://storage.rferee.dev/assets/media/audio/phony-jp.flac");
                     }
 
-                    if (api.getYourself().getConnectedVoiceChannel(server).isEmpty()) {
-                        interaction.getUser().getConnectedVoiceChannel(server).get().connect().thenAccept(audioConnection -> {
-                            musicPlayer(api, audioConnection, trackUrl.get(), loopVar, slashCommandCreateEvent,true, server);
+                    if (optionalBotVoiceChannel.isEmpty()) {
+                        Server finalServer = server;
+                        userVoiceChannel.connect().thenAccept(audioConnection -> {
+                            musicPlayer(api, audioConnection, trackUrl.get(), loopVar, slashCommandCreateEvent,true, finalServer);
                         });
                     } else {
                         AudioConnection audioConnection = server.getAudioConnection().get();
@@ -131,12 +166,13 @@ public class Main {
                     respondImmediately(interaction, "You are not connected to a voice channel");
                 }
             } else if (fullCommandName.equals("play")) {
-                if (interaction.getUser().getConnectedVoiceChannel(server).isPresent()) {
+                if (optionalUserVoiceChannel.isPresent()) {
                     String trackUrl = interaction.getOptionByName("url").get().getStringValue().get().replaceAll("\\[", "%5B").replaceAll("]", "%5D");
 
-                    if (api.getYourself().getConnectedVoiceChannel(server).isEmpty()) {
-                        interaction.getUser().getConnectedVoiceChannel(server).get().connect().thenAccept(audioConnection -> {
-                            musicPlayer(api, audioConnection, trackUrl, loopVar, slashCommandCreateEvent,true, server);
+                    if (optionalBotVoiceChannel.isEmpty()) {
+                        Server finalServer = server;
+                        userVoiceChannel.connect().thenAccept(audioConnection -> {
+                            musicPlayer(api, audioConnection, trackUrl, loopVar, slashCommandCreateEvent,true, finalServer);
                         });
                     } else {
                         AudioConnection audioConnection = server.getAudioConnection().get();
@@ -154,10 +190,10 @@ public class Main {
                     respondImmediately(interaction,"Looping is now disabled");
                 }
             } else if (fullCommandName.equals("leave")) {
-                if (server.getConnectedVoiceChannel(api.getYourself()).isPresent()) {
+                if (optionalBotVoiceChannel.isPresent()) {
                     respondImmediately(interaction, "Leaving voice channel \"" + server.getConnectedVoiceChannel(api.getYourself()).get().getName() + "\"");
 
-                    server.getConnectedVoiceChannel(api.getYourself()).get().disconnect();
+                    botVoiceChannel.disconnect();
                     stopPlaying();
                 } else {
                     respondImmediately(interaction, "I am not connected to a voice channel");
@@ -166,10 +202,11 @@ public class Main {
                 String textToConvert = interaction.getOptionByName("text").get().getStringValue().get();
 
                 String convertedUrl = getUrl(textToConvert);
-                interaction.createImmediateResponder().setContent("Playing \"" + textToConvert + "\" with Alyona Flirt ").respond();
+                respondImmediately(interaction, "Playing \"" + textToConvert + "\" with Alyona Flirt ");
 
-                interaction.getUser().getConnectedVoiceChannel(server).get().connect().thenAccept(audioConnection -> {
-                    musicPlayer(api,audioConnection,convertedUrl,loopVar,slashCommandCreateEvent,true, server);
+                Server finalServer = server;
+                userVoiceChannel.connect().thenAccept(audioConnection -> {
+                    musicPlayer(api,audioConnection,convertedUrl,loopVar,slashCommandCreateEvent,true, finalServer);
                 });
             } else if (fullCommandName.equals("clear")) {
                 long count = interaction.getOptionByName("count").get().getLongValue().get() + 1;
@@ -197,32 +234,51 @@ public class Main {
                     Player.setPause(true);
                 }
             } else if (fullCommandName.equals("np")) {
+
                 AudioTrack audioTrackNowPlaying = Player.getAudioTrackNowPlaying();
+
                 TextChannel channel = interaction.getChannel().get();
 
-                long duration = audioTrackNowPlaying.getDuration();
-                long position = audioTrackNowPlaying.getPosition();
+                long duration = 0;
+                long position = 0;
 
-                String identifier = audioTrackNowPlaying.getIdentifier();
-                if (identifier.startsWith("http")) {
+                String identifier = null;
 
-                } else {
-                    identifier = "https://www.youtube.com/watch?v=" + identifier;
+                if (audioTrackNowPlaying != null) {
+                    duration = audioTrackNowPlaying.getDuration();
+                    position = audioTrackNowPlaying.getPosition();
+
+                    identifier = audioTrackNowPlaying.getIdentifier();
+
+                    if (identifier.startsWith("http")) {
+
+                    } else {
+                        identifier = "https://www.youtube.com/watch?v=" + identifier;
+                    }
                 }
 
-                EmbedBuilder embed = new EmbedBuilder()
-                        .setAuthor(audioTrackNowPlaying.getInfo().title, identifier , "https://indiefy.net/static/img/landing/distribution/icons/apple_music_icon.png")
-                        .setTitle("Duration")
-                        .setDescription(formatDuration(position) + " / " + formatDuration(duration))
-                        .addField("A field", "__Some text inside the field__")
-                        .setColor(Color.ORANGE);
+                EmbedBuilder embed = null;
+
+                if (audioTrackNowPlaying == null) {
+                    embed = new EmbedBuilder()
+                            .setAuthor("No playing track")
+                            .setDescription("Use `/play` command to play track")
+                            .setColor(Color.RED);
+                } else {
+                    embed = new EmbedBuilder()
+                            .setAuthor(audioTrackNowPlaying.getInfo().title, identifier, "https://indiefy.net/static/img/landing/distribution/icons/apple_music_icon.png")
+                            .setTitle("Duration")
+                            .setDescription(formatDuration(position) + " / " + formatDuration(duration))
+                            .addField("A field", "__Some text inside the field__")
+                            .setColor(Color.ORANGE);
+                }
 
                 interaction.createImmediateResponder()
                         .addEmbeds(embed)
                         .respond()
                         .join();
             } else if (fullCommandName.equals("random")) {
-                if (interaction.getUser().getConnectedVoiceChannel(server).isPresent()) {
+                if (optionalUserVoiceChannel.isPresent()) {
                     Set<User> userSet = interaction.getUser().getConnectedVoiceChannel(server).get().getConnectedUsers();
 
                     User randomUser = userSet.stream().skip(new Random().nextInt(userSet.size())).findFirst().orElse(null);
@@ -232,9 +288,10 @@ public class Main {
 
                     respondImmediately(interaction,randomUser.getName());
 
-                    if (api.getYourself().getConnectedVoiceChannel(server).isEmpty()) {
+                    if (optionalBotVoiceChannel.isEmpty()) {
+                        Server finalServer = server;
                         interaction.getUser().getConnectedVoiceChannel(server).get().connect().thenAccept(audioConnection -> {
-                            musicPlayer(api, audioConnection, trackUrl, loopVar, slashCommandCreateEvent,false, server);
+                            musicPlayer(api, audioConnection, trackUrl, loopVar, slashCommandCreateEvent,false, finalServer);
                         });
                     } else {
                         AudioConnection audioConnection = server.getAudioConnection().get();
@@ -250,7 +307,6 @@ public class Main {
 
         api.addServerVoiceChannelMemberJoinListener(serverVoiceChannelMemberJoinEvent -> {
             Server server = serverVoiceChannelMemberJoinEvent.getServer();
-
             User user = serverVoiceChannelMemberJoinEvent.getUser();
 
             /*
@@ -260,25 +316,22 @@ public class Main {
             * 731939675438317588 = clown = clown(sasha) = https://storage.rferee.dev/assets/media/audio/clown_short.mp3
              */
 
-            if (user.getId() == 998958761618190421L || user.getId() == 394085232266969090L || user.getId() == 483991031306780683L || user.getId() == 731939675438317588L) {
-                String trackUrl = null;
-                if (user.getId() == 998958761618190421L) {
-                    trackUrl = "https://storage.rferee.dev/assets/media/audio/sukran.mp3";
-                } else if (user.getId() == 394085232266969090L) {
-                    trackUrl = "https://storage.rferee.dev/assets/media/audio/dokaswam.mp3";
-                } else if (user.getId() == 483991031306780683L) {
-                    trackUrl = "https://storage.rferee.dev/assets/media/audio/v_nalicii_yubico.mp3";
-                } else if (user.getId() == 731939675438317588L) {
-                    trackUrl = "https://storage.rferee.dev/assets/media/audio/clown_short.mp3";
-                }
+            HashMap<Long, String> userAudio = new HashMap<>();
+            userAudio.put(998958761618190421L, "https://storage.rferee.dev/assets/media/audio/sukran.mp3");
+            userAudio.put(394085232266969090L, "https://storage.rferee.dev/assets/media/audio/dokaswam.mp3");
+            userAudio.put(483991031306780683L, "https://storage.rferee.dev/assets/media/audio/v_nalicii_yubico.mp3");
+            userAudio.put(731939675438317588L, "https://storage.rferee.dev/assets/media/audio/clown_short.mp3");
+
+            if (userAudio.containsKey(user.getId())) {
+                String trackUrl = userAudio.get(user.getId());
                 if (api.getYourself().getConnectedVoiceChannel(server).isEmpty()) {
                     String finalTrackUrl = trackUrl;
                     serverVoiceChannelMemberJoinEvent.getUser().getConnectedVoiceChannel(server).get().connect().thenAccept(audioConnection -> {
-                        musicPlayer(api, audioConnection, finalTrackUrl, loopVar, null,false, server);
+                        musicPlayer(api, audioConnection, finalTrackUrl, loopVar, null, false, server);
                     });
                 } else {
                     AudioConnection audioConnection = server.getAudioConnection().get();
-                    musicPlayer(api, audioConnection, trackUrl, loopVar, null,false, server);
+                    musicPlayer(api, audioConnection, trackUrl, loopVar, null, false, server);
                 }
             }
         });

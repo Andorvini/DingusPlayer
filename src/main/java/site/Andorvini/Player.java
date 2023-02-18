@@ -37,7 +37,7 @@ public class Player {
     }
 
     public static AudioTrack getAudioTrackNowPlaying() {
-        return audioTrackNowPlaying;
+        return audioTrackNowPlaying = player.getPlayingTrack();
     }
 
     public static void stopPlaying() {
@@ -74,29 +74,29 @@ public class Player {
                                 message.setContent("Now playing `\"" + track.getInfo().title + "\"`").update();
                             });
                 }
-                player.playTrack(track);
-
-                audioTrackNowPlaying = track;
-
                 player.addListener(new AudioEventAdapter() {
                     @Override
                     public void onTrackEnd(AudioPlayer player, AudioTrack track, AudioTrackEndReason endReason) {
                         if (endReason == AudioTrackEndReason.FINISHED) {
                             if (isSlash) {
+                                System.out.println("[MSG] Detected slash command");
+
                                 if (loopVar.get() == true) {
                                     player.playTrack(track.makeClone());
                                     System.out.println("[MSG] Loop engaged");
-                                    audioTrackNowPlaying = track;
                                 } else {
                                     System.out.println("[MSG] Loop disengaged");
+                                    stopPlaying();
                                 }
                             } else {
+                                System.out.println("[MSG] No slash command detected");
                                 server.getConnectedVoiceChannel(api.getYourself()).get().disconnect();
-                                player.destroy();
+                                stopPlaying();
                             }
                         }
                     }
                 });
+                player.playTrack(track);
             }
 
             @Override
