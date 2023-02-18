@@ -71,7 +71,7 @@ public class Player {
                     slashCommandCreateEvent.getInteraction()
                             .respondLater()
                             .thenAccept(message -> {
-                                message.setContent("Now playing `\"" + track.getInfo().title + "\"`").update();
+                                message.setContent("Now playing `" + track.getInfo().title + "`").update();
                             });
                 }
                 player.addListener(new AudioEventAdapter() {
