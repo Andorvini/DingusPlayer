@@ -111,7 +111,8 @@ public class Player {
 
             @Override
             public void loadFailed(FriendlyException exception) {
-                System.out.println("[MSG] Failed to load track: " + exception.getStackTrace());
+                System.out.println("[MSG] Failed to load track: ");
+                exception.printStackTrace();
             }
 
         });

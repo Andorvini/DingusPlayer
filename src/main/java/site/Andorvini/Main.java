@@ -115,6 +115,10 @@ public class Main {
                 .createGlobal(api)
                 .join();
 
+        SlashCommand queue = SlashCommand.with("queue", "Shows all tracks in queue")
+                .createGlobal(api)
+                .join();
+
         api.addSlashCommandCreateListener(slashCommandCreateEvent -> {
             SlashCommandInteraction interaction = slashCommandCreateEvent.getSlashCommandInteraction();
             Server server = null;
@@ -134,6 +138,7 @@ public class Main {
                 optionalBotVoiceChannel = api.getYourself().getConnectedVoiceChannel(server);
                 botVoiceChannel = optionalBotVoiceChannel.get();
             } catch (NoSuchElementException e) {
+                e.printStackTrace();
                 System.out.println("[WARN] Maybe personal messages use");
             }
 
