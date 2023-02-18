@@ -56,7 +56,7 @@ public class Player {
 //        return isPlaying;
 //    }
 
-    public static void musicPlayer(DiscordApi api, AudioConnection audioConnection, String trackUrl, AtomicBoolean loopVar, SlashCommandCreateEvent slashCommandCreateEvent, int a, Server server){
+    public static void musicPlayer(DiscordApi api, AudioConnection audioConnection, String trackUrl, AtomicBoolean loopVar, SlashCommandCreateEvent slashCommandCreateEvent, boolean isSlash, Server server){
         AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
         playerManager.registerSourceManager(new YoutubeAudioSourceManager());
         playerManager.registerSourceManager(new HttpAudioSourceManager());
@@ -66,8 +66,8 @@ public class Player {
         playerManager.loadItem(trackUrl, new AudioLoadResultHandler() {
             @Override
             public void trackLoaded(AudioTrack track) {
-                System.out.println("Track loaded");
-                if (a == 0) {
+                System.out.println("[MSG] Track: " + track.getInfo().title +  " loaded");
+                if (isSlash) {
                     slashCommandCreateEvent.getInteraction()
                             .respondLater()
                             .thenAccept(message -> {
@@ -81,18 +81,16 @@ public class Player {
                 player.addListener(new AudioEventAdapter() {
                     @Override
                     public void onTrackEnd(AudioPlayer player, AudioTrack track, AudioTrackEndReason endReason) {
-                        if (a == 0) {
-                            if (endReason == AudioTrackEndReason.FINISHED) {
+                        if (endReason == AudioTrackEndReason.FINISHED) {
+                            if (isSlash) {
                                 if (loopVar.get() == true) {
                                     player.playTrack(track.makeClone());
-                                    System.out.println("loop engaged");
+                                    System.out.println("[MSG] Loop engaged");
+                                    audioTrackNowPlaying = track;
                                 } else {
-                                    System.out.println("loop disengaged");
+                                    System.out.println("[MSG] Loop disengaged");
                                 }
-                            }
-
-                        } else if (a == 1) {
-                            if (endReason == AudioTrackEndReason.FINISHED) {
+                            } else {
                                 server.getConnectedVoiceChannel(api.getYourself()).get().disconnect();
                                 player.destroy();
                             }
@@ -113,7 +111,7 @@ public class Player {
 
             @Override
             public void loadFailed(FriendlyException exception) {
-                System.out.println("Failed to load track");
+                System.out.println("[MSG] Failed to load track: " + exception.getStackTrace());
             }
 
         });

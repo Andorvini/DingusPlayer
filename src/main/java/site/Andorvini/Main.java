@@ -32,12 +32,12 @@ public class Main {
         ssEbloApiToken = System.getenv("API_KEY");
 
         if (token == null) {
-            System.out.println("DP_DISCORD_TOKEN environment variable not set");
+            System.out.println("[ERROR] DP_DISCORD_TOKEN environment variable not found");
             System.exit(1);
         }
 
         if (ssEbloApiToken == null) {
-            System.out.println("API_KEY environment variable not set");
+            System.out.println("[ERROR] API_KEY environment variable not found");
             System.exit(1);
         }
 
@@ -47,7 +47,7 @@ public class Main {
 
         SlashCommand play =
                 SlashCommand.with("play","Play music from provided Youtube URL",
-                                Arrays.asList(
+                                Arrays. asList(
                                         SlashCommandOption.create(SlashCommandOptionType.STRING, "url", "Youtube url", true)
                                 ))
                 .createGlobal(api)
@@ -99,6 +99,10 @@ public class Main {
                 .createGlobal(api)
                 .join();
 
+        SlashCommand ping = SlashCommand.with("ping", "Ping!")
+                .createGlobal(api)
+                .join();
+
         api.addSlashCommandCreateListener(slashCommandCreateEvent -> {
             SlashCommandInteraction interaction = slashCommandCreateEvent.getSlashCommandInteraction();
             Server server = slashCommandCreateEvent.getInteraction().getServer().get();
@@ -117,11 +121,11 @@ public class Main {
 
                     if (api.getYourself().getConnectedVoiceChannel(server).isEmpty()) {
                         interaction.getUser().getConnectedVoiceChannel(server).get().connect().thenAccept(audioConnection -> {
-                            musicPlayer(api, audioConnection, trackUrl.get(), loopVar, slashCommandCreateEvent,0, server);
+                            musicPlayer(api, audioConnection, trackUrl.get(), loopVar, slashCommandCreateEvent,true, server);
                         });
                     } else {
                         AudioConnection audioConnection = server.getAudioConnection().get();
-                        musicPlayer(api, audioConnection, trackUrl.get(), loopVar, slashCommandCreateEvent, 0, server);
+                        musicPlayer(api, audioConnection, trackUrl.get(), loopVar, slashCommandCreateEvent, true, server);
                     }
                 } else {
                     respondImmediately(interaction, "You are not connected to a voice channel");
@@ -132,11 +136,11 @@ public class Main {
 
                     if (api.getYourself().getConnectedVoiceChannel(server).isEmpty()) {
                         interaction.getUser().getConnectedVoiceChannel(server).get().connect().thenAccept(audioConnection -> {
-                            musicPlayer(api, audioConnection, trackUrl, loopVar, slashCommandCreateEvent,0, server);
+                            musicPlayer(api, audioConnection, trackUrl, loopVar, slashCommandCreateEvent,true, server);
                         });
                     } else {
                         AudioConnection audioConnection = server.getAudioConnection().get();
-                        musicPlayer(api, audioConnection, trackUrl, loopVar, slashCommandCreateEvent,0, server);
+                        musicPlayer(api, audioConnection, trackUrl, loopVar, slashCommandCreateEvent,true, server);
                     }
                 } else {
                     respondImmediately(interaction, "You are not connected to a voice channel");
@@ -165,7 +169,7 @@ public class Main {
                 interaction.createImmediateResponder().setContent("Playing \"" + textToConvert + "\" with Alyona Flirt ").respond();
 
                 interaction.getUser().getConnectedVoiceChannel(server).get().connect().thenAccept(audioConnection -> {
-                    musicPlayer(api,audioConnection,convertedUrl,loopVar,slashCommandCreateEvent,0, server);
+                    musicPlayer(api,audioConnection,convertedUrl,loopVar,slashCommandCreateEvent,true, server);
                 });
             } else if (fullCommandName.equals("clear")) {
                 long count = interaction.getOptionByName("count").get().getLongValue().get() + 1;
@@ -230,15 +234,17 @@ public class Main {
 
                     if (api.getYourself().getConnectedVoiceChannel(server).isEmpty()) {
                         interaction.getUser().getConnectedVoiceChannel(server).get().connect().thenAccept(audioConnection -> {
-                            musicPlayer(api, audioConnection, trackUrl, loopVar, slashCommandCreateEvent,1, server);
+                            musicPlayer(api, audioConnection, trackUrl, loopVar, slashCommandCreateEvent,false, server);
                         });
                     } else {
                         AudioConnection audioConnection = server.getAudioConnection().get();
-                        musicPlayer(api, audioConnection, trackUrl, loopVar, slashCommandCreateEvent,1, server);
+                        musicPlayer(api, audioConnection, trackUrl, loopVar, slashCommandCreateEvent,false, server);
                     }
                 } else {
                     respondImmediately(interaction, "You are not connected to a voice channel");
                 }
+            } else if (fullCommandName.equals("ping")) {
+                respondImmediately(interaction, "Pong!");
             }
         });
 
@@ -268,11 +274,11 @@ public class Main {
                 if (api.getYourself().getConnectedVoiceChannel(server).isEmpty()) {
                     String finalTrackUrl = trackUrl;
                     serverVoiceChannelMemberJoinEvent.getUser().getConnectedVoiceChannel(server).get().connect().thenAccept(audioConnection -> {
-                        musicPlayer(api, audioConnection, finalTrackUrl, loopVar, null,1, server);
+                        musicPlayer(api, audioConnection, finalTrackUrl, loopVar, null,false, server);
                     });
                 } else {
                     AudioConnection audioConnection = server.getAudioConnection().get();
-                    musicPlayer(api, audioConnection, trackUrl, loopVar, null,1, server);
+                    musicPlayer(api, audioConnection, trackUrl, loopVar, null,false, server);
                 }
             }
         });
