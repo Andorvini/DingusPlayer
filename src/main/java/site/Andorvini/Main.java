@@ -53,7 +53,6 @@ public class Main {
         AtomicBoolean loopVar = new AtomicBoolean(false);
 
         DiscordApi api = new DiscordApiBuilder().setToken(token).login().join();
-
         // ================ ACVTIVITY SET =====================
         api.updateActivity(ActivityType.LISTENING,"\"Antipathy World\"");
 
@@ -123,6 +122,14 @@ public class Main {
         SlashCommand lyrics = SlashCommand.with("lyrics", "Shows lyrics of currently playing track")
                 .createGlobal(api)
                 .join();
+
+        SlashCommand volume = SlashCommand.with("volume","Set the volume",
+                        Arrays.asList(
+                                SlashCommandOption.create(SlashCommandOptionType.LONG, "volumelvl", "Volume level", true)
+                        ))
+                .createGlobal(api)
+                .join();
+
 
         api.addSlashCommandCreateListener(slashCommandCreateEvent -> {
             SlashCommandInteraction interaction = slashCommandCreateEvent.getSlashCommandInteraction();
@@ -313,6 +320,11 @@ public class Main {
                 respondImmediately(interaction, "Pong!");
             } else if (fullCommandName.equals("lyrics")) {
                 respondImmediately(interaction, "Not implemented yet. (Because musixmatch shit)");
+            } else if (fullCommandName.equals("volume")) {
+                Long volumeLevel = interaction.getOptionByName("volumelvl").get().getLongValue().get();
+                setVolume(volumeLevel);
+
+                respondImmediately(interaction, "Volume set to " + volumeLevel);
             }
         });
 
@@ -381,7 +393,7 @@ public class Main {
             e.printStackTrace();
         }
 
-        return "1";
+        return null;
     }
 
     public static String formatDuration(long millis) {

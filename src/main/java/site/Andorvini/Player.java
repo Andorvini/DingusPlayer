@@ -44,6 +44,10 @@ public class Player {
         player.destroy();
     }
 
+    public static void setVolume(Long volumeLevel) {
+        player.setVolume(Math.toIntExact(volumeLevel));
+    }
+
 //    public static boolean isPlaying() {
 //        boolean isPlaying;;
 //
