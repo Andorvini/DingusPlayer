@@ -48,11 +48,6 @@ public class Main {
             System.exit(1);
         }
 
-        if (musixmatchToken == null) {
-            System.out.println("[ERROR] MUSIXMATCH_TOKEN environment variable not found");
-            System.exit(1);
-        }
-
         // ============== BOT CREATION ==================
 
         AtomicBoolean loopVar = new AtomicBoolean(false);
