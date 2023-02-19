@@ -22,6 +22,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static site.Andorvini.GreetingPlayer.greetingPlayer;
 import static site.Andorvini.Player.*;
 
 public class Main {
@@ -76,7 +77,7 @@ public class Main {
                         .createGlobal(api)
                         .join();
 
-        SlashCommand loop = SlashCommand.with("loop","Lop music")
+        SlashCommand loopCommand = SlashCommand.with("loop","Lop music")
                 .createGlobal(api)
                 .join();
 
@@ -85,7 +86,7 @@ public class Main {
                 .createGlobal(api)
                 .join();
 
-        SlashCommand pause = SlashCommand.with("pause","Pause music")
+        SlashCommand pauseCommand = SlashCommand.with("pause","Pause music")
                 .createGlobal(api)
                 .join();
 
@@ -123,9 +124,9 @@ public class Main {
                 .createGlobal(api)
                 .join();
 
-        SlashCommand volume = SlashCommand.with("volume","Set the volume",
+        SlashCommand volumeCommand = SlashCommand.with("volume","Set the volume",
                         Arrays.asList(
-                                SlashCommandOption.create(SlashCommandOptionType.LONG, "volumelvl", "Volume level", true)
+                                SlashCommandOption.create(SlashCommandOptionType.LONG, "volumelvl", "Volume level (Max. 1000)", true)
                         ))
                 .createGlobal(api)
                 .join();
@@ -255,14 +256,32 @@ public class Main {
 
                 TextChannel channel = interaction.getChannel().get();
 
+                String loop = null;
+                String pause = null;
+
                 long duration = 0;
                 long position = 0;
+                int volume = 0;
+
 
                 String identifier = null;
+
+                if (loopVar.get()) {
+                    loop = "Loop enabled";
+                } else {
+                    loop = "Loop disabled";
+                }
+
+                if (Player.getPause()) {
+                    pause = "Now paused";
+                } else {
+                    pause = "Playing";
+                }
 
                 if (audioTrackNowPlaying != null) {
                     duration = audioTrackNowPlaying.getDuration();
                     position = audioTrackNowPlaying.getPosition();
+                    volume = Player.getVolume();
 
                     identifier = audioTrackNowPlaying.getIdentifier();
 
@@ -285,7 +304,9 @@ public class Main {
                             .setAuthor(audioTrackNowPlaying.getInfo().title, identifier, "https://indiefy.net/static/img/landing/distribution/icons/apple_music_icon.png")
                             .setTitle("Duration")
                             .setDescription(formatDuration(position) + " / " + formatDuration(duration))
-                            .addField("Author", "__Some text inside the field__")
+                            .addInlineField("Volume", String.valueOf(volume))
+                            .addInlineField("Loop", loop)
+                            .addInlineField("Pause", pause)
                             .setColor(Color.ORANGE);
                 }
 
@@ -324,7 +345,11 @@ public class Main {
                 Long volumeLevel = interaction.getOptionByName("volumelvl").get().getLongValue().get();
                 setVolume(volumeLevel);
 
-                respondImmediately(interaction, "Volume set to " + volumeLevel);
+                if (volumeLevel > 900) {
+                    respondImmediately(interaction, "ТЫ ЧЕ ЕБАНУТЫЙ? КАКОЙ " + volumeLevel + "? ТЕБЕ ЧЕ ЖИТЬ НАДОЕЛО?");
+                } else {
+                    respondImmediately(interaction, "Volume set to " + volumeLevel);
+                }
             }
         });
 
@@ -349,12 +374,14 @@ public class Main {
                 String trackUrl = userAudio.get(user.getId());
                 if (api.getYourself().getConnectedVoiceChannel(server).isEmpty()) {
                     String finalTrackUrl = trackUrl;
+                    setPause(true);
                     serverVoiceChannelMemberJoinEvent.getUser().getConnectedVoiceChannel(server).get().connect().thenAccept(audioConnection -> {
-                        musicPlayer(api, audioConnection, finalTrackUrl, loopVar, null, false, server);
+                        greetingPlayer(api, audioConnection, finalTrackUrl, loopVar, null, false, server);
                     });
                 } else {
+                    setPause(true);
                     AudioConnection audioConnection = server.getAudioConnection().get();
-                    musicPlayer(api, audioConnection, trackUrl, loopVar, null, false, server);
+                    greetingPlayer(api, audioConnection, trackUrl, loopVar, null, false, server);
                 }
             }
         });

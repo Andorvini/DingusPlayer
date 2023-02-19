@@ -18,92 +18,46 @@ import org.javacord.api.audio.AudioSource;
 import org.javacord.api.entity.server.Server;
 import org.javacord.api.event.interaction.SlashCommandCreateEvent;
 
-import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class Player {
+public class GreetingPlayer {
 
     private static AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
 
     private static AudioPlayer player = playerManager.createPlayer();
 
-    private static AudioTrack audioTrackNowPlaying;
+//    public static boolean isPlaying() {
+//        boolean isPlaying;;
+//
+//        if (player.getPlayingTrack() == null) {
+//            isPlaying = false;
+//        } else {
+//            isPlaying = true;
+//        }
+//
+//        return isPlaying;
+//    }
 
-    private static AudioSource source;
-
-    private static DiscordApi api;
-
-    private static AudioConnection audioConnection;
-
-    public static void setPause(boolean paused) {
-        System.out.println("[MSG] Seeting pause to " + paused);
-        player.setPaused(paused);
-    }
-
-    public static boolean getPause() {
-        return player.isPaused();
-    }
-
-    public static AudioTrack getAudioTrackNowPlaying() {
-        return audioTrackNowPlaying = player.getPlayingTrack();
-    }
-
-    public static void stopPlaying() {
-        player.destroy();
-    }
-
-    public static void setVolume(Long volumeLevel) {
-        player.setVolume(Math.toIntExact(volumeLevel));
-    }
-
-    public static int getVolume() {
-        return player.getVolume();
-    }
-
-    public static void setSource() {
-        source = new LavaplayerAudioSource(api, player);
-        audioConnection.setAudioSource(source);
-    }
-
-    public static void musicPlayer(DiscordApi apiFrom, AudioConnection audioConnectionFrom, String trackUrl, AtomicBoolean loopVar, SlashCommandCreateEvent slashCommandCreateEvent, boolean isSlash, Server server){
+    public static void greetingPlayer(DiscordApi api, AudioConnection audioConnection, String trackUrl, AtomicBoolean loopVar, SlashCommandCreateEvent slashCommandCreateEvent, boolean isSlash, Server server){
         AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
         playerManager.registerSourceManager(new YoutubeAudioSourceManager());
         playerManager.registerSourceManager(new HttpAudioSourceManager());
         playerManager.registerSourceManager(new BandcampAudioSourceManager());
-        api = apiFrom;
-        audioConnection = audioConnectionFrom;
-        source = new LavaplayerAudioSource(api, player);
+        AudioSource source = new LavaplayerAudioSource(api, player);
         audioConnection.setAudioSource(source);
         playerManager.loadItem(trackUrl, new AudioLoadResultHandler() {
             @Override
             public void trackLoaded(AudioTrack track) {
-                System.out.println("[MSG] Track: " + track.getInfo().title +  " loaded");
-                if (isSlash) {
-                    slashCommandCreateEvent.getInteraction()
-                            .respondLater()
-                            .thenAccept(message -> {
-                                message.setContent("Now playing `" + track.getInfo().title + "`").update();
-                            });
-                }
                 player.addListener(new AudioEventAdapter() {
                     @Override
                     public void onTrackEnd(AudioPlayer player, AudioTrack track, AudioTrackEndReason endReason) {
                         if (endReason == AudioTrackEndReason.FINISHED) {
-                            if (isSlash) {
-                                System.out.println("[MSG] Detected slash command");
-
-                                if (loopVar.get() == true) {
-                                    player.playTrack(track.makeClone());
-                                    System.out.println("[MSG] Loop engaged");
-                                } else {
-                                    System.out.println("[MSG] Loop disengaged");
-                                    stopPlaying();
+                                System.out.println("[MSG] Greeting in process");
+                                Player.setPause(false);
+                                Player.setSource();
+                                if (Player.getAudioTrackNowPlaying() == null) {
+                                    server.getConnectedVoiceChannel(api.getYourself()).get().disconnect();
                                 }
-                            } else {
-                                System.out.println("[MSG] No slash command detected");
-                                server.getConnectedVoiceChannel(api.getYourself()).get().disconnect();
-                                stopPlaying();
-                            }
                         }
                     }
                 });
