@@ -82,7 +82,7 @@ public class Main {
                         .createGlobal(api)
                         .join();
 
-        SlashCommand loop = SlashCommand.with("loop","Loop music")
+        SlashCommand loop = SlashCommand.with("loop","Lop music")
                 .createGlobal(api)
                 .join();
 
