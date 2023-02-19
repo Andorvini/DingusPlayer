@@ -343,7 +343,15 @@ public class Main {
                 respondImmediately(interaction, "Not implemented yet. (Because musixmatch shit)");
             } else if (fullCommandName.equals("volume")) {
                 Long volumeLevel = interaction.getOptionByName("volumelvl").get().getLongValue().get();
+                int volumeBefore = Player.getVolume();
                 setVolume(volumeLevel);
+                String trackUrl = "https://storage.rferee.dev/assets/media/audio/alyona_volume_warning.wav";
+                AudioConnection audioConnection = server.getAudioConnection().get();
+
+                if (volumeLevel - volumeBefore >= 100) {
+                    setPause(true);
+                    greetingPlayer(api, audioConnection, trackUrl, loopVar, null, false, server);
+                }
 
                 if (volumeLevel > 900) {
                     respondImmediately(interaction, "ТЫ ЧЕ ЕБАНУТЫЙ? КАКОЙ " + volumeLevel + "? ТЕБЕ ЧЕ ЖИТЬ НАДОЕЛО?");
