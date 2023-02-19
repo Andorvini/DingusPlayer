@@ -7,10 +7,8 @@ import okhttp3.*;
 import org.javacord.api.DiscordApi;
 import org.javacord.api.DiscordApiBuilder;
 import org.javacord.api.audio.AudioConnection;
-import org.javacord.api.entity.activity.Activity;
 import org.javacord.api.entity.channel.ServerVoiceChannel;
 import org.javacord.api.entity.channel.TextChannel;
-import org.javacord.api.entity.channel.VoiceChannel;
 import org.javacord.api.entity.message.MessageSet;
 import org.javacord.api.entity.message.embed.EmbedBuilder;
 import org.javacord.api.entity.server.Server;
@@ -37,6 +35,9 @@ public class Main {
         String ssEbloApiToken = null;
         ssEbloApiToken = System.getenv("API_KEY");
 
+        String musixmatchToken = null;
+        musixmatchToken = System.getenv("MUSIXMATCH_TOKEN");
+
         if (token == null) {
             System.out.println("[ERROR] DP_DISCORD_TOKEN environment variable not found");
             System.exit(1);
@@ -44,6 +45,11 @@ public class Main {
 
         if (ssEbloApiToken == null) {
             System.out.println("[ERROR] API_KEY environment variable not found");
+            System.exit(1);
+        }
+
+        if (musixmatchToken == null) {
+            System.out.println("[ERROR] MUSIXMATCH_TOKEN environment variable not found");
             System.exit(1);
         }
 
@@ -119,6 +125,10 @@ public class Main {
                 .createGlobal(api)
                 .join();
 
+        SlashCommand lyrics = SlashCommand.with("lyrics", "Shows lyrics of currently playing track")
+                .createGlobal(api)
+                .join();
+
         api.addSlashCommandCreateListener(slashCommandCreateEvent -> {
             SlashCommandInteraction interaction = slashCommandCreateEvent.getSlashCommandInteraction();
             Server server = null;
@@ -138,8 +148,7 @@ public class Main {
                 optionalBotVoiceChannel = api.getYourself().getConnectedVoiceChannel(server);
                 botVoiceChannel = optionalBotVoiceChannel.get();
             } catch (NoSuchElementException e) {
-                e.printStackTrace();
-                System.out.println("[WARN] Maybe personal messages use");
+                System.out.println("[WARN] Maybe personal messages use or no value present");
             }
 
             if (!interaction.getChannel().get().getType().isServerChannelType()) {
@@ -274,7 +283,7 @@ public class Main {
                             .setAuthor(audioTrackNowPlaying.getInfo().title, identifier, "https://indiefy.net/static/img/landing/distribution/icons/apple_music_icon.png")
                             .setTitle("Duration")
                             .setDescription(formatDuration(position) + " / " + formatDuration(duration))
-                            .addField("A field", "__Some text inside the field__")
+                            .addField("Author", "__Some text inside the field__")
                             .setColor(Color.ORANGE);
                 }
 
@@ -307,6 +316,8 @@ public class Main {
                 }
             } else if (fullCommandName.equals("ping")) {
                 respondImmediately(interaction, "Pong!");
+            } else if (fullCommandName.equals("lyrics")) {
+                respondImmediately(interaction, "Not implemented yet. (Because musixmatch shit)");
             }
         });
 
