@@ -67,13 +67,17 @@ public class Player {
 
     public static void musicPlayer(DiscordApi apiFrom, AudioConnection audioConnectionFrom, String trackUrl, AtomicBoolean loopVar, SlashCommandCreateEvent slashCommandCreateEvent, boolean isSlash, Server server){
         AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
+
         playerManager.registerSourceManager(new YoutubeAudioSourceManager());
         playerManager.registerSourceManager(new HttpAudioSourceManager());
         playerManager.registerSourceManager(new BandcampAudioSourceManager());
+
         api = apiFrom;
         audioConnection = audioConnectionFrom;
+
         source = new LavaplayerAudioSource(api, player);
         audioConnection.setAudioSource(source);
+
         playerManager.loadItem(trackUrl, new AudioLoadResultHandler() {
             @Override
             public void trackLoaded(AudioTrack track) {
@@ -97,6 +101,7 @@ public class Player {
                                     System.out.println("[MSG] Loop engaged");
                                 } else {
                                     System.out.println("[MSG] Loop disengaged");
+                                    Queue.queueOnTrackEnd(api, audioConnection, loopVar, slashCommandCreateEvent,true, server);
                                     stopPlaying();
                                 }
                             } else {

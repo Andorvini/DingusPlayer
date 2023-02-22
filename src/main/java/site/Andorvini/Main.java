@@ -17,6 +17,7 @@ import org.javacord.api.interaction.*;
 import org.javacord.api.entity.activity.ActivityType;
 
 import java.awt.*;
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -34,10 +35,10 @@ public class Main {
         token = System.getenv("DP_DISCORD_TOKEN");
 
         String ssEbloApiToken = null;
-        ssEbloApiToken = System.getenv("API_KEY");
+        ssEbloApiToken = System.getenv("SOSANIE_API_KEY");
 
-        String musixmatchToken = null;
-        musixmatchToken = System.getenv("MUSIXMATCH_TOKEN");
+        String youtubeApiToken = null;
+        youtubeApiToken = System.getenv("YOUTUBE_API_KEY");
 
         if (token == null) {
             System.out.println("[ERROR] DP_DISCORD_TOKEN environment variable not found");
@@ -49,9 +50,15 @@ public class Main {
             System.exit(1);
         }
 
+        if (youtubeApiToken == null) {
+            System.out.println("[ERROR] YOUTUBE_API_KEY environment variable not found");
+            System.exit(1);
+        }
+
         // ============== BOT CREATION ==================
 
         AtomicBoolean loopVar = new AtomicBoolean(false);
+        AtomicBoolean isPlaying = new AtomicBoolean(false);
 
         DiscordApi api = new DiscordApiBuilder().setToken(token).login().join();
         // ================ ACVTIVITY SET =====================
@@ -131,6 +138,13 @@ public class Main {
                 .createGlobal(api)
                 .join();
 
+        SlashCommand queueCommand = SlashCommand.with("queue", "Shows current queue")
+                .createGlobal(api)
+                .join();
+
+        SlashCommand skipCommand = SlashCommand.with("skip", "Skips currently playing track")
+                .createGlobal(api)
+                .join();
 
         api.addSlashCommandCreateListener(slashCommandCreateEvent -> {
             SlashCommandInteraction interaction = slashCommandCreateEvent.getSlashCommandInteraction();
@@ -142,6 +156,12 @@ public class Main {
 
             Optional<ServerVoiceChannel> optionalBotVoiceChannel = null;
             ServerVoiceChannel botVoiceChannel = null;
+
+            if (Player.getAudioTrackNowPlaying() == null) {
+                isPlaying.set(false);
+            } else {
+                isPlaying.set(true);
+            }
 
             try {
                 server = slashCommandCreateEvent.getInteraction().getServer().get();
@@ -185,15 +205,16 @@ public class Main {
             } else if (fullCommandName.equals("play")) {
                 if (optionalUserVoiceChannel.isPresent()) {
                     String trackUrl = interaction.getOptionByName("url").get().getStringValue().get().replaceAll("\\[", "%5B").replaceAll("]", "%5D");
+                    Queue.addTrackToQueue(trackUrl);
 
                     if (optionalBotVoiceChannel.isEmpty()) {
                         Server finalServer = server;
                         userVoiceChannel.connect().thenAccept(audioConnection -> {
-                            musicPlayer(api, audioConnection, trackUrl, loopVar, slashCommandCreateEvent,true, finalServer);
+                            Queue.queueController(api, audioConnection, loopVar, slashCommandCreateEvent,true, finalServer, isPlaying);
                         });
                     } else {
                         AudioConnection audioConnection = server.getAudioConnection().get();
-                        musicPlayer(api, audioConnection, trackUrl, loopVar, slashCommandCreateEvent,true, server);
+                        Queue.queueController(api, audioConnection, loopVar, slashCommandCreateEvent,true, server, isPlaying);
                     }
                 } else {
                     respondImmediately(interaction, "You are not connected to a voice channel");
@@ -212,6 +233,7 @@ public class Main {
 
                     botVoiceChannel.disconnect();
                     stopPlaying();
+                    Queue.clearQueue();
                 } else {
                     respondImmediately(interaction, "I am not connected to a voice channel");
                 }
@@ -251,10 +273,7 @@ public class Main {
                     Player.setPause(true);
                 }
             } else if (fullCommandName.equals("np")) {
-
                 AudioTrack audioTrackNowPlaying = Player.getAudioTrackNowPlaying();
-
-                TextChannel channel = interaction.getChannel().get();
 
                 String loop = null;
                 String pause = null;
@@ -358,6 +377,26 @@ public class Main {
                 } else {
                     respondImmediately(interaction, "Volume set to " + volumeLevel);
                 }
+            } else if (fullCommandName.equals("queue")) {
+                try {
+                    interaction.createImmediateResponder()
+                            .addEmbeds(Queue.getQueue())
+                            .respond()
+                            .join();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            } else if (fullCommandName.equals("skip")) {
+                if (optionalBotVoiceChannel.isEmpty()) {
+                    Server finalServer = server;
+                    interaction.getUser().getConnectedVoiceChannel(server).get().connect().thenAccept(audioConnection -> {
+                        Queue.skipTrack (api, audioConnection, loopVar, slashCommandCreateEvent,true, finalServer, isPlaying);
+                    });
+                } else {
+                    AudioConnection audioConnection = server.getAudioConnection().get();
+                    Queue.skipTrack(api, audioConnection, loopVar, slashCommandCreateEvent,true, server, isPlaying);
+                }
+                respondImmediately(interaction, "Skipping `" + getAudioTrackNowPlaying().getInfo().title + "`");
             }
         });
 
@@ -415,7 +454,7 @@ public class Main {
             Request.Builder requestBuilder = new Request.Builder()
                     .url(requestUrl)
                     .post(body)
-                    .addHeader("X-API-key", System.getenv("API_KEY"));
+                    .addHeader("X-API-key", System.getenv("SOSANIE_API_KEY"));
 
             Call call = okHttpClient.newCall(requestBuilder.build());
 
