@@ -92,6 +92,7 @@ public class Player {
                 player.addListener(new AudioEventAdapter() {
                     @Override
                     public void onTrackEnd(AudioPlayer player, AudioTrack track, AudioTrackEndReason endReason) {
+                        System.out.println("Track ended with reason " + endReason);
                         if (endReason == AudioTrackEndReason.FINISHED) {
                             if (isSlash) {
                                 System.out.println("[MSG] Detected slash command");

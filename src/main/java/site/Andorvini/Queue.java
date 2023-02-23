@@ -74,7 +74,6 @@ public class Queue {
     public static void skipTrack(DiscordApi api, AudioConnection audioConnection, AtomicBoolean loopVar, SlashCommandCreateEvent slashCommandCreateEvent, boolean isSlash, Server server, AtomicBoolean isPlayingNow) {
         trackUrlQueue.remove();
         Player.stopPlaying();
-        System.out.println("skipping");
         queueController(api, audioConnection, loopVar, slashCommandCreateEvent, isSlash, server, isPlayingNow);
     }
 
