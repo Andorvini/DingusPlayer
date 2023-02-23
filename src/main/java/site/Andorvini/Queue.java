@@ -37,7 +37,7 @@ public class Queue {
         trackUrlQueue.clear();
     }
 
-    public static EmbedBuilder getQueue() throws IOException {
+    public static EmbedBuilder getQueueEmbed() throws IOException {
         int i = 1;
         int queueSize = trackUrlQueue.size();
 
@@ -67,6 +67,10 @@ public class Queue {
         return queueEmbed;
     }
 
+    public static java.util.Queue<String> getQueueList() {
+        return trackUrlQueue;
+    }
+
     public static void skipTrack(DiscordApi api, AudioConnection audioConnection, AtomicBoolean loopVar, SlashCommandCreateEvent slashCommandCreateEvent, boolean isSlash, Server server, AtomicBoolean isPlayingNow) {
         trackUrlQueue.remove();
         Player.stopPlaying();
@@ -78,7 +82,7 @@ public class Queue {
         String trackUrl = trackUrlQueue.peek();
 
         if (Player.getAudioTrackNowPlaying() == null) {
-            Player.musicPlayer(api, audioConnection, trackUrl, loopVar, slashCommandCreateEvent, true, server);
+            Player.musicPlayer(api, audioConnection, trackUrl, loopVar, slashCommandCreateEvent, isSlash, server);
         } else {
 
         }

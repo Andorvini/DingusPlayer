@@ -380,13 +380,18 @@ public class Main {
             } else if (fullCommandName.equals("queue")) {
                 try {
                     interaction.createImmediateResponder()
-                            .addEmbeds(Queue.getQueue())
+                            .addEmbeds(Queue.getQueueEmbed())
                             .respond()
                             .join();
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
             } else if (fullCommandName.equals("skip")) {
+                try {
+                    respondImmediately(interaction, "Skipping `" + Queue.getYoutubeVideoTitleFromUrl(Queue.getQueueList().peek(), true) + "`");
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
                 if (optionalBotVoiceChannel.isEmpty()) {
                     Server finalServer = server;
                     interaction.getUser().getConnectedVoiceChannel(server).get().connect().thenAccept(audioConnection -> {
@@ -396,7 +401,6 @@ public class Main {
                     AudioConnection audioConnection = server.getAudioConnection().get();
                     Queue.skipTrack(api, audioConnection, loopVar, slashCommandCreateEvent,true, server, isPlaying);
                 }
-                respondImmediately(interaction, "Skipping `" + getAudioTrackNowPlaying().getInfo().title + "`");
             }
         });
 
