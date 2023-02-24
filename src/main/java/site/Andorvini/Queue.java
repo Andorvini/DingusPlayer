@@ -61,14 +61,15 @@ public class Queue {
                     .setColor(Color.pink)
                     .setFooter("Tracks in queue: " + queueSize);
 
-            try {
                 for (String track : trackUrlQueue) {
-                    queueEmbed.addField("", "`" + i + "`" + ": " + "[" + getYoutubeVideoTitleFromUrl(track, true) + "]" + "(" + track + ")  | `" + getYoutubeVideoTitleFromUrl(track, false) + "`");
+                    try {
+                        queueEmbed.addField("", "`" + i + "`: " + "[" + getYoutubeVideoTitleFromUrl(track, true) + "]" + "(" + track + ")  | `" + getYoutubeVideoTitleFromUrl(track, false) + "`");
+                    } catch (NullPointerException e) {
+                        System.out.println("[WARN] Not youtube link");
+                        queueEmbed.addField("", "`" + i + "`: " + track);
+                    }
                     i++;
                 }
-            } catch (NullPointerException e) {
-                System.out.println("[WARN] Not youtube link");
-            }
         return queueEmbed;
     }
 
@@ -121,7 +122,7 @@ public class Queue {
                 .setGoogleClientRequestInitializer(new CommonGoogleClientRequestInitializer(System.getenv("YOUTUBE_API_KEY")))
                 .build();
 
-        String methodResult = null;
+        String methodResult;
 
         if (isTitle) {
             try {

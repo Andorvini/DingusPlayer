@@ -103,7 +103,7 @@ public class Player {
                                 } else {
                                     System.out.println("[MSG] Loop disengaged");
                                     Queue.queueOnTrackEnd(api, audioConnection, loopVar, slashCommandCreateEvent,true, server);
-                                    //stopPlaying();
+                                    stopPlaying();
                                 }
                             } else {
                                 System.out.println("[MSG] No slash command detected");

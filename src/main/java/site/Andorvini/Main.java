@@ -266,7 +266,7 @@ public class Main {
             } else if (fullCommandName.equals("sseblo")) {
                 String textToConvert = interaction.getOptionByName("text").get().getStringValue().get();
 
-                String convertedUrl = getUrl(textToConvert);
+                String convertedUrl = getSosniaEblaUrl(textToConvert);
                 respondImmediatelyWithString(interaction, "Playing \"" + textToConvert + "\" with Alyona Flirt ");
 
                 Server finalServer = server;
@@ -365,7 +365,7 @@ public class Main {
                     User randomUser = userSet.stream().skip(new Random().nextInt(userSet.size())).findFirst().orElse(null);
 
                     assert randomUser != null;
-                    String trackUrl = getUrl(randomUser.getDisplayName(server));
+                    String trackUrl = getSosniaEblaUrl(randomUser.getDisplayName(server));
 
                     respondImmediatelyWithString(interaction,randomUser.getName());
 
@@ -463,7 +463,7 @@ public class Main {
         });
     }
 
-    public static String getUrl(String text) {
+    public static String getSosniaEblaUrl(String text) {
         try {
 
             OkHttpClient okHttpClient = new OkHttpClient();
