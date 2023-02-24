@@ -22,6 +22,8 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static site.Andorvini.GreetingPlayer.greetingPlayer;
 import static site.Andorvini.Player.*;
@@ -65,7 +67,7 @@ public class Main {
         api.updateActivity(ActivityType.LISTENING,"\"Antipathy World\"");
 
         // ================== SLASH COMMAND CREATION ==================
-        SlashCommand play =
+        SlashCommand playCommand =
                 SlashCommand.with("play","Play music from provided Youtube URL",
                                 Arrays. asList(
                                         SlashCommandOption.create(SlashCommandOptionType.STRING, "url", "Youtube url", true)
@@ -73,7 +75,7 @@ public class Main {
                 .createGlobal(api)
                 .join();
 
-        SlashCommand command =
+        SlashCommand phonyCommand =
                 SlashCommand.with("phony", "Play ANTIPATHY WORLD",
                                 Arrays.asList(
                                             SlashCommandOption.createWithChoices(SlashCommandOptionType.STRING, "version", "Choose version of song", true,
@@ -88,7 +90,7 @@ public class Main {
                 .createGlobal(api)
                 .join();
 
-        SlashCommand leave =
+        SlashCommand leaveCommand =
                 SlashCommand.with("leave","Leave voice channel")
                 .createGlobal(api)
                 .join();
@@ -97,37 +99,37 @@ public class Main {
                 .createGlobal(api)
                 .join();
 
-        SlashCommand sseblo = SlashCommand.with("sseblo","Convert text into voice using sseblobotapi",
+        SlashCommand ssebloCommand = SlashCommand.with("sseblo","Convert text into voice using sseblobotapi",
                 Arrays.asList(
                         SlashCommandOption.create(SlashCommandOptionType.STRING, "text", "Text you want to voice", true)
                 ))
                 .createGlobal(api)
                 .join();
 
-        SlashCommand clear = SlashCommand.with("clear","Delete specified number of messages",
+        SlashCommand clearCommand = SlashCommand.with("clear","Delete specified number of messages",
                 Arrays.asList(
                         SlashCommandOption.create(SlashCommandOptionType.LONG,"count","Message count",true)
                 ))
                 .createGlobal(api)
                 .join();
 
-        SlashCommand np = SlashCommand.with("np","Show what song is playing now")
+        SlashCommand npCommand = SlashCommand.with("np","Show what song is playing now")
                 .createGlobal(api)
                 .join();
 
-        SlashCommand randomPlayer = SlashCommand.with("random","Pick random user")
+        SlashCommand randomUserCommand = SlashCommand.with("random","Pick random user")
                 .createGlobal(api)
                 .join();
 
-        SlashCommand ping = SlashCommand.with("ping", "Ping!")
+        SlashCommand pingCommand = SlashCommand.with("ping", "Ping!")
                 .createGlobal(api)
                 .join();
 
-        SlashCommand queue = SlashCommand.with("queue", "Shows all tracks in queue")
+        SlashCommand queueCommand = SlashCommand.with("queue", "Shows all tracks in queue")
                 .createGlobal(api)
                 .join();
 
-        SlashCommand lyrics = SlashCommand.with("lyrics", "Shows lyrics of currently playing track")
+        SlashCommand lyricsCommand = SlashCommand.with("lyrics", "Shows lyrics of currently playing track")
                 .createGlobal(api)
                 .join();
 
@@ -135,10 +137,6 @@ public class Main {
                         Arrays.asList(
                                 SlashCommandOption.create(SlashCommandOptionType.LONG, "volumelvl", "Volume level (Max. 1000)", true)
                         ))
-                .createGlobal(api)
-                .join();
-
-        SlashCommand queueCommand = SlashCommand.with("queue", "Shows current queue")
                 .createGlobal(api)
                 .join();
 
@@ -200,12 +198,40 @@ public class Main {
                         musicPlayer(api, audioConnection, trackUrl.get(), loopVar, slashCommandCreateEvent, true, server);
                     }
                 } else {
-                    respondImmediately(interaction, "You are not connected to a voice channel");
+                    respondImmediatelyWithString(interaction, "You are not connected to a voice channel");
                 }
             } else if (fullCommandName.equals("play")) {
                 if (optionalUserVoiceChannel.isPresent()) {
                     String trackUrl = interaction.getOptionByName("url").get().getStringValue().get().replaceAll("\\[", "%5B").replaceAll("]", "%5D");
                     Queue.addTrackToQueue(trackUrl);
+
+                    if (Queue.getQueueList().size() >= 2) {
+                        EmbedBuilder embed;
+
+                        if (isYouTubeLink(trackUrl)) {
+                            String title = null;
+                            String duration = null;
+
+                            try {
+                                title = Queue.getYoutubeVideoTitleFromUrl(trackUrl, true);
+                                duration = Queue.getYoutubeVideoTitleFromUrl(trackUrl, false);
+                            } catch (IOException e) {}
+
+                            embed = new EmbedBuilder()
+                                    .setAuthor("Added to queue: ")
+                                    .addField("", "[" + title + "](" + trackUrl + ") | `" + duration + "`")
+                                    .setColor(Color.GREEN)
+                                    .setFooter("Track in queue: " + Queue.getQueueList().size());
+
+                        } else {
+                            embed = new EmbedBuilder()
+                                    .setAuthor("Added to queue: ")
+                                    .addField("", trackUrl)
+                                    .setColor(Color.GREEN)
+                                    .setFooter("Track in queue: " + Queue.getQueueList().size());
+                        }
+                        respondImmediatelyWithEmbed(interaction, embed);
+                    }
 
                     if (optionalBotVoiceChannel.isEmpty()) {
                         Server finalServer = server;
@@ -217,31 +243,31 @@ public class Main {
                         Queue.queueController(api, audioConnection, loopVar, slashCommandCreateEvent,true, server, isPlaying);
                     }
                 } else {
-                    respondImmediately(interaction, "You are not connected to a voice channel");
+                    respondImmediatelyWithString(interaction, "You are not connected to a voice channel");
                 }
             } else if (fullCommandName.equals("loop")) {
                 if (loopVar.get() == false) {
                     loopVar.set(true);
-                    respondImmediately(interaction,"Looping is now enabled");
+                    respondImmediatelyWithString(interaction,"Looping is now enabled");
                 } else {
                     loopVar.set(false);
-                    respondImmediately(interaction,"Looping is now disabled");
+                    respondImmediatelyWithString(interaction,"Looping is now disabled");
                 }
             } else if (fullCommandName.equals("leave")) {
                 if (optionalBotVoiceChannel.isPresent()) {
-                    respondImmediately(interaction, "Leaving voice channel \"" + server.getConnectedVoiceChannel(api.getYourself()).get().getName() + "\"");
+                    respondImmediatelyWithString(interaction, "Leaving voice channel \"" + server.getConnectedVoiceChannel(api.getYourself()).get().getName() + "\"");
 
                     botVoiceChannel.disconnect();
                     stopPlaying();
                     Queue.clearQueue();
                 } else {
-                    respondImmediately(interaction, "I am not connected to a voice channel");
+                    respondImmediatelyWithString(interaction, "I am not connected to a voice channel");
                 }
             } else if (fullCommandName.equals("sseblo")) {
                 String textToConvert = interaction.getOptionByName("text").get().getStringValue().get();
 
                 String convertedUrl = getUrl(textToConvert);
-                respondImmediately(interaction, "Playing \"" + textToConvert + "\" with Alyona Flirt ");
+                respondImmediatelyWithString(interaction, "Playing \"" + textToConvert + "\" with Alyona Flirt ");
 
                 Server finalServer = server;
                 userVoiceChannel.connect().thenAccept(audioConnection -> {
@@ -253,7 +279,7 @@ public class Main {
 
                 MessageSet messagesToDelete = channel.getMessages((int) count).join();
 
-                respondImmediately(interaction, "Deleted " + count + " messages");
+                respondImmediatelyWithString(interaction, "Deleted " + count + " messages");
 
                 try {
                     Thread.sleep(2000);
@@ -264,11 +290,11 @@ public class Main {
                 channel.bulkDelete(messagesToDelete);
             } else if (fullCommandName.equals("pause")) {
                 if (Player.getPause()) {
-                    respondImmediately(interaction, "Unpaused");
+                    respondImmediatelyWithString(interaction, "Unpaused");
 
                     Player.setPause(false);
                 } else {
-                    respondImmediately(interaction, "Paused");
+                    respondImmediatelyWithString(interaction, "Paused");
 
                     Player.setPause(true);
                 }
@@ -341,7 +367,7 @@ public class Main {
                     assert randomUser != null;
                     String trackUrl = getUrl(randomUser.getDisplayName(server));
 
-                    respondImmediately(interaction,randomUser.getName());
+                    respondImmediatelyWithString(interaction,randomUser.getName());
 
                     if (optionalBotVoiceChannel.isEmpty()) {
                         Server finalServer = server;
@@ -353,12 +379,12 @@ public class Main {
                         musicPlayer(api, audioConnection, trackUrl, loopVar, slashCommandCreateEvent,false, server);
                     }
                 } else {
-                    respondImmediately(interaction, "You are not connected to a voice channel");
+                    respondImmediatelyWithString(interaction, "You are not connected to a voice channel");
                 }
             } else if (fullCommandName.equals("ping")) {
-                respondImmediately(interaction, "Pong!");
+                respondImmediatelyWithString(interaction, "Pong!");
             } else if (fullCommandName.equals("lyrics")) {
-                respondImmediately(interaction, "Not implemented yet. (Because musixmatch shit)");
+                respondImmediatelyWithString(interaction, "Not implemented yet. (Because musixmatch shit)");
             } else if (fullCommandName.equals("volume")) {
                 Long volumeLevel = interaction.getOptionByName("volumelvl").get().getLongValue().get();
                 int volumeBefore = Player.getVolume();
@@ -372,9 +398,9 @@ public class Main {
                 }
 
                 if (volumeLevel > 900) {
-                    respondImmediately(interaction, "ТЫ ЧЕ ЕБАНУТЫЙ? КАКОЙ " + volumeLevel + "? ТЕБЕ ЧЕ ЖИТЬ НАДОЕЛО?");
+                    respondImmediatelyWithString(interaction, "ТЫ ЧЕ ЕБАНУТЫЙ? КАКОЙ " + volumeLevel + "? ТЕБЕ ЧЕ ЖИТЬ НАДОЕЛО?");
                 } else {
-                    respondImmediately(interaction, "Volume set to " + volumeLevel);
+                    respondImmediatelyWithString(interaction, "Volume set to " + volumeLevel);
                 }
             } else if (fullCommandName.equals("queue")) {
                 try {
@@ -387,7 +413,7 @@ public class Main {
                 }
             } else if (fullCommandName.equals("skip")) {
                 try {
-                    respondImmediately(interaction, "Skipping `" + Queue.getYoutubeVideoTitleFromUrl(Queue.getQueueList().peek(), true) + "`");
+                    respondImmediatelyWithString(interaction, "Skipping `" + Queue.getYoutubeVideoTitleFromUrl(Queue.getQueueList().peek(), true) + "`");
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
@@ -482,10 +508,24 @@ public class Main {
         return String.format("%d:%02d", minutes, seconds);
     }
 
-    public static void respondImmediately(SlashCommandInteraction interaction,String text){
+    public static void respondImmediatelyWithString(SlashCommandInteraction interaction, String text){
         interaction.createImmediateResponder()
                 .setContent(text)
                 .respond()
                 .join();
+    }
+
+    public static void respondImmediatelyWithEmbed(SlashCommandInteraction interaction,EmbedBuilder embed){
+        interaction.createImmediateResponder()
+                .addEmbeds(embed)
+                .respond()
+                .join();
+    }
+
+    public static boolean isYouTubeLink(String str) {
+        String pattern = "^(http(s)?:\\/\\/)?((w){3}.)?youtu(be|.be)?(\\.com)?\\/.+";
+        Pattern youtubePattern = Pattern.compile(pattern);
+        Matcher matcher = youtubePattern.matcher(str);
+        return matcher.matches();
     }
 }

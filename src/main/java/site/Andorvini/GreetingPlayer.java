@@ -52,12 +52,12 @@ public class GreetingPlayer {
                     @Override
                     public void onTrackEnd(AudioPlayer player, AudioTrack track, AudioTrackEndReason endReason) {
                         if (endReason == AudioTrackEndReason.FINISHED) {
-                                System.out.println("[MSG] Greeting in process");
-                                Player.setPause(false);
-                                Player.setSource();
-                                if (Player.getAudioTrackNowPlaying() == null) {
-                                    server.getConnectedVoiceChannel(api.getYourself()).get().disconnect();
-                                }
+                            System.out.println("[MSG] Misc.Player finished playing");
+                            Player.setPause(false);
+                            if (Player.getAudioTrackNowPlaying() == null) {
+                                server.getConnectedVoiceChannel(api.getYourself()).get().disconnect();
+                            }
+                            Player.setSource();
                         }
                     }
                 });

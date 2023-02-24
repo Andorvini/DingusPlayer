@@ -110,6 +110,8 @@ public class Player {
                                 server.getConnectedVoiceChannel(api.getYourself()).get().disconnect();
                                 stopPlaying();
                             }
+                        } else if (endReason == AudioTrackEndReason.LOAD_FAILED) {
+                            player.playTrack(track.makeClone());
                         }
                     }
                 });
@@ -130,6 +132,7 @@ public class Player {
             public void loadFailed(FriendlyException exception) {
                 System.out.println("[MSG] Failed to load track: ");
                 exception.printStackTrace();
+                Queue.removeTrackFromQueue();
             }
 
         });

@@ -21,6 +21,7 @@ import java.time.Duration;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -37,16 +38,26 @@ public class Queue {
         trackUrlQueue.clear();
     }
 
+    public static void removeTrackFromQueue() {
+        trackUrlQueue.remove();
+    }
+
     public static EmbedBuilder getQueueEmbed() throws IOException {
         int i = 1;
         int queueSize = trackUrlQueue.size();
 
-        EmbedBuilder queueEmbed;
+        EmbedBuilder queueEmbed = null;
 
-        if (Player.getAudioTrackNowPlaying() != null) {
+        String nowPlayingTitle = null;
+        try {
+            nowPlayingTitle = Objects.requireNonNullElse(Player.getAudioTrackNowPlaying().getInfo().title, "Nothing is playing now");
+        } catch (NullPointerException e) {
+            nowPlayingTitle = "Nothing is playing now";
+        }
+
             queueEmbed = new EmbedBuilder()
                     .setAuthor("Queue: ")
-                    .addField("__**Now Playing:**__", "[" + Player.getAudioTrackNowPlaying().getInfo().title + "]" + "(" + trackUrlQueue.peek() + ")")
+                    .addField("__**Now Playing:**__", "[" + nowPlayingTitle + "]" + "(" + trackUrlQueue.peek() + ")")
                     .setColor(Color.pink)
                     .setFooter("Tracks in queue: " + queueSize);
 
@@ -58,12 +69,6 @@ public class Queue {
             } catch (NullPointerException e) {
                 System.out.println("[WARN] Not youtube link");
             }
-        } else {
-            queueEmbed = new EmbedBuilder()
-                    .setAuthor("No playing track")
-                    .setDescription("Use `/play` command to play track")
-                    .setColor(Color.RED);
-        }
         return queueEmbed;
     }
 
@@ -82,8 +87,6 @@ public class Queue {
 
         if (Player.getAudioTrackNowPlaying() == null) {
             Player.musicPlayer(api, audioConnection, trackUrl, loopVar, slashCommandCreateEvent, isSlash, server);
-        } else {
-
         }
     }
 
