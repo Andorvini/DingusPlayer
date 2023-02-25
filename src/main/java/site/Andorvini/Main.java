@@ -63,6 +63,7 @@ public class Main {
         AtomicBoolean isPlaying = new AtomicBoolean(false);
 
         DiscordApi api = new DiscordApiBuilder().setToken(token).login().join();
+        System.out.println(api.createBotinvite());
         // ================ ACVTIVITY SET =====================
         api.updateActivity(ActivityType.LISTENING,"\"Antipathy World\"");
 
