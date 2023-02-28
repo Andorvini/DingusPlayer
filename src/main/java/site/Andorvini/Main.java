@@ -7,6 +7,7 @@ import okhttp3.*;
 import org.javacord.api.DiscordApi;
 import org.javacord.api.DiscordApiBuilder;
 import org.javacord.api.audio.AudioConnection;
+import org.javacord.api.entity.channel.Channel;
 import org.javacord.api.entity.channel.ServerVoiceChannel;
 import org.javacord.api.entity.channel.TextChannel;
 import org.javacord.api.entity.message.MessageSet;
@@ -15,6 +16,7 @@ import org.javacord.api.entity.server.Server;
 import org.javacord.api.entity.user.User;
 import org.javacord.api.interaction.*;
 import org.javacord.api.entity.activity.ActivityType;
+import org.w3c.dom.Text;
 
 import java.awt.*;
 import java.io.IOException;
@@ -29,6 +31,9 @@ import static site.Andorvini.GreetingPlayer.greetingPlayer;
 import static site.Andorvini.Player.*;
 
 public class Main {
+
+    private static TextChannel lastCommandChannel;
+
     public static void main(String[] args) {
 
         // ============== TOKEN PROCCESING =============
@@ -63,6 +68,7 @@ public class Main {
         AtomicBoolean isPlaying = new AtomicBoolean(false);
 
         DiscordApi api = new DiscordApiBuilder().setToken(token).login().join();
+
         // ================ ACVTIVITY SET =====================
         api.updateActivity(ActivityType.LISTENING,"\"Antipathy World\"");
 
@@ -182,6 +188,8 @@ public class Main {
                     AtomicReference<String> trackUrl = new AtomicReference<>("https://storage.rferee.dev/assets/media/audio/phony-ru.flac");
                     String interactionOption = interaction.getOptionByName("version").get().getStringValue().get();
 
+                    lastCommandChannel = interaction.getChannel().get();
+
                     if (interactionOption.equals("rus")) {
                         trackUrl.set("https://storage.rferee.dev/assets/media/audio/phony-ru.flac");
                     } else if (interactionOption.equals("original")) {
@@ -204,6 +212,8 @@ public class Main {
                 if (optionalUserVoiceChannel.isPresent()) {
                     String trackUrl = interaction.getOptionByName("url").get().getStringValue().get().replaceAll("\\[", "%5B").replaceAll("]", "%5D");
                     Queue.addTrackToQueue(trackUrl);
+
+                    lastCommandChannel = interaction.getChannel().get();
 
                     if (Queue.getQueueList().size() >= 2) {
                         EmbedBuilder embed;
@@ -264,6 +274,8 @@ public class Main {
                     respondImmediatelyWithString(interaction, "I am not connected to a voice channel");
                 }
             } else if (fullCommandName.equals("sseblo")) {
+                lastCommandChannel = interaction.getChannel().get();
+
                 String textToConvert = interaction.getOptionByName("text").get().getStringValue().get();
 
                 String convertedUrl = getSosniaEblaUrl(textToConvert);
@@ -359,6 +371,7 @@ public class Main {
                         .respond()
                         .join();
             } else if (fullCommandName.equals("random")) {
+                lastCommandChannel = interaction.getChannel().get();
                 if (optionalUserVoiceChannel.isPresent()) {
                     Set<User> userSet = interaction.getUser().getConnectedVoiceChannel(server).get().getConnectedUsers();
 
@@ -461,6 +474,28 @@ public class Main {
                 }
             }
         });
+
+        api.addServerVoiceChannelMemberLeaveListener(serverVoiceChannelMemberLeaveEvent -> {
+            Server server = serverVoiceChannelMemberLeaveEvent.getServer();
+            ServerVoiceChannel channel = serverVoiceChannelMemberLeaveEvent.getChannel();
+
+            if (api.getYourself().getConnectedVoiceChannel(server).isPresent()) {
+
+                Set<User> users = channel.getConnectedUsers();
+                int usersInChannel = users.size();
+
+                if (serverVoiceChannelMemberLeaveEvent.getUser().getId() != api.getYourself().getId()) {
+                    if (serverVoiceChannelMemberLeaveEvent.getUser().getId() != 1074801519523807252L) {
+                        System.out.println("Not myself and not Prod bot");
+                        if (usersInChannel == 1) {
+                            System.out.println("1 user");
+                            AloneInChannelHandler.startAloneTimer(lastCommandChannel, server, api);
+                        }
+                    }
+                }
+            }
+        });
+
     }
 
     public static String getSosniaEblaUrl(String text) {
