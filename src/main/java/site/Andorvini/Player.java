@@ -15,9 +15,11 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason;
 import org.javacord.api.DiscordApi;
 import org.javacord.api.audio.AudioConnection;
 import org.javacord.api.audio.AudioSource;
+import org.javacord.api.entity.message.embed.EmbedBuilder;
 import org.javacord.api.entity.server.Server;
 import org.javacord.api.event.interaction.SlashCommandCreateEvent;
 
+import java.awt.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Player {
@@ -80,14 +82,25 @@ public class Player {
         playerManager.loadItem(trackUrl, new AudioLoadResultHandler() {
             @Override
             public void trackLoaded(AudioTrack track) {
-                System.out.println("[MSG] Track: " + track.getInfo().title +  " loaded");
+                String trackTitle = track.getInfo().title;
+
+                System.out.println("[MSG] Track: " + trackTitle +  " loaded");
+
                 if (isSlash) {
                     slashCommandCreateEvent.getInteraction()
                             .respondLater()
                             .thenAccept(message -> {
-                                message.setContent("Now playing `" + track.getInfo().title + "`").update();
+                                EmbedBuilder embed = new EmbedBuilder()
+                                        .setAuthor("Playing: ")
+                                        .addField("", "[" + trackTitle + "](" + trackUrl + ") | `" + Main.formatDuration(track.getDuration()) + "`")
+                                        .setColor(Color.GREEN)
+                                        .setFooter("Track in queue: " + Queue.getQueueList().size());
+
+                                message.addEmbed(embed)
+                                        .update();
                             });
                 }
+
                 player.addListener(new AudioEventAdapter() {
                     @Override
                     public void onTrackEnd(AudioPlayer player, AudioTrack track, AudioTrackEndReason endReason) {

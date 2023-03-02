@@ -7,7 +7,6 @@ import okhttp3.*;
 import org.javacord.api.DiscordApi;
 import org.javacord.api.DiscordApiBuilder;
 import org.javacord.api.audio.AudioConnection;
-import org.javacord.api.entity.channel.Channel;
 import org.javacord.api.entity.channel.ServerVoiceChannel;
 import org.javacord.api.entity.channel.TextChannel;
 import org.javacord.api.entity.message.MessageSet;
@@ -16,7 +15,6 @@ import org.javacord.api.entity.server.Server;
 import org.javacord.api.entity.user.User;
 import org.javacord.api.interaction.*;
 import org.javacord.api.entity.activity.ActivityType;
-import org.w3c.dom.Text;
 
 import java.awt.*;
 import java.io.IOException;
@@ -76,7 +74,7 @@ public class Main {
         SlashCommand playCommand =
                 SlashCommand.with("play","Play music from provided Youtube URL",
                                 Arrays. asList(
-                                        SlashCommandOption.create(SlashCommandOptionType.STRING, "url", "Youtube url", true)
+                                        SlashCommandOption.create(SlashCommandOptionType.STRING, "query", "Link to music, or just name", true)
                                 ))
                 .createGlobal(api)
                 .join();
@@ -210,10 +208,20 @@ public class Main {
                 }
             } else if (fullCommandName.equals("play")) {
                 if (optionalUserVoiceChannel.isPresent()) {
-                    String trackUrl = interaction.getOptionByName("url").get().getStringValue().get().replaceAll("\\[", "%5B").replaceAll("]", "%5D");
-                    Queue.addTrackToQueue(trackUrl);
+                    String commandOption = interaction.getOptionByName("query").get().getStringValue().get().replaceAll("\\[", "%5B").replaceAll("]", "%5D");
+                    String trackUrl = null;
 
                     lastCommandChannel = interaction.getChannel().get();
+
+                    if (isUrl(commandOption)) {
+                        trackUrl = commandOption;
+                    } else {
+                        try {
+                            trackUrl = Queue.getVideoUrlFromName(commandOption);
+                        } catch (IOException ignored){}
+                    }
+
+                    Queue.addTrackToQueue(trackUrl);
 
                     if (Queue.getQueueList().size() >= 2) {
                         EmbedBuilder embed;
@@ -561,6 +569,12 @@ public class Main {
         String pattern = "^(http(s)?:\\/\\/)?((w){3}.)?youtu(be|.be)?(\\.com)?\\/.+";
         Pattern youtubePattern = Pattern.compile(pattern);
         Matcher matcher = youtubePattern.matcher(str);
+        return matcher.matches();
+    }
+
+    public static boolean isUrl(String str) {
+        Pattern urlPattern = Pattern.compile("^((https?|ftp)://)?[a-z0-9]+([\\-\\.]{1}[a-z0-9]+)*\\.[a-z]{2,5}(:[0-9]{1,5})?(/.*)?$", Pattern.CASE_INSENSITIVE);
+        Matcher matcher = urlPattern.matcher(str);
         return matcher.matches();
     }
 }

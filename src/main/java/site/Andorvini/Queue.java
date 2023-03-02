@@ -6,8 +6,7 @@ import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.youtube.YouTube;
-import com.google.api.services.youtube.model.Video;
-import com.google.api.services.youtube.model.VideoListResponse;
+import com.google.api.services.youtube.model.*;
 
 import org.javacord.api.DiscordApi;
 import org.javacord.api.audio.AudioConnection;
@@ -157,6 +156,34 @@ public class Queue {
             methodResult = String.format("%d:%02d", minutes, seconds);
         }
         return methodResult;
+    }
+
+    public static String getVideoUrlFromName(String videoName) throws IOException {
+        HttpTransport httpTransport = new NetHttpTransport();
+        JsonFactory jsonFactory = new GsonFactory();
+
+        YouTube youtube = new YouTube.Builder(httpTransport, jsonFactory, null)
+                .setApplicationName("Dingus Player")
+                .setGoogleClientRequestInitializer(new CommonGoogleClientRequestInitializer(System.getenv("YOUTUBE_API_KEY")))
+                .build();
+
+        YouTube.Search.List search = youtube.search().list(Collections.singletonList("id,snippet"));
+        search.setKey(System.getenv("YOUTUBE_API_KEY"));
+        search.setQ(videoName);
+        search.setType(Collections.singletonList("video"));
+        search.setFields("items(id/kind,id/videoId,snippet/title,snippet/description,snippet/thumbnails/default/url)");
+        search.setMaxResults(10L);
+
+        SearchListResponse searchListResponse = search.execute();
+        List<SearchResult> searchResults = searchListResponse.getItems();
+
+        String videoId = searchResults.get(0).getId().getVideoId();
+
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("https://www.youtube.com/watch?v=");
+        stringBuilder.append(videoId);
+
+        return stringBuilder.toString();
     }
 
 }
