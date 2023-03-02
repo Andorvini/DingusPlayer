@@ -45,6 +45,10 @@ public class Player {
         return player.isPaused();
     }
 
+    public static void shutdownManager() {
+        playerManager.shutdown();
+    }
+
     public static AudioTrack getAudioTrackNowPlaying() {
         return audioTrackNowPlaying = player.getPlayingTrack();
     }
@@ -104,23 +108,23 @@ public class Player {
                 player.addListener(new AudioEventAdapter() {
                     @Override
                     public void onTrackEnd(AudioPlayer player, AudioTrack track, AudioTrackEndReason endReason) {
-                        System.out.println("Track ended with reason " + endReason);
+                        System.out.println("[MSG] Track ended with reason " + endReason);
                         if (endReason == AudioTrackEndReason.FINISHED) {
                             if (isSlash) {
                                 System.out.println("[MSG] Detected slash command");
 
-                                if (loopVar.get() == true) {
+                                if (loopVar.get()) {
                                     player.playTrack(track.makeClone());
                                     System.out.println("[MSG] Loop engaged");
                                 } else {
                                     System.out.println("[MSG] Loop disengaged");
                                     Queue.queueOnTrackEnd(api, audioConnection, loopVar, slashCommandCreateEvent,true, server);
-                                    stopPlaying();
+                                    player.destroy();
                                 }
                             } else {
                                 System.out.println("[MSG] No slash command detected");
                                 server.getConnectedVoiceChannel(api.getYourself()).get().disconnect();
-                                stopPlaying();
+                                player.destroy();
                             }
                         } else if (endReason == AudioTrackEndReason.LOAD_FAILED) {
                             player.playTrack(track.makeClone());
@@ -146,7 +150,6 @@ public class Player {
                 exception.printStackTrace();
                 Queue.removeTrackFromQueue();
             }
-
         });
     }
 }

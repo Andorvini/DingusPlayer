@@ -12,9 +12,16 @@ import java.util.TimerTask;
 import static site.Andorvini.Queue.clearQueue;
 
 public class AloneInChannelHandler {
+
+    private static Timer timer;
+
+    public static void stopAloneTimer(){
+        timer.cancel();
+    }
+
     public static void startAloneTimer(TextChannel channel, Server server, DiscordApi api) {
 
-        Timer timer = new Timer();
+        timer = new Timer();
 
         int leaveSeconds = 60;
 

@@ -57,7 +57,7 @@ public class Queue {
             queueEmbed = new EmbedBuilder()
                     .setAuthor("Queue: ")
                     .addField("__**Now Playing:**__", "[" + nowPlayingTitle + "]" + "(" + trackUrlQueue.peek() + ")")
-                    .setColor(Color.pink)
+                    .setColor(Color.blue)
                     .setFooter("Tracks in queue: " + queueSize);
 
                 for (String track : trackUrlQueue) {
@@ -79,10 +79,10 @@ public class Queue {
     public static void skipTrack(DiscordApi api, AudioConnection audioConnection, AtomicBoolean loopVar, SlashCommandCreateEvent slashCommandCreateEvent, boolean isSlash, Server server, AtomicBoolean isPlayingNow) {
         trackUrlQueue.remove();
         Player.stopPlaying();
-        queueController(api, audioConnection, loopVar, slashCommandCreateEvent, isSlash, server, isPlayingNow);
+        queueController(api, audioConnection, loopVar, slashCommandCreateEvent, isSlash, server);
     }
 
-    public static void queueController(DiscordApi api, AudioConnection audioConnection, AtomicBoolean loopVar, SlashCommandCreateEvent slashCommandCreateEvent, boolean isSlash, Server server, AtomicBoolean isPlayingNow) {
+    public static void queueController(DiscordApi api, AudioConnection audioConnection, AtomicBoolean loopVar, SlashCommandCreateEvent slashCommandCreateEvent, boolean isSlash, Server server) {
         String trackUrl = trackUrlQueue.peek();
 
         if (Player.getAudioTrackNowPlaying() == null) {
@@ -91,11 +91,9 @@ public class Queue {
     }
 
     public static void queueOnTrackEnd(DiscordApi api, AudioConnection audioConnection, AtomicBoolean loopVar, SlashCommandCreateEvent slashCommandCreateEvent, boolean isSlash, Server server) {
-        AtomicBoolean isPlayingNow = new AtomicBoolean(false);
-        Player.stopPlaying();
-
         trackUrlQueue.remove();
-        queueController(api, audioConnection, loopVar, slashCommandCreateEvent, isSlash, server, isPlayingNow);
+        Player.shutdownManager();
+        queueController(api, audioConnection, loopVar, slashCommandCreateEvent, isSlash, server);
     }
 
     public static String getYoutubeVideoTitleFromUrl(String url, boolean isTitle) throws IOException {

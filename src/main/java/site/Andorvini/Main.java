@@ -223,7 +223,7 @@ public class Main {
 
                     Queue.addTrackToQueue(trackUrl);
 
-                    if (Queue.getQueueList().size() >= 2) {
+                    if (Queue.getQueueList().size() > 1) {
                         EmbedBuilder embed;
 
                         if (isYouTubeLink(trackUrl)) {
@@ -233,7 +233,7 @@ public class Main {
                             try {
                                 title = Queue.getYoutubeVideoTitleFromUrl(trackUrl, true);
                                 duration = Queue.getYoutubeVideoTitleFromUrl(trackUrl, false);
-                            } catch (IOException e) {}
+                            } catch (IOException ignored) {}
 
                             embed = new EmbedBuilder()
                                     .setAuthor("Added to queue: ")
@@ -254,11 +254,11 @@ public class Main {
                     if (optionalBotVoiceChannel.isEmpty()) {
                         Server finalServer = server;
                         userVoiceChannel.connect().thenAccept(audioConnection -> {
-                            Queue.queueController(api, audioConnection, loopVar, slashCommandCreateEvent,true, finalServer, isPlaying);
+                            Queue.queueController(api, audioConnection, loopVar, slashCommandCreateEvent,true, finalServer);
                         });
                     } else {
                         AudioConnection audioConnection = server.getAudioConnection().get();
-                        Queue.queueController(api, audioConnection, loopVar, slashCommandCreateEvent,true, server, isPlaying);
+                        Queue.queueController(api, audioConnection, loopVar, slashCommandCreateEvent,true, server);
                     }
                 } else {
                     respondImmediatelyWithString(interaction, "You are not connected to a voice channel");
@@ -312,11 +312,11 @@ public class Main {
                 if (Player.getPause()) {
                     respondImmediatelyWithString(interaction, "Unpaused");
 
-                    Player.setPause(false);
+                    setPause(false);
                 } else {
                     respondImmediatelyWithString(interaction, "Paused");
 
-                    Player.setPause(true);
+                    setPause(true);
                 }
             } else if (fullCommandName.equals("np")) {
                 AudioTrack audioTrackNowPlaying = Player.getAudioTrackNowPlaying();
