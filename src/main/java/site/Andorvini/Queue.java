@@ -92,7 +92,6 @@ public class Queue {
 
     public static void queueOnTrackEnd(DiscordApi api, AudioConnection audioConnection, AtomicBoolean loopVar, SlashCommandCreateEvent slashCommandCreateEvent, boolean isSlash, Server server) {
         trackUrlQueue.remove();
-        Player.shutdownManager();
         queueController(api, audioConnection, loopVar, slashCommandCreateEvent, isSlash, server);
     }
 

@@ -45,10 +45,6 @@ public class Player {
         return player.isPaused();
     }
 
-    public static void shutdownManager() {
-        playerManager.shutdown();
-    }
-
     public static AudioTrack getAudioTrackNowPlaying() {
         return audioTrackNowPlaying = player.getPlayingTrack();
     }
