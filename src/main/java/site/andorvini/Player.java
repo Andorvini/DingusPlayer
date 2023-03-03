@@ -1,4 +1,4 @@
-package site.Andorvini;
+package site.andorvini;
 
 import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
@@ -88,17 +88,17 @@ public class Player {
 
                 if (isSlash) {
                     slashCommandCreateEvent.getInteraction()
-                            .respondLater()
-                            .thenAccept(message -> {
-                                EmbedBuilder embed = new EmbedBuilder()
-                                        .setAuthor("Playing: ")
-                                        .addField("", "[" + trackTitle + "](" + trackUrl + ") | `" + Main.formatDuration(track.getDuration()) + "`")
-                                        .setColor(Color.GREEN)
-                                        .setFooter("Track in queue: " + Queue.getQueueList().size());
+                        .respondLater()
+                        .thenAccept(message -> {
+                            EmbedBuilder embed = new EmbedBuilder()
+                                    .setAuthor("Playing: ")
+                                    .addField("", "[" + trackTitle + "](" + trackUrl + ") | `" + Main.formatDuration(track.getDuration()) + "`")
+                                    .setColor(Color.GREEN)
+                                    .setFooter("Track in queue: " + Queue.getQueueList().size());
 
-                                message.addEmbed(embed)
-                                        .update();
-                            });
+                            message.addEmbed(embed)
+                                    .update();
+                        });
                 }
 
                 player.addListener(new AudioEventAdapter() {

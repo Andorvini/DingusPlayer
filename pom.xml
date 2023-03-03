@@ -77,7 +77,7 @@
                         <configuration>
                             <classifier>spring-boot</classifier>
                             <mainClass>
-                                site.Andorvini.Main
+                                site.andorvini.Main
                             </mainClass>
                         </configuration>
                     </execution>

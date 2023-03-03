@@ -1,4 +1,4 @@
-package site.Andorvini;
+package site.andorvini;
 
 import org.javacord.api.DiscordApi;
 import org.javacord.api.entity.channel.TextChannel;
@@ -9,19 +9,27 @@ import java.awt.*;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import static site.Andorvini.Queue.clearQueue;
+import static site.andorvini.Queue.clearQueue;
 
 public class AloneInChannelHandler {
 
     private static Timer timer;
 
+    private static boolean isTimerRunning;
+
     public static void stopAloneTimer(){
         timer.cancel();
+        isTimerRunning = false;
+    }
+
+    private static boolean isAloneTimerRunning(){
+        return isTimerRunning;
     }
 
     public static void startAloneTimer(TextChannel channel, Server server, DiscordApi api) {
 
         timer = new Timer();
+        isTimerRunning = true;
 
         int leaveSeconds = 60;
 

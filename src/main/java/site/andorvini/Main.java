@@ -1,4 +1,4 @@
-package site.Andorvini;
+package site.andorvini;
 
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 
@@ -25,8 +25,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static site.Andorvini.GreetingPlayer.greetingPlayer;
-import static site.Andorvini.Player.*;
+import static site.andorvini.GreetingPlayer.greetingPlayer;
+import static site.andorvini.Player.*;
 
 public class Main {
 
@@ -496,7 +496,6 @@ public class Main {
                     if (serverVoiceChannelMemberLeaveEvent.getUser().getId() != 1074801519523807252L) {
                         System.out.println("Not myself and not Prod bot");
                         if (usersInChannel == 1) {
-                            System.out.println("1 user");
                             AloneInChannelHandler.startAloneTimer(lastCommandChannel, server, api);
                         }
                     }
@@ -543,11 +542,9 @@ public class Main {
     }
 
     public static String formatDuration(long millis) {
-        // Convert milliseconds to minutes and seconds
         long minutes = TimeUnit.MILLISECONDS.toMinutes(millis);
         long seconds = TimeUnit.MILLISECONDS.toSeconds(millis) - TimeUnit.MINUTES.toSeconds(minutes);
 
-        // Format the duration as a string
         return String.format("%d:%02d", minutes, seconds);
     }
 
