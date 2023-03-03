@@ -1,7 +1,10 @@
 package site.andorvini;
 
+import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
+import com.sedmelluq.discord.lavaplayer.player.event.AudioEventAdapter;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 
+import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason;
 import okhttp3.*;
 
 import org.javacord.api.DiscordApi;
@@ -66,6 +69,7 @@ public class Main {
         AtomicBoolean isPlaying = new AtomicBoolean(false);
 
         DiscordApi api = new DiscordApiBuilder().setToken(token).login().join();
+        Player.addOnTrackEndEventToPlayer();
 
         // ================ ACVTIVITY SET =====================
         api.updateActivity(ActivityType.LISTENING,"\"Antipathy World\"");

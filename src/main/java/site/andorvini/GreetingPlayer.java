@@ -26,18 +26,6 @@ public class GreetingPlayer {
 
     private static AudioPlayer player = playerManager.createPlayer();
 
-//    public static boolean isPlaying() {
-//        boolean isPlaying;;
-//
-//        if (player.getPlayingTrack() == null) {
-//            isPlaying = false;
-//        } else {
-//            isPlaying = true;
-//        }
-//
-//        return isPlaying;
-//    }
-
     public static void greetingPlayer(DiscordApi api, AudioConnection audioConnection, String trackUrl, AtomicBoolean loopVar, SlashCommandCreateEvent slashCommandCreateEvent, boolean isSlash, Server server){
         AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
         playerManager.registerSourceManager(new YoutubeAudioSourceManager());

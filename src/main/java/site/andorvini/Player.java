@@ -36,10 +36,30 @@ public class Player {
 
     private static AudioConnection audioConnection;
 
+    private static SlashCommandCreateEvent slashCommandCreateEvent;
+
+    private static AtomicBoolean loopVar;
+
+    private static boolean isSlash;
+
+    private static Server server;
+
+//    ================= SETTERS ==================
     public static void setPause(boolean paused) {
         System.out.println("[MSG] Seeting pause to " + paused);
         player.setPaused(paused);
     }
+
+    public static void setVolume(Long volumeLevel) {
+        player.setVolume(Math.toIntExact(volumeLevel));
+    }
+
+    public static void setSource() {
+        source = new LavaplayerAudioSource(api, player);
+        audioConnection.setAudioSource(source);
+    }
+
+//    ==================== GETTERS ===================
 
     public static boolean getPause() {
         return player.isPaused();
@@ -53,25 +73,46 @@ public class Player {
         player.destroy();
     }
 
-    public static void setVolume(Long volumeLevel) {
-        player.setVolume(Math.toIntExact(volumeLevel));
-    }
-
     public static int getVolume() {
         return player.getVolume();
     }
 
-    public static void setSource() {
-        source = new LavaplayerAudioSource(api, player);
-        audioConnection.setAudioSource(source);
+//    ================ MAIN METHODS ===================
+
+    public static void addOnTrackEndEventToPlayer(){
+        player.addListener(new AudioEventAdapter() {
+
+            @Override
+            public void onTrackEnd(AudioPlayer player, AudioTrack track, AudioTrackEndReason endReason) {
+                System.out.println("[MSG] Track ended with reason " + endReason);
+                if (endReason == AudioTrackEndReason.FINISHED) {
+                        if (loopVar.get()) {
+                            player.playTrack(track.makeClone());
+                            System.out.println("[MSG] Loop engaged");
+                        } else {
+                            System.out.println("[MSG] Loop disengaged");
+                            Queue.queueOnTrackEnd(api, audioConnection, loopVar, slashCommandCreateEvent,true, server);
+                            player.destroy();
+                        }
+                } else if (endReason == AudioTrackEndReason.LOAD_FAILED) {
+                    player.playTrack(track.makeClone());
+                }
+            }
+        });
+
     }
 
-    public static void musicPlayer(DiscordApi apiFrom, AudioConnection audioConnectionFrom, String trackUrl, AtomicBoolean loopVar, SlashCommandCreateEvent slashCommandCreateEvent, boolean isSlash, Server server){
+    public static void musicPlayer(DiscordApi apiFrom, AudioConnection audioConnectionFrom, String trackUrl, AtomicBoolean loopVarFrom, SlashCommandCreateEvent slashCommandCreateEventFrom, boolean isSlashFrom, Server serverFrom){
         AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
 
         playerManager.registerSourceManager(new YoutubeAudioSourceManager());
         playerManager.registerSourceManager(new HttpAudioSourceManager());
         playerManager.registerSourceManager(new BandcampAudioSourceManager());
+
+        slashCommandCreateEvent = slashCommandCreateEventFrom;
+        loopVar = loopVarFrom;
+        isSlash = isSlashFrom;
+        server = serverFrom;
 
         api = apiFrom;
         audioConnection = audioConnectionFrom;
@@ -86,8 +127,7 @@ public class Player {
 
                 System.out.println("[MSG] Track: " + trackTitle +  " loaded");
 
-                if (isSlash) {
-                    slashCommandCreateEvent.getInteraction()
+                    slashCommandCreateEventFrom.getInteraction()
                         .respondLater()
                         .thenAccept(message -> {
                             EmbedBuilder embed = new EmbedBuilder()
@@ -99,34 +139,6 @@ public class Player {
                             message.addEmbed(embed)
                                     .update();
                         });
-                }
-
-                player.addListener(new AudioEventAdapter() {
-                    @Override
-                    public void onTrackEnd(AudioPlayer player, AudioTrack track, AudioTrackEndReason endReason) {
-                        System.out.println("[MSG] Track ended with reason " + endReason);
-                        if (endReason == AudioTrackEndReason.FINISHED) {
-                            if (isSlash) {
-                                System.out.println("[MSG] Detected slash command");
-
-                                if (loopVar.get()) {
-                                    player.playTrack(track.makeClone());
-                                    System.out.println("[MSG] Loop engaged");
-                                } else {
-                                    System.out.println("[MSG] Loop disengaged");
-                                    Queue.queueOnTrackEnd(api, audioConnection, loopVar, slashCommandCreateEvent,true, server);
-                                    player.destroy();
-                                }
-                            } else {
-                                System.out.println("[MSG] No slash command detected");
-                                server.getConnectedVoiceChannel(api.getYourself()).get().disconnect();
-                                player.destroy();
-                            }
-                        } else if (endReason == AudioTrackEndReason.LOAD_FAILED) {
-                            player.playTrack(track.makeClone());
-                        }
-                    }
-                });
                 player.playTrack(track);
             }
 
