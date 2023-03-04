@@ -26,28 +26,40 @@ public class GreetingPlayer {
 
     private static AudioPlayer player = playerManager.createPlayer();
 
-    public static void greetingPlayer(DiscordApi api, AudioConnection audioConnection, String trackUrl, AtomicBoolean loopVar, SlashCommandCreateEvent slashCommandCreateEvent, boolean isSlash, Server server){
+    private static Server server;
+
+    private static DiscordApi api;
+
+    public static void addOnTrackEndToGreetingPlayer() {
+        player.addListener(new AudioEventAdapter() {
+            @Override
+            public void onTrackEnd(AudioPlayer player, AudioTrack track, AudioTrackEndReason endReason) {
+                if (endReason == AudioTrackEndReason.FINISHED) {
+                    Player.setPause(false);
+                    if (Player.getAudioTrackNowPlaying() == null) {
+                        server.getConnectedVoiceChannel(api.getYourself()).get().disconnect();
+                    }
+                    Player.setSource();
+                }
+            }
+        });
+    }
+
+    public static void greetingPlayer(DiscordApi apiFrom, AudioConnection audioConnection, String trackUrl, AtomicBoolean loopVar, SlashCommandCreateEvent slashCommandCreateEvent, boolean isSlash, Server serverFrom){
         AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
+
         playerManager.registerSourceManager(new YoutubeAudioSourceManager());
         playerManager.registerSourceManager(new HttpAudioSourceManager());
         playerManager.registerSourceManager(new BandcampAudioSourceManager());
-        AudioSource source = new LavaplayerAudioSource(api, player);
+        AudioSource source = new LavaplayerAudioSource(apiFrom, player);
+
+        server = serverFrom;
+        api = apiFrom;
+
         audioConnection.setAudioSource(source);
         playerManager.loadItem(trackUrl, new AudioLoadResultHandler() {
             @Override
             public void trackLoaded(AudioTrack track) {
-                player.addListener(new AudioEventAdapter() {
-                    @Override
-                    public void onTrackEnd(AudioPlayer player, AudioTrack track, AudioTrackEndReason endReason) {
-                        if (endReason == AudioTrackEndReason.FINISHED) {
-                            Player.setPause(false);
-                            if (Player.getAudioTrackNowPlaying() == null) {
-                                server.getConnectedVoiceChannel(api.getYourself()).get().disconnect();
-                            }
-                            Player.setSource();
-                        }
-                    }
-                });
                 player.playTrack(track);
             }
 
