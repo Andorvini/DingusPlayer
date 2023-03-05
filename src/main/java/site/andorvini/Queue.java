@@ -30,6 +30,11 @@ public class Queue {
     private static java.util.Queue<String> trackUrlQueue = new LinkedList<String>();
 
     public static void addTrackToQueue(String track) {
+
+        if (AloneInChannelHandler.isAloneTimerRunning()) {
+            AloneInChannelHandler.stopAloneTimer();
+        }
+
         trackUrlQueue.add(track);
     }
 
@@ -84,6 +89,10 @@ public class Queue {
 
     public static void queueController(DiscordApi api, AudioConnection audioConnection, AtomicBoolean loopVar, SlashCommandCreateEvent slashCommandCreateEvent, boolean isSlash, Server server) {
         String trackUrl = trackUrlQueue.peek();
+
+        if (getQueueList().size() == 0){
+            AloneInChannelHandler.startAloneTimer(Main.getTextChannel(), server, api, "No tracks in queue", null);
+        }
 
         if (Player.getAudioTrackNowPlaying() == null) {
             Player.musicPlayer(api, audioConnection, trackUrl, loopVar, slashCommandCreateEvent, isSlash, server);

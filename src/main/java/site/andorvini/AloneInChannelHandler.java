@@ -1,6 +1,7 @@
 package site.andorvini;
 
 import org.javacord.api.DiscordApi;
+import org.javacord.api.entity.channel.ServerVoiceChannel;
 import org.javacord.api.entity.channel.TextChannel;
 import org.javacord.api.entity.message.embed.EmbedBuilder;
 import org.javacord.api.entity.server.Server;
@@ -17,25 +18,54 @@ public class AloneInChannelHandler {
 
     private static boolean isTimerRunning;
 
+    private static TextChannel lastChannel;
+
+    private static String reason;
+
+    private static ServerVoiceChannel voiceChannel;
+
+    public static ServerVoiceChannel getVoiceChannel() {
+        return voiceChannel;
+    }
+
     public static void stopAloneTimer(){
         timer.cancel();
         isTimerRunning = false;
+        String text = null;
+
+        if (reason.equals("No tracks in queue")){
+            text = "Someone added track";
+        } else if (reason.equals("I'm alone :(")) {
+            text = "I'm not alone anymore!";
+        }
+
+        EmbedBuilder emded = new EmbedBuilder()
+                .setColor(Color.yellow)
+                        .addField(text, "I won't leave you now!");
+
+        lastChannel.sendMessage(emded);
     }
 
-    private static boolean isAloneTimerRunning(){
+    public static boolean isAloneTimerRunning(){
         return isTimerRunning;
     }
 
-    public static void startAloneTimer(TextChannel channel, Server server, DiscordApi api) {
+    public static void startAloneTimer(TextChannel channel, Server server, DiscordApi api, String reasonFrom, ServerVoiceChannel voiceChannelFrom) {
 
         timer = new Timer();
         isTimerRunning = true;
+        lastChannel = channel;
+        reason = reasonFrom;
 
-        int leaveSeconds = 60;
+        if (voiceChannelFrom != null) {
+            voiceChannel = voiceChannelFrom;
+        }
+
+        int leaveSeconds = 10;
 
         EmbedBuilder embed = new EmbedBuilder()
                 .setColor(Color.CYAN)
-                .setAuthor("I'm alone :(")
+                .setAuthor(reasonFrom)
                 .addField("", "Leaving in `" + leaveSeconds + "` seconds");
 
         channel.sendMessage(embed);
@@ -48,6 +78,7 @@ public class AloneInChannelHandler {
                     Player.stopPlaying();
                     clearQueue();
                     server.getConnectedVoiceChannel(api.getYourself()).get().disconnect();
+                    isTimerRunning = false;
                     timer.cancel();
                 }
                 i--;

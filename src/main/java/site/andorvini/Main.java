@@ -32,7 +32,17 @@ public class Main {
 
     private static TextChannel lastCommandChannel;
 
+    public static TextChannel getTextChannel(){
+        return lastCommandChannel;
+    }
+
     public static void main(String[] args) {
+
+        HashMap<Long, String> userAudio = new HashMap<>();
+        userAudio.put(998958761618190421L, "https://storage.rferee.dev/assets/media/audio/sukran.mp3");
+        userAudio.put(394085232266969090L, "https://storage.rferee.dev/assets/media/audio/dokaswam.mp3");
+        userAudio.put(483991031306780683L, "https://storage.rferee.dev/assets/media/audio/v_nalicii_yubico.mp3");
+        userAudio.put(731939675438317588L, "https://storage.rferee.dev/assets/media/audio/clown_short.mp3");
 
         // ============== TOKEN PROCCESING =============
 
@@ -289,7 +299,7 @@ public class Main {
 
                 String textToConvert = interaction.getOptionByName("text").get().getStringValue().get();
 
-                String convertedUrl = getSosniaEblaUrl(textToConvert);
+                String convertedUrl = getSosaniaEblaUrl(textToConvert);
                 respondImmediatelyWithString(interaction, "Playing \"" + textToConvert + "\" with Alyona Flirt ");
 
                 Server finalServer = server;
@@ -389,7 +399,7 @@ public class Main {
                     User randomUser = userSet.stream().skip(new Random().nextInt(userSet.size())).findFirst().orElse(null);
 
                     assert randomUser != null;
-                    String trackUrl = getSosniaEblaUrl(randomUser.getDisplayName(server));
+                    String trackUrl = getSosaniaEblaUrl(randomUser.getDisplayName(server));
 
                     respondImmediatelyWithString(interaction,randomUser.getName());
 
@@ -450,8 +460,13 @@ public class Main {
 
                     EmbedBuilder skipEmbed = new EmbedBuilder()
                             .addInlineField("__**Skipping:**__ ", "[" + Queue.getYoutubeVideoTitleFromUrl(Queue.getQueueList().peek(), true) + "](" + Queue.getQueueList().peek() + ")")
-                            .addInlineField("__**Next track:**__ ", "[" + Queue.getYoutubeVideoTitleFromUrl(secondTrackInQueue, true) + "](" + secondTrackInQueue + ")")
                             .setColor(Color.GREEN);
+
+                    if (secondTrackInQueue != null) {
+                        skipEmbed.addInlineField("__**Next track:**__ ", "[" + Queue.getYoutubeVideoTitleFromUrl(secondTrackInQueue, true) + "](" + secondTrackInQueue + ")");
+                    } else {
+                        skipEmbed.addInlineField("__**No next track :(**__","");
+                    }
 
                     respondImmediatelyWithEmbed(interaction, skipEmbed);
                 } catch (IOException e) {
@@ -480,11 +495,11 @@ public class Main {
             * 731939675438317588L = clown = clown(sasha) = https://storage.rferee.dev/assets/media/audio/clown_short.mp3
              */
 
-            HashMap<Long, String> userAudio = new HashMap<>();
-            userAudio.put(998958761618190421L, "https://storage.rferee.dev/assets/media/audio/sukran.mp3");
-            userAudio.put(394085232266969090L, "https://storage.rferee.dev/assets/media/audio/dokaswam.mp3");
-            userAudio.put(483991031306780683L, "https://storage.rferee.dev/assets/media/audio/v_nalicii_yubico.mp3");
-            userAudio.put(731939675438317588L, "https://storage.rferee.dev/assets/media/audio/clown_short.mp3");
+            if (AloneInChannelHandler.isAloneTimerRunning()){
+                if (api.getYourself().getConnectedVoiceChannel(server).get() == AloneInChannelHandler.getVoiceChannel()) {
+                    AloneInChannelHandler.stopAloneTimer();
+                }
+            }
 
             if (userAudio.containsKey(user.getId())) {
                 String trackUrl = userAudio.get(user.getId());
@@ -506,7 +521,7 @@ public class Main {
             Server server = serverVoiceChannelMemberLeaveEvent.getServer();
             ServerVoiceChannel channel = serverVoiceChannelMemberLeaveEvent.getChannel();
 
-            if (api.getYourself().getConnectedVoiceChannel(server).isPresent()) {
+            if (api.getYourself().getConnectedVoiceChannel(server).isPresent() && api.getYourself().getConnectedVoiceChannel(server).get() == channel) {
 
                 Set<User> users = channel.getConnectedUsers();
                 int usersInChannel = users.size();
@@ -515,7 +530,7 @@ public class Main {
                     if (serverVoiceChannelMemberLeaveEvent.getUser().getId() != 1074801519523807252L) {
                         System.out.println("Not myself and not Prod bot");
                         if (usersInChannel == 1) {
-                            AloneInChannelHandler.startAloneTimer(lastCommandChannel, server, api);
+                            AloneInChannelHandler.startAloneTimer(lastCommandChannel, server, api, "I'm alone :(", channel);
                         }
                     }
                 }
@@ -524,7 +539,7 @@ public class Main {
 
     }
 
-    public static String getSosniaEblaUrl(String text) {
+    public static String getSosaniaEblaUrl(String text) {
         try {
 
             OkHttpClient okHttpClient = new OkHttpClient();
