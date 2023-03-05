@@ -437,7 +437,23 @@ public class Main {
                 }
             } else if (fullCommandName.equals("skip")) {
                 try {
-                    respondImmediatelyWithString(interaction, "Skipping `" + Queue.getYoutubeVideoTitleFromUrl(Queue.getQueueList().peek(), true) + "`");
+                    String secondTrackInQueue = null;
+
+                    int i = 0;
+                    for (String trackUrl : Queue.getQueueList()) {
+                        if (i == 1) {
+                            secondTrackInQueue = trackUrl;
+                            break;
+                        }
+                        i++;
+                    }
+
+                    EmbedBuilder skipEmbed = new EmbedBuilder()
+                            .addInlineField("__**Skipping:**__ ", "[" + Queue.getYoutubeVideoTitleFromUrl(Queue.getQueueList().peek(), true) + "](" + Queue.getQueueList().peek() + ")")
+                            .addInlineField("__**Next track:**__ ", "[" + Queue.getYoutubeVideoTitleFromUrl(secondTrackInQueue, true) + "](" + secondTrackInQueue + ")")
+                            .setColor(Color.GREEN);
+
+                    respondImmediatelyWithEmbed(interaction, skipEmbed);
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }

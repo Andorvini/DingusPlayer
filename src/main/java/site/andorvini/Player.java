@@ -40,8 +40,6 @@ public class Player {
 
     private static AtomicBoolean loopVar;
 
-    private static boolean isSlash;
-
     private static Server server;
 
 //    ================= SETTERS ==================
@@ -111,7 +109,6 @@ public class Player {
 
         slashCommandCreateEvent = slashCommandCreateEventFrom;
         loopVar = loopVarFrom;
-        isSlash = isSlashFrom;
         server = serverFrom;
 
         api = apiFrom;
