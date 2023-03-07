@@ -57,6 +57,9 @@ public class Player {
         audioConnection.setAudioSource(source);
     }
 
+    public static void setPosition(long milis){
+        audioTrackNowPlaying.setPosition(milis);
+    }
 //    ==================== GETTERS ===================
 
     public static boolean getPause() {

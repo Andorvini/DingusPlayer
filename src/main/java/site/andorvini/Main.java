@@ -168,6 +168,13 @@ public class Main {
                 .createGlobal(api)
                 .join();
 
+        SlashCommand seekCommand = SlashCommand.with("seek", "Seeks the song to specified position",
+                        Arrays.asList(
+                                SlashCommandOption.create(SlashCommandOptionType.STRING, "position", "Positon to seek", true)
+                        ))
+                .createGlobal(api)
+                .join();
+
         api.addSlashCommandCreateListener(slashCommandCreateEvent -> {
             SlashCommandInteraction interaction = slashCommandCreateEvent.getSlashCommandInteraction();
             Server server = null;
@@ -485,6 +492,34 @@ public class Main {
                     AudioConnection audioConnection = server.getAudioConnection().get();
                     Queue.skipTrack(api, audioConnection, loopVar, slashCommandCreateEvent,true, server, isPlaying);
                 }
+            } else if (fullCommandName.equals("seek")) {
+                String position = interaction.getOptionByName("position").get().getStringValue().get();
+
+                if (isValidTimeFormat(position)) {
+                    long milis = convertToMilliseconds(position);
+                    if (!(milis > Player.getAudioTrackNowPlaying().getDuration())) {
+                        EmbedBuilder seekEmbed = new EmbedBuilder()
+                                .addField("__**Seeking track: **__", getAudioTrackNowPlaying().getInfo().title)
+                                .addInlineField("Previous position: ", "`" + formatDuration(getAudioTrackNowPlaying().getPosition()) + "`")
+                                .addInlineField("New position: ", "`" + position + "`")
+                                .setColor(Color.GREEN);
+
+                        Player.setPosition(milis);
+                        respondImmediatelyWithEmbed(interaction, seekEmbed);
+                    } else {
+                        EmbedBuilder seekLongFailureEmbed = new EmbedBuilder()
+                                .addField("__**Incorrect position**__", "Track duration is `" + formatDuration(Player.getAudioTrackNowPlaying().getDuration()) + "`")
+                                .setColor(Color.red);
+
+                        respondImmediatelyWithEmbed(interaction, seekLongFailureEmbed);
+                    }
+                } else {
+                    EmbedBuilder seekFailureEmbed = new EmbedBuilder()
+                            .addField("__**Incorrect position format**__", "Use `minutes:seconds` format")
+                            .setColor(Color.red);
+
+                    respondImmediatelyWithEmbed(interaction, seekFailureEmbed);
+                }
             }
         });
 
@@ -605,4 +640,17 @@ public class Main {
         Matcher matcher = urlPattern.matcher(str);
         return matcher.matches();
     }
+
+    public static long convertToMilliseconds(String time) {
+        String[] tokens = time.split(":");
+        int minutes = Integer.parseInt(tokens[0]);
+        int seconds = Integer.parseInt(tokens[1]);
+        return (minutes * 60 + seconds) * 1000;
+    }
+
+    public static boolean isValidTimeFormat(String time) {
+        String regex = "^\\d+:[0-5]\\d$";
+        return time.matches(regex);
+    }
+
 }
