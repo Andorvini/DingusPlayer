@@ -609,7 +609,7 @@ public class Main {
             Request.Builder requestBuilder = new Request.Builder()
                     .url(requestUrl)
                     .post(body)
-                    .addHeader("X-API-key", System.getenv("SOSANIE_API_KEY"));
+                    .addHeader("X-API-key", System.getenv("DP_SOSANIE_API_KEY"));
 
             Call call = okHttpClient.newCall(requestBuilder.build());
 

@@ -124,7 +124,7 @@ public class Queue {
 
         YouTube youtube = new YouTube.Builder(httpTransport, jsonFactory, null)
                 .setApplicationName("Dingus Player")
-                .setGoogleClientRequestInitializer(new CommonGoogleClientRequestInitializer(System.getenv("YOUTUBE_API_KEY")))
+                .setGoogleClientRequestInitializer(new CommonGoogleClientRequestInitializer(System.getenv("DP_YOUTUBE_API_KEY")))
                 .build();
 
         String methodResult;
