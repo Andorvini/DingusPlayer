@@ -170,11 +170,11 @@ public class Queue {
 
         YouTube youtube = new YouTube.Builder(httpTransport, jsonFactory, null)
                 .setApplicationName("Dingus Player")
-                .setGoogleClientRequestInitializer(new CommonGoogleClientRequestInitializer(System.getenv("YOUTUBE_API_KEY")))
+                .setGoogleClientRequestInitializer(new CommonGoogleClientRequestInitializer(System.getenv("DP_YOUTUBE_API_KEY")))
                 .build();
 
         YouTube.Search.List search = youtube.search().list(Collections.singletonList("id,snippet"));
-        search.setKey(System.getenv("YOUTUBE_API_KEY"));
+        search.setKey(System.getenv("DP_YOUTUBE_API_KEY"));
         search.setQ(videoName);
         search.setType(Collections.singletonList("video"));
         search.setFields("items(id/kind,id/videoId,snippet/title,snippet/description,snippet/thumbnails/default/url)");
