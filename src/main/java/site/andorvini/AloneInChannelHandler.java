@@ -61,7 +61,7 @@ public class AloneInChannelHandler {
             voiceChannel = voiceChannelFrom;
         }
 
-        int leaveSeconds = 10;
+        int leaveSeconds = 60;
 
         EmbedBuilder embed = new EmbedBuilder()
                 .setColor(Color.CYAN)

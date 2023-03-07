@@ -38,6 +38,13 @@ public class Main {
 
     public static void main(String[] args) {
 
+        /*
+         * 998958761618190421L = Sukran = rferee = https://storage.rferee.dev/assets/media/audio/sukran.mp3
+         * 394085232266969090L = doka swarm = andorvini = https://storage.rferee.dev/assets/media/audio/dokaswam.mp3
+         * 483991031306780683L = yubico = vapronwa = https://storage.rferee.dev/assets/media/audio/v_nalicii_yubico.mp3
+         * 731939675438317588L = clown = clown(sasha) = https://storage.rferee.dev/assets/media/audio/clown_short.mp3
+         */
+
         HashMap<Long, String> userAudio = new HashMap<>();
         userAudio.put(998958761618190421L, "https://storage.rferee.dev/assets/media/audio/sukran.mp3");
         userAudio.put(394085232266969090L, "https://storage.rferee.dev/assets/media/audio/dokaswam.mp3");
@@ -304,7 +311,7 @@ public class Main {
 
                 Server finalServer = server;
                 userVoiceChannel.connect().thenAccept(audioConnection -> {
-                    musicPlayer(api,audioConnection,convertedUrl,loopVar,slashCommandCreateEvent,true, finalServer);
+                    musicPlayer(api, audioConnection, convertedUrl, loopVar, slashCommandCreateEvent, true,     finalServer);
                 });
             } else if (fullCommandName.equals("clear")) {
                 long count = interaction.getOptionByName("count").get().getLongValue().get() + 1;
@@ -438,10 +445,7 @@ public class Main {
                 }
             } else if (fullCommandName.equals("queue")) {
                 try {
-                    interaction.createImmediateResponder()
-                            .addEmbeds(Queue.getQueueEmbed())
-                            .respond()
-                            .join();
+                    respondImmediatelyWithEmbed(interaction, Queue.getQueueEmbed());
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
@@ -488,15 +492,8 @@ public class Main {
             Server server = serverVoiceChannelMemberJoinEvent.getServer();
             User user = serverVoiceChannelMemberJoinEvent.getUser();
 
-            /*
-            * 998958761618190421L = Sukran = rferee = https://storage.rferee.dev/assets/media/audio/sukran.mp3
-            * 394085232266969090L = doka swarm = andorvini = https://storage.rferee.dev/assets/media/audio/dokaswam.mp3
-            * 483991031306780683L = yubico = vapronwa = https://storage.rferee.dev/assets/media/audio/v_nalicii_yubico.mp3
-            * 731939675438317588L = clown = clown(sasha) = https://storage.rferee.dev/assets/media/audio/clown_short.mp3
-             */
-
             if (AloneInChannelHandler.isAloneTimerRunning()){
-                if (api.getYourself().getConnectedVoiceChannel(server).get() == AloneInChannelHandler.getVoiceChannel()) {
+                if (serverVoiceChannelMemberJoinEvent.getChannel().getId() == AloneInChannelHandler.getVoiceChannel().getId()) {
                     AloneInChannelHandler.stopAloneTimer();
                 }
             }
