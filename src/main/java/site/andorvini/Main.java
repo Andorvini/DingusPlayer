@@ -57,10 +57,16 @@ public class Main {
         token = System.getenv("DP_DISCORD_TOKEN");
 
         String ssEbloApiToken = null;
-        ssEbloApiToken = System.getenv("SOSANIE_API_KEY");
+        ssEbloApiToken = System.getenv("DP_SOSANIE_API_KEY");
 
         String youtubeApiToken = null;
-        youtubeApiToken = System.getenv("YOUTUBE_API_KEY");
+        youtubeApiToken = System.getenv("DP_YOUTUBE_API_KEY");
+
+        String youtubeLogin = null;
+        youtubeLogin = System.getenv("DP_YOUTUBE_LOGIN");
+
+        String youtubePassword = null;
+        youtubePassword = System.getenv("DP_YOUTUBE_PASSWORD");
 
         if (token == null) {
             System.out.println("[ERROR] DP_DISCORD_TOKEN environment variable not found");
@@ -74,6 +80,16 @@ public class Main {
 
         if (youtubeApiToken == null) {
             System.out.println("[ERROR] YOUTUBE_API_KEY environment variable not found");
+            System.exit(1);
+        }
+
+        if (youtubeLogin == null) {
+            System.out.println("[ERROR] DP_YOUTUBE_LOGIN environment variable not found");
+            System.exit(1);
+        }
+
+        if (youtubePassword == null) {
+            System.out.println("[ERROR] DP_YOUTUBE_PASSWORD environment variable not found");
             System.exit(1);
         }
 

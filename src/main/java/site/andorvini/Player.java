@@ -106,7 +106,7 @@ public class Player {
     public static void musicPlayer(DiscordApi apiFrom, AudioConnection audioConnectionFrom, String trackUrl, AtomicBoolean loopVarFrom, SlashCommandCreateEvent slashCommandCreateEventFrom, boolean isSlashFrom, Server serverFrom){
         AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
 
-        playerManager.registerSourceManager(new YoutubeAudioSourceManager());
+        playerManager.registerSourceManager(new YoutubeAudioSourceManager(false, System.getenv("DP_YOUTUBE_LOGIN"), System.getenv("DP_YOUTUBE_PASSWORD")));
         playerManager.registerSourceManager(new HttpAudioSourceManager());
         playerManager.registerSourceManager(new BandcampAudioSourceManager());
 
