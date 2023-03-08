@@ -10,8 +10,6 @@ import java.awt.*;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import static site.andorvini.Queue.clearQueue;
-
 public class AloneInChannelHandler {
 
     private static Timer timer;
@@ -50,7 +48,7 @@ public class AloneInChannelHandler {
         return isTimerRunning;
     }
 
-    public static void startAloneTimer(TextChannel channel, Server server, DiscordApi api, String reasonFrom, ServerVoiceChannel voiceChannelFrom) {
+    public static void startAloneTimer(TextChannel channel, Server server, DiscordApi api, String reasonFrom, ServerVoiceChannel voiceChannelFrom, Queue queue, Player player) {
 
         timer = new Timer();
         isTimerRunning = true;
@@ -75,8 +73,8 @@ public class AloneInChannelHandler {
             @Override
             public void run() {
                 if (i == 0) {
-                    Player.stopPlaying();
-                    clearQueue();
+                    player.stopPlaying();
+                    queue.clearQueue();
                     server.getConnectedVoiceChannel(api.getYourself()).get().disconnect();
                     isTimerRunning = false;
                     timer.cancel();

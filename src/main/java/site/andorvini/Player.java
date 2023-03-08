@@ -12,6 +12,7 @@ import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason;
+
 import org.javacord.api.DiscordApi;
 import org.javacord.api.audio.AudioConnection;
 import org.javacord.api.audio.AudioSource;
@@ -24,87 +25,78 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Player {
 
-    private static AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
-
-    private static AudioPlayer player = playerManager.createPlayer();
-
-    private static AudioTrack audioTrackNowPlaying;
-
-    private static AudioSource source;
-
-    private static DiscordApi api;
-
-    private static AudioConnection audioConnection;
-
-    private static SlashCommandCreateEvent slashCommandCreateEvent;
-
-    private static AtomicBoolean loopVar;
-
-    private static Server server;
+    private AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
+    private AudioPlayer playerGlobal = playerManager.createPlayer();
+    private AudioTrack audioTrackNowPlaying;
+    private AudioSource source;
+    private DiscordApi api;
+    private AudioConnection audioConnection;
+    private SlashCommandCreateEvent slashCommandCreateEvent;
+    private AtomicBoolean loopVar;
+    private Server server;
 
 //    ================= SETTERS ==================
-    public static void setPause(boolean paused) {
+    public void setPause(boolean paused) {
         System.out.println("[MSG] Seeting pause to " + paused);
-        player.setPaused(paused);
+        playerGlobal.setPaused(paused);
     }
 
-    public static void setVolume(Long volumeLevel) {
-        player.setVolume(Math.toIntExact(volumeLevel));
+    public void setVolume(Long volumeLevel) {
+        playerGlobal.setVolume(Math.toIntExact(volumeLevel));
     }
 
-    public static void setSource() {
-        source = new LavaplayerAudioSource(api, player);
+    public void setSource() {
+        source = new LavaplayerAudioSource(api, playerGlobal);
         audioConnection.setAudioSource(source);
     }
 
-    public static void setPosition(long milis){
+    public void setPosition(long milis){
         audioTrackNowPlaying.setPosition(milis);
     }
 //    ==================== GETTERS ===================
 
-    public static boolean getPause() {
-        return player.isPaused();
+    public boolean getPause() {
+        return playerGlobal.isPaused();
     }
 
-    public static AudioTrack getAudioTrackNowPlaying() {
-        return audioTrackNowPlaying = player.getPlayingTrack();
+    public AudioTrack getAudioTrackNowPlaying() {
+        return audioTrackNowPlaying = playerGlobal.getPlayingTrack();
     }
 
-    public static void stopPlaying() {
-        player.destroy();
+    public void stopPlaying() {
+        playerGlobal.destroy();
     }
 
-    public static int getVolume() {
-        return player.getVolume();
+    public int getVolume() {
+        return playerGlobal.getVolume();
     }
 
 //    ================ MAIN METHODS ===================
 
-    public static void addOnTrackEndEventToPlayer(){
-        player.addListener(new AudioEventAdapter() {
+    public void musicPlayer(DiscordApi apiFrom, AudioConnection audioConnectionFrom, String trackUrl, AtomicBoolean loopVarFrom, SlashCommandCreateEvent slashCommandCreateEventFrom, boolean isSlashFrom, Server serverFrom, Queue queue){
+        AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
 
+        AudioEventAdapter adapter = new AudioEventAdapter() {
             @Override
             public void onTrackEnd(AudioPlayer player, AudioTrack track, AudioTrackEndReason endReason) {
-                System.out.println("[MSG] Track ended with reason " + endReason);
+                System.out.println("[MSG] Track ended with reason " + endReason + " in server `" + serverFrom.getName() + "`");
                 if (endReason == AudioTrackEndReason.FINISHED) {
-                        if (loopVar.get()) {
-                            player.playTrack(track.makeClone());
-                            System.out.println("[MSG] Loop engaged");
-                        } else {
-                            System.out.println("[MSG] Loop disengaged");
-                            Queue.queueOnTrackEnd(api, audioConnection, loopVar, slashCommandCreateEvent,true, server);
-                            player.destroy();
-                        }
+                    if (loopVar.get()) {
+                        player.playTrack(track.makeClone());
+                        System.out.println("[MSG] Loop engaged");
+                    } else {
+                        System.out.println("[MSG] Loop disengaged");
+                        queue.queueOnTrackEnd(api, audioConnection, loopVar, slashCommandCreateEvent,true, server);
+                        player.destroy();
+                        playerGlobal.removeListener(this);
+                    }
                 } else if (endReason == AudioTrackEndReason.LOAD_FAILED) {
                     player.playTrack(track.makeClone());
                 }
             }
-        });
+        };
 
-    }
-
-    public static void musicPlayer(DiscordApi apiFrom, AudioConnection audioConnectionFrom, String trackUrl, AtomicBoolean loopVarFrom, SlashCommandCreateEvent slashCommandCreateEventFrom, boolean isSlashFrom, Server serverFrom){
-        AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
+        playerGlobal.addListener(adapter);
 
         playerManager.registerSourceManager(new YoutubeAudioSourceManager(false, System.getenv("DP_YOUTUBE_LOGIN"), System.getenv("DP_YOUTUBE_PASSWORD")));
         playerManager.registerSourceManager(new HttpAudioSourceManager());
@@ -117,7 +109,7 @@ public class Player {
         api = apiFrom;
         audioConnection = audioConnectionFrom;
 
-        source = new LavaplayerAudioSource(api, player);
+        source = new LavaplayerAudioSource(api, playerGlobal);
         audioConnection.setAudioSource(source);
 
         playerManager.loadItem(trackUrl, new AudioLoadResultHandler() {
@@ -125,7 +117,7 @@ public class Player {
             public void trackLoaded(AudioTrack track) {
                 String trackTitle = track.getInfo().title;
 
-                System.out.println("[MSG] Track: " + trackTitle +  " loaded");
+                System.out.println("[MSG] Track: " + trackTitle +  " loaded in server '" + serverFrom.getName() + "`");
 
                     slashCommandCreateEventFrom.getInteraction()
                         .respondLater()
@@ -134,12 +126,12 @@ public class Player {
                                     .setAuthor("Playing: ")
                                     .addField("", "[" + trackTitle + "](" + trackUrl + ") | `" + Main.formatDuration(track.getDuration()) + "`")
                                     .setColor(Color.GREEN)
-                                    .setFooter("Track in queue: " + Queue.getQueueList().size());
+                                    .setFooter("Track in queue: " + queue.getQueueList().size());
 
                             message.addEmbed(embed)
                                     .update();
                         });
-                player.playTrack(track);
+                playerGlobal.playTrack(track);
             }
 
             @Override
@@ -154,9 +146,9 @@ public class Player {
 
             @Override
             public void loadFailed(FriendlyException exception) {
-                System.out.println("[MSG] Failed to load tr ack: ");
+                System.out.println("[MSG] Failed to load track: ");
                 exception.printStackTrace();
-                Queue.removeTrackFromQueue();
+                queue.removeTrackFromQueue();
             }
         });
     }

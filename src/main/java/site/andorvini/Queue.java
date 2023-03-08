@@ -27,9 +27,11 @@ import java.util.regex.Pattern;
 
 public class Queue {
 
-    private static java.util.Queue<String> trackUrlQueue = new LinkedList<String>();
+    private java.util.Queue<String> trackUrlQueue = new LinkedList<String>();
 
-    public static void addTrackToQueue(String track) {
+    private Player player;
+
+    public void addTrackToQueue(String track) {
 
         if (AloneInChannelHandler.isAloneTimerRunning()) {
             AloneInChannelHandler.stopAloneTimer();
@@ -38,15 +40,15 @@ public class Queue {
         trackUrlQueue.add(track);
     }
 
-    public static void clearQueue() {
+    public void clearQueue() {
         trackUrlQueue.clear();
     }
 
-    public static void removeTrackFromQueue() {
+    public void removeTrackFromQueue() {
         trackUrlQueue.remove();
     }
 
-    public static EmbedBuilder getQueueEmbed() throws IOException {
+    public EmbedBuilder getQueueEmbed() throws IOException {
         int i = 1;
         int queueSize = trackUrlQueue.size();
 
@@ -54,7 +56,7 @@ public class Queue {
 
         String nowPlayingTitle = null;
         try {
-            nowPlayingTitle = Objects.requireNonNullElse(Player.getAudioTrackNowPlaying().getInfo().title, "Nothing is playing now");
+            nowPlayingTitle = Objects.requireNonNullElse(player.getAudioTrackNowPlaying().getInfo().title, "Nothing is playing now");
         } catch (NullPointerException e) {
             nowPlayingTitle = "Nothing is playing now";
         }
@@ -77,31 +79,33 @@ public class Queue {
         return queueEmbed;
     }
 
-    public static java.util.Queue<String> getQueueList() {
+    public java.util.Queue<String> getQueueList() {
         return trackUrlQueue;
     }
 
-    public static void skipTrack(DiscordApi api, AudioConnection audioConnection, AtomicBoolean loopVar, SlashCommandCreateEvent slashCommandCreateEvent, boolean isSlash, Server server, AtomicBoolean isPlayingNow) {
+    public void skipTrack(DiscordApi api, AudioConnection audioConnection, AtomicBoolean loopVar, SlashCommandCreateEvent slashCommandCreateEvent, boolean isSlash, Server server, AtomicBoolean isPlayingNow, Player playerFrom) {
+        player = playerFrom;
+
         trackUrlQueue.remove();
-        Player.stopPlaying();
-        queueController(api, audioConnection, loopVar, slashCommandCreateEvent, isSlash, server);
+        playerFrom.stopPlaying();
+        queueController(api, audioConnection, loopVar, slashCommandCreateEvent, isSlash, server, player);
     }
 
-    public static void queueController(DiscordApi api, AudioConnection audioConnection, AtomicBoolean loopVar, SlashCommandCreateEvent slashCommandCreateEvent, boolean isSlash, Server server) {
+    public void queueController(DiscordApi api, AudioConnection audioConnection, AtomicBoolean loopVar, SlashCommandCreateEvent slashCommandCreateEvent, boolean isSlash, Server server, Player playerFrom) {
         String trackUrl = trackUrlQueue.peek();
 
-        if (getQueueList().size() == 0){
-            AloneInChannelHandler.startAloneTimer(Main.getTextChannel(), server, api, "No tracks in queue", null);
-        }
+        player = playerFrom;
 
-        if (Player.getAudioTrackNowPlaying() == null) {
-            Player.musicPlayer(api, audioConnection, trackUrl, loopVar, slashCommandCreateEvent, isSlash, server);
+        if (getQueueList().size() == 0){
+            AloneInChannelHandler.startAloneTimer(Main.getTextChannel(), server, api, "No tracks in queue", null, this, player);
+        } else if (playerFrom.getAudioTrackNowPlaying() == null) {
+            playerFrom.musicPlayer(api, audioConnection, trackUrl, loopVar, slashCommandCreateEvent, isSlash, server, this);
         }
     }
 
-    public static void queueOnTrackEnd(DiscordApi api, AudioConnection audioConnection, AtomicBoolean loopVar, SlashCommandCreateEvent slashCommandCreateEvent, boolean isSlash, Server server) {
+    public void queueOnTrackEnd(DiscordApi api, AudioConnection audioConnection, AtomicBoolean loopVar, SlashCommandCreateEvent slashCommandCreateEvent, boolean isSlash, Server server) {
         trackUrlQueue.remove();
-        queueController(api, audioConnection, loopVar, slashCommandCreateEvent, isSlash, server);
+        queueController(api, audioConnection, loopVar, slashCommandCreateEvent, isSlash, server, player);
     }
 
     public static String getYoutubeVideoTitleFromUrl(String url, boolean isTitle) throws IOException {

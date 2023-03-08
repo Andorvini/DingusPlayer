@@ -25,15 +25,22 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static site.andorvini.GreetingPlayer.greetingPlayer;
-import static site.andorvini.Player.*;
-
 public class Main {
 
     private static TextChannel lastCommandChannel;
 
     public static TextChannel getTextChannel(){
         return lastCommandChannel;
+    }
+
+    private static HashMap<Long,Player> players = new HashMap<>();
+
+    private static HashMap<Long, Queue> queues = new HashMap<>();
+
+    private static HashMap<Long, GreetingPlayer> greetingPlayers = new HashMap<>();
+
+    public static HashMap<Long, Player> getPlayers(){
+        return players;
     }
 
     public static void main(String[] args) {
@@ -101,9 +108,6 @@ public class Main {
         AtomicBoolean isPlaying = new AtomicBoolean(false);
 
         DiscordApi api = new DiscordApiBuilder().setToken(token).login().join();
-
-        Player.addOnTrackEndEventToPlayer();
-        GreetingPlayer.addOnTrackEndToGreetingPlayer();
 
         // ================ ACVTIVITY SET =====================
         api.updateActivity(ActivityType.LISTENING,"\"Antipathy World\"");
@@ -195,7 +199,8 @@ public class Main {
 
         api.addSlashCommandCreateListener(slashCommandCreateEvent -> {
             SlashCommandInteraction interaction = slashCommandCreateEvent.getSlashCommandInteraction();
-            Server server = null;
+            Server interactionServer = null;
+            Long interactionServerId = null;
             String fullCommandName = interaction.getFullCommandName();
 
             Optional<ServerVoiceChannel> optionalUserVoiceChannel = null;
@@ -204,22 +209,40 @@ public class Main {
             Optional<ServerVoiceChannel> optionalBotVoiceChannel = null;
             ServerVoiceChannel botVoiceChannel = null;
 
-            if (Player.getAudioTrackNowPlaying() == null) {
-                isPlaying.set(false);
-            } else {
-                isPlaying.set(true);
-            }
-
             try {
-                server = slashCommandCreateEvent.getInteraction().getServer().get();
-                optionalUserVoiceChannel = interaction.getUser().getConnectedVoiceChannel(server);
+                interactionServer = slashCommandCreateEvent.getInteraction().getServer().get();
+                interactionServerId = interactionServer.getId();
+
+                if (!(queues.containsKey(interactionServerId))) {
+                    queues.put(interactionServerId, new Queue());
+                }
+
+                if (!greetingPlayers.containsKey(interactionServerId)) {
+                    greetingPlayers.put(interactionServerId, new GreetingPlayer());
+                }
+
+                if (!players.containsKey(interactionServerId)) {
+                    players.put(interactionServerId, new Player());
+                }
+
+                optionalUserVoiceChannel = interaction.getUser().getConnectedVoiceChannel(interactionServer);
                 userVoiceChannel = optionalUserVoiceChannel.get();
 
-                optionalBotVoiceChannel = api.getYourself().getConnectedVoiceChannel(server);
+                optionalBotVoiceChannel = api.getYourself().getConnectedVoiceChannel(interactionServer);
                 botVoiceChannel = optionalBotVoiceChannel.get();
+
             } catch (NoSuchElementException e) {
                 System.out.println("[WARN] Maybe personal messages use or no value present");
             }
+
+            Queue currentQueue = queues.get(interactionServerId);
+            GreetingPlayer currentGreetingPlayer = greetingPlayers.get(interactionServerId);
+            Player currentPlayer = players.get(interactionServerId);
+
+//            currentGreetingPlayer.addOnTrackEndToGreetingPlayer(currentPlayer);
+//            currentPlayer.addOnTrackEndEventToPlayer(currentQueue);
+
+           // isPlaying.set(currentPlayer.getAudioTrackNowPlaying() != null);
 
             if (!interaction.getChannel().get().getType().isServerChannelType()) {
                 interaction.createImmediateResponder()
@@ -239,14 +262,16 @@ public class Main {
                         trackUrl.set("https://storage.rferee.dev/assets/media/audio/phony-jp.flac");
                     }
 
+                    currentPlayer.setPause(true);
+
                     if (optionalBotVoiceChannel.isEmpty()) {
-                        Server finalServer = server;
+                        Server finalServer = interactionServer;
                         userVoiceChannel.connect().thenAccept(audioConnection -> {
-                            musicPlayer(api, audioConnection, trackUrl.get(), loopVar, slashCommandCreateEvent,true, finalServer);
+                            currentGreetingPlayer.greetingPlayer(api, audioConnection, trackUrl.get(), loopVar, slashCommandCreateEvent,true, finalServer, currentPlayer);
                         });
                     } else {
-                        AudioConnection audioConnection = server.getAudioConnection().get();
-                        musicPlayer(api, audioConnection, trackUrl.get(), loopVar, slashCommandCreateEvent, true, server);
+                        AudioConnection audioConnection = interactionServer.getAudioConnection().get();
+                        currentGreetingPlayer.greetingPlayer(api, audioConnection, trackUrl.get(), loopVar, slashCommandCreateEvent, true, interactionServer, currentPlayer);
                     }
                 } else {
                     respondImmediatelyWithString(interaction, "You are not connected to a voice channel");
@@ -266,9 +291,9 @@ public class Main {
                         } catch (IOException ignored){}
                     }
 
-                    Queue.addTrackToQueue(trackUrl);
+                    currentQueue.addTrackToQueue(trackUrl);
 
-                    if (Queue.getQueueList().size() > 1) {
+                    if (currentQueue.getQueueList().size() > 1) {
                         EmbedBuilder embed;
 
                         if (isYouTubeLink(trackUrl)) {
@@ -284,26 +309,26 @@ public class Main {
                                     .setAuthor("Added to queue: ")
                                     .addField("", "[" + title + "](" + trackUrl + ") | `" + duration + "`")
                                     .setColor(Color.GREEN)
-                                    .setFooter("Track in queue: " + Queue.getQueueList().size());
+                                    .setFooter("Track in queue: " + currentQueue.getQueueList().size());
 
                         } else {
                             embed = new EmbedBuilder()
                                     .setAuthor("Added to queue: ")
                                     .addField("", trackUrl)
                                     .setColor(Color.GREEN)
-                                    .setFooter("Track in queue: " + Queue.getQueueList().size());
+                                    .setFooter("Track in queue: " + currentQueue.getQueueList().size());
                         }
                         respondImmediatelyWithEmbed(interaction, embed);
                     }
 
                     if (optionalBotVoiceChannel.isEmpty()) {
-                        Server finalServer = server;
+                        Server finalServer = interactionServer;
                         userVoiceChannel.connect().thenAccept(audioConnection -> {
-                            Queue.queueController(api, audioConnection, loopVar, slashCommandCreateEvent,true, finalServer);
+                            currentQueue.queueController(api, audioConnection, loopVar, slashCommandCreateEvent,true, finalServer, currentPlayer);
                         });
                     } else {
-                        AudioConnection audioConnection = server.getAudioConnection().get();
-                        Queue.queueController(api, audioConnection, loopVar, slashCommandCreateEvent,true, server);
+                        AudioConnection audioConnection = interactionServer.getAudioConnection().get();
+                        currentQueue.queueController(api, audioConnection, loopVar, slashCommandCreateEvent,true, interactionServer, currentPlayer);
                     }
                 } else {
                     respondImmediatelyWithString(interaction, "You are not connected to a voice channel");
@@ -318,11 +343,10 @@ public class Main {
                 }
             } else if (fullCommandName.equals("leave")) {
                 if (optionalBotVoiceChannel.isPresent()) {
-                    respondImmediatelyWithString(interaction, "Leaving voice channel \"" + server.getConnectedVoiceChannel(api.getYourself()).get().getName() + "\"");
+                    respondImmediatelyWithString(interaction, "Leaving voice channel \"" + interactionServer.getConnectedVoiceChannel(api.getYourself()).get().getName() + "\"");
 
                     botVoiceChannel.disconnect();
-                    stopPlaying();
-                    Queue.clearQueue();
+                    currentQueue.clearQueue();
                 } else {
                     respondImmediatelyWithString(interaction, "I am not connected to a voice channel");
                 }
@@ -334,9 +358,10 @@ public class Main {
                 String convertedUrl = getSosaniaEblaUrl(textToConvert);
                 respondImmediatelyWithString(interaction, "Playing \"" + textToConvert + "\" with Alyona Flirt ");
 
-                Server finalServer = server;
+                Server finalServer = interactionServer;
                 userVoiceChannel.connect().thenAccept(audioConnection -> {
-                    musicPlayer(api, audioConnection, convertedUrl, loopVar, slashCommandCreateEvent, true,     finalServer);
+                    currentPlayer.setPause(true);
+                    currentGreetingPlayer.greetingPlayer(api, audioConnection, convertedUrl, loopVar, slashCommandCreateEvent, true, finalServer, currentPlayer);
                 });
             } else if (fullCommandName.equals("clear")) {
                 long count = interaction.getOptionByName("count").get().getLongValue().get() + 1;
@@ -354,17 +379,17 @@ public class Main {
 
                 channel.bulkDelete(messagesToDelete);
             } else if (fullCommandName.equals("pause")) {
-                if (Player.getPause()) {
+                if (currentPlayer.getPause()) {
                     respondImmediatelyWithString(interaction, "Unpaused");
 
-                    setPause(false);
+                    currentPlayer.setPause(false);
                 } else {
                     respondImmediatelyWithString(interaction, "Paused");
 
-                    setPause(true);
+                    currentPlayer.setPause(true);
                 }
             } else if (fullCommandName.equals("np")) {
-                AudioTrack audioTrackNowPlaying = Player.getAudioTrackNowPlaying();
+                AudioTrack audioTrackNowPlaying = currentPlayer.getAudioTrackNowPlaying();
 
                 String loop = null;
                 String pause = null;
@@ -381,7 +406,7 @@ public class Main {
                     loop = "Loop disabled";
                 }
 
-                if (Player.getPause()) {
+                if (currentPlayer.getPause()) {
                     pause = "Now paused";
                 } else {
                     pause = "Playing";
@@ -390,7 +415,7 @@ public class Main {
                 if (audioTrackNowPlaying != null) {
                     duration = audioTrackNowPlaying.getDuration();
                     position = audioTrackNowPlaying.getPosition();
-                    volume = Player.getVolume();
+                    volume = currentPlayer.getVolume();
 
                     identifier = audioTrackNowPlaying.getIdentifier();
 
@@ -426,23 +451,25 @@ public class Main {
             } else if (fullCommandName.equals("random")) {
                 lastCommandChannel = interaction.getChannel().get();
                 if (optionalUserVoiceChannel.isPresent()) {
-                    Set<User> userSet = interaction.getUser().getConnectedVoiceChannel(server).get().getConnectedUsers();
+                    Set<User> userSet = interaction.getUser().getConnectedVoiceChannel(interactionServer).get().getConnectedUsers();
 
                     User randomUser = userSet.stream().skip(new Random().nextInt(userSet.size())).findFirst().orElse(null);
 
                     assert randomUser != null;
-                    String trackUrl = getSosaniaEblaUrl(randomUser.getDisplayName(server));
+                    String trackUrl = getSosaniaEblaUrl(randomUser.getDisplayName(interactionServer));
 
                     respondImmediatelyWithString(interaction,randomUser.getName());
 
+                    currentPlayer.setPause(true);
+
                     if (optionalBotVoiceChannel.isEmpty()) {
-                        Server finalServer = server;
-                        interaction.getUser().getConnectedVoiceChannel(server).get().connect().thenAccept(audioConnection -> {
-                            musicPlayer(api, audioConnection, trackUrl, loopVar, slashCommandCreateEvent,false, finalServer);
+                        Server finalServer = interactionServer;
+                        interaction.getUser().getConnectedVoiceChannel(interactionServer).get().connect().thenAccept(audioConnection -> {
+                            currentGreetingPlayer.greetingPlayer(api, audioConnection, trackUrl, loopVar, slashCommandCreateEvent,false, finalServer, currentPlayer);
                         });
                     } else {
-                        AudioConnection audioConnection = server.getAudioConnection().get();
-                        musicPlayer(api, audioConnection, trackUrl, loopVar, slashCommandCreateEvent,false, server);
+                        AudioConnection audioConnection = interactionServer.getAudioConnection().get();
+                        currentGreetingPlayer.greetingPlayer(api, audioConnection, trackUrl, loopVar, slashCommandCreateEvent,false, interactionServer, currentPlayer);
                     }
                 } else {
                     respondImmediatelyWithString(interaction, "You are not connected to a voice channel");
@@ -453,14 +480,14 @@ public class Main {
                 respondImmediatelyWithString(interaction, "Not implemented yet. (Because musixmatch shit)");
             } else if (fullCommandName.equals("volume")) {
                 Long volumeLevel = interaction.getOptionByName("volumelvl").get().getLongValue().get();
-                int volumeBefore = Player.getVolume();
-                setVolume(volumeLevel);
+                int volumeBefore = currentPlayer.getVolume();
+                currentPlayer.setVolume(volumeLevel);
                 String trackUrl = "https://storage.rferee.dev/assets/media/audio/alyona_volume_warning.wav";
-                AudioConnection audioConnection = server.getAudioConnection().get();
+                AudioConnection audioConnection = interactionServer.getAudioConnection().get();
 
                 if (volumeLevel - volumeBefore >= 100) {
-                    setPause(true);
-                    greetingPlayer(api, audioConnection, trackUrl, loopVar, null, false, server);
+                    currentPlayer.setPause(true);
+                    currentGreetingPlayer.greetingPlayer(api, audioConnection, trackUrl, loopVar, null, false, interactionServer, currentPlayer);
                 }
 
                 if (volumeLevel > 900) {
@@ -470,7 +497,7 @@ public class Main {
                 }
             } else if (fullCommandName.equals("queue")) {
                 try {
-                    respondImmediatelyWithEmbed(interaction, Queue.getQueueEmbed());
+                    respondImmediatelyWithEmbed(interaction, currentQueue.getQueueEmbed());
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
@@ -479,7 +506,7 @@ public class Main {
                     String secondTrackInQueue = null;
 
                     int i = 0;
-                    for (String trackUrl : Queue.getQueueList()) {
+                    for (String trackUrl : currentQueue.getQueueList()) {
                         if (i == 1) {
                             secondTrackInQueue = trackUrl;
                             break;
@@ -488,7 +515,7 @@ public class Main {
                     }
 
                     EmbedBuilder skipEmbed = new EmbedBuilder()
-                            .addInlineField("__**Skipping:**__ ", "[" + Queue.getYoutubeVideoTitleFromUrl(Queue.getQueueList().peek(), true) + "](" + Queue.getQueueList().peek() + ")")
+                            .addInlineField("__**Skipping:**__ ", "[" + Queue.getYoutubeVideoTitleFromUrl(currentQueue.getQueueList().peek(), true) + "](" + currentQueue.getQueueList().peek() + ")")
                             .setColor(Color.GREEN);
 
                     if (secondTrackInQueue != null) {
@@ -502,31 +529,31 @@ public class Main {
                     throw new RuntimeException(e);
                 }
                 if (optionalBotVoiceChannel.isEmpty()) {
-                    Server finalServer = server;
-                    interaction.getUser().getConnectedVoiceChannel(server).get().connect().thenAccept(audioConnection -> {
-                        Queue.skipTrack (api, audioConnection, loopVar, slashCommandCreateEvent,true, finalServer, isPlaying);
+                    Server finalServer = interactionServer;
+                    interaction.getUser().getConnectedVoiceChannel(interactionServer).get().connect().thenAccept(audioConnection -> {
+                        currentQueue.skipTrack (api, audioConnection, loopVar, slashCommandCreateEvent,true, finalServer, isPlaying, currentPlayer);
                     });
                 } else {
-                    AudioConnection audioConnection = server.getAudioConnection().get();
-                    Queue.skipTrack(api, audioConnection, loopVar, slashCommandCreateEvent,true, server, isPlaying);
+                    AudioConnection audioConnection = interactionServer.getAudioConnection().get();
+                    currentQueue.skipTrack(api, audioConnection, loopVar, slashCommandCreateEvent,true, interactionServer, isPlaying, currentPlayer);
                 }
             } else if (fullCommandName.equals("seek")) {
                 String position = interaction.getOptionByName("position").get().getStringValue().get();
 
                 if (isValidTimeFormat(position)) {
                     long milis = convertToMilliseconds(position);
-                    if (!(milis > Player.getAudioTrackNowPlaying().getDuration())) {
+                    if (!(milis > currentPlayer.getAudioTrackNowPlaying().getDuration())) {
                         EmbedBuilder seekEmbed = new EmbedBuilder()
-                                .addField("__**Seeking track: **__", getAudioTrackNowPlaying().getInfo().title)
-                                .addInlineField("Previous position: ", "`" + formatDuration(getAudioTrackNowPlaying().getPosition()) + "`")
+                                .addField("__**Seeking track: **__", currentPlayer.getAudioTrackNowPlaying().getInfo().title)
+                                .addInlineField("Previous position: ", "`" + formatDuration(currentPlayer.getAudioTrackNowPlaying().getPosition()) + "`")
                                 .addInlineField("New position: ", "`" + position + "`")
                                 .setColor(Color.GREEN);
 
-                        Player.setPosition(milis);
+                        currentPlayer.setPosition(milis);
                         respondImmediatelyWithEmbed(interaction, seekEmbed);
                     } else {
                         EmbedBuilder seekLongFailureEmbed = new EmbedBuilder()
-                                .addField("__**Incorrect position**__", "Track duration is `" + formatDuration(Player.getAudioTrackNowPlaying().getDuration()) + "`")
+                                .addField("__**Incorrect position**__", "Track duration is `" + formatDuration(currentPlayer.getAudioTrackNowPlaying().getDuration()) + "`")
                                 .setColor(Color.red);
 
                         respondImmediatelyWithEmbed(interaction, seekLongFailureEmbed);
@@ -545,6 +572,9 @@ public class Main {
             Server server = serverVoiceChannelMemberJoinEvent.getServer();
             User user = serverVoiceChannelMemberJoinEvent.getUser();
 
+            Player currentPlayer = players.get(server.getId());
+            GreetingPlayer currentGreetingPlayer = greetingPlayers.get(server.getId());
+
             if (AloneInChannelHandler.isAloneTimerRunning()){
                 if (serverVoiceChannelMemberJoinEvent.getChannel().getId() == AloneInChannelHandler.getVoiceChannel().getId()) {
                     AloneInChannelHandler.stopAloneTimer();
@@ -555,14 +585,14 @@ public class Main {
                 String trackUrl = userAudio.get(user.getId());
                 if (api.getYourself().getConnectedVoiceChannel(server).isEmpty()) {
                     String finalTrackUrl = trackUrl;
-                    setPause(true);
+                    currentPlayer.setPause(true);
                     serverVoiceChannelMemberJoinEvent.getUser().getConnectedVoiceChannel(server).get().connect().thenAccept(audioConnection -> {
-                        greetingPlayer(api, audioConnection, finalTrackUrl, loopVar, null, false, server);
+                        currentGreetingPlayer.greetingPlayer(api, audioConnection, finalTrackUrl, loopVar, null, false, server, currentPlayer);
                     });
                 } else {
-                    setPause(true);
+                    currentPlayer.setPause(true);
                     AudioConnection audioConnection = server.getAudioConnection().get();
-                    greetingPlayer(api, audioConnection, trackUrl, loopVar, null, false, server);
+                    currentGreetingPlayer.greetingPlayer(api, audioConnection, trackUrl, loopVar, null, false, server, currentPlayer);
                 }
             }
         });
@@ -570,6 +600,10 @@ public class Main {
         api.addServerVoiceChannelMemberLeaveListener(serverVoiceChannelMemberLeaveEvent -> {
             Server server = serverVoiceChannelMemberLeaveEvent.getServer();
             ServerVoiceChannel channel = serverVoiceChannelMemberLeaveEvent.getChannel();
+
+            Player currentPlayer = players.get(server.getId());
+            Queue currentQueue = queues.get(server.getId());
+
 
             if (api.getYourself().getConnectedVoiceChannel(server).isPresent() && api.getYourself().getConnectedVoiceChannel(server).get() == channel) {
 
@@ -580,7 +614,7 @@ public class Main {
                     if (serverVoiceChannelMemberLeaveEvent.getUser().getId() != 1074801519523807252L) {
                         System.out.println("Not myself and not Prod bot");
                         if (usersInChannel == 1) {
-                            AloneInChannelHandler.startAloneTimer(lastCommandChannel, server, api, "I'm alone :(", channel);
+                            AloneInChannelHandler.startAloneTimer(lastCommandChannel, server, api, "I'm alone :(", channel, currentQueue, currentPlayer);
                         }
                     }
                 }

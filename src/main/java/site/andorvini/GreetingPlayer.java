@@ -22,36 +22,38 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class GreetingPlayer {
 
-    private static AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
+    private AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
 
-    private static AudioPlayer player = playerManager.createPlayer();
+    private AudioPlayer player = playerManager.createPlayer();
 
-    private static Server server;
+    private Server server;
 
-    private static DiscordApi api;
+    private DiscordApi api;
 
-    public static void addOnTrackEndToGreetingPlayer() {
-        player.addListener(new AudioEventAdapter() {
-            @Override
-            public void onTrackEnd(AudioPlayer player, AudioTrack track, AudioTrackEndReason endReason) {
-                if (endReason == AudioTrackEndReason.FINISHED) {
-                    System.out.println("[MSG] Greeting Player finished playing");
-                    Player.setPause(false);
-                    if (Player.getAudioTrackNowPlaying() == null) {
-                        server.getConnectedVoiceChannel(api.getYourself()).get().disconnect();
-                    }
-                    Player.setSource();
-                }
-            }
-        });
+    public void addOnTrackEndToGreetingPlayer(Player playerFrom) {
     }
 
-    public static void greetingPlayer(DiscordApi apiFrom, AudioConnection audioConnection, String trackUrl, AtomicBoolean loopVar, SlashCommandCreateEvent slashCommandCreateEvent, boolean isSlash, Server serverFrom){
+    public void greetingPlayer(DiscordApi apiFrom, AudioConnection audioConnection, String trackUrl, AtomicBoolean loopVar, SlashCommandCreateEvent slashCommandCreateEvent, boolean isSlash, Server serverFrom, Player playerFrom){
         AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
 
         playerManager.registerSourceManager(new YoutubeAudioSourceManager());
         playerManager.registerSourceManager(new HttpAudioSourceManager());
         playerManager.registerSourceManager(new BandcampAudioSourceManager());
+
+        player.addListener(new AudioEventAdapter() {
+            @Override
+            public void onTrackEnd(AudioPlayer player, AudioTrack track, AudioTrackEndReason endReason) {
+                if (endReason == AudioTrackEndReason.FINISHED) {
+                    System.out.println("[MSG] Greeting Player finished playing");
+                    playerFrom.setPause(false);
+                    if (playerFrom.getAudioTrackNowPlaying() == null) {
+                        server.getConnectedVoiceChannel(api.getYourself()).get().disconnect();
+                    }
+                    playerFrom.setSource();
+                }
+            }
+        });
+
         AudioSource source = new LavaplayerAudioSource(apiFrom, player);
 
         server = serverFrom;
