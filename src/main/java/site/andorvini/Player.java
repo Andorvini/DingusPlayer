@@ -120,6 +120,8 @@ public class Player {
         source = new LavaplayerAudioSource(api, player);
         audioConnection.setAudioSource(source);
 
+        System.out.println("Loading " + trackUrl);
+
         playerManager.loadItem(trackUrl, new AudioLoadResultHandler() {
             @Override
             public void trackLoaded(AudioTrack track) {
@@ -154,7 +156,7 @@ public class Player {
 
             @Override
             public void loadFailed(FriendlyException exception) {
-                System.out.println("[MSG] Failed to load track: ");
+                System.out.println("[MSG] Failed to load tr ack: ");
                 exception.printStackTrace();
                 Queue.removeTrackFromQueue();
             }
