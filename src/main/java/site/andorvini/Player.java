@@ -120,8 +120,6 @@ public class Player {
         source = new LavaplayerAudioSource(api, player);
         audioConnection.setAudioSource(source);
 
-        System.out.println("Loading " + trackUrl);
-
         playerManager.loadItem(trackUrl, new AudioLoadResultHandler() {
             @Override
             public void trackLoaded(AudioTrack track) {
