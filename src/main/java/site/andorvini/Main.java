@@ -355,14 +355,28 @@ public class Main {
 
                 String textToConvert = interaction.getOptionByName("text").get().getStringValue().get();
 
-                String convertedUrl = getSosaniaEblaUrl(textToConvert);
+                String trackUrl = getSosaniaEblaUrl(textToConvert);
                 respondImmediatelyWithString(interaction, "Playing \"" + textToConvert + "\" with Alyona Flirt ");
 
-                Server finalServer = interactionServer;
-                userVoiceChannel.connect().thenAccept(audioConnection -> {
+//                Server finalServer = interactionServer;
+//                userVoiceChannel.connect().thenAccept(audioConnection -> {
+//                    currentPlayer.setPause(true);
+//                    currentGreetingPlayer.greetingPlayer(api, audioConnection, convertedUrl, loopVar, slashCommandCreateEvent, true, finalServer, currentPlayer);
+//                });
+
+                if (api.getYourself().getConnectedVoiceChannel(interactionServer).isEmpty()) {
+                    String finalTrackUrl = trackUrl;
                     currentPlayer.setPause(true);
-                    currentGreetingPlayer.greetingPlayer(api, audioConnection, convertedUrl, loopVar, slashCommandCreateEvent, true, finalServer, currentPlayer);
-                });
+                    Server finalInteractionServer = interactionServer;
+
+                    api.getYourself().getConnectedVoiceChannel(interactionServer).get().connect().thenAccept(audioConnection -> {
+                        currentGreetingPlayer.greetingPlayer(api, audioConnection, finalTrackUrl, loopVar, null, false, finalInteractionServer, currentPlayer);
+                    });
+                } else {
+                    currentPlayer.setPause(true);
+                    AudioConnection audioConnection = interactionServer.getAudioConnection().get();
+                    currentGreetingPlayer.greetingPlayer(api, audioConnection, trackUrl, loopVar, null, false, interactionServer, currentPlayer);
+                }
             } else if (fullCommandName.equals("clear")) {
                 long count = interaction.getOptionByName("count").get().getLongValue().get() + 1;
                 TextChannel channel = interaction.getChannel().get();
@@ -486,8 +500,10 @@ public class Main {
                 AudioConnection audioConnection = interactionServer.getAudioConnection().get();
 
                 if (volumeLevel - volumeBefore >= 100) {
-                    currentPlayer.setPause(true);
-                    currentGreetingPlayer.greetingPlayer(api, audioConnection, trackUrl, loopVar, null, false, interactionServer, currentPlayer);
+                    if (volumeBefore < 700) {
+                        currentPlayer.setPause(true);
+                        currentGreetingPlayer.greetingPlayer(api, audioConnection, trackUrl, loopVar, null, false, interactionServer, currentPlayer);
+                    }
                 }
 
                 if (volumeLevel > 900) {
