@@ -1,10 +1,12 @@
-package site.andorvini;
+package site.andorvini.miscellaneous;
 
 import org.javacord.api.DiscordApi;
 import org.javacord.api.entity.channel.ServerVoiceChannel;
 import org.javacord.api.entity.channel.TextChannel;
 import org.javacord.api.entity.message.embed.EmbedBuilder;
 import org.javacord.api.entity.server.Server;
+import site.andorvini.queue.Queue;
+import site.andorvini.players.Player;
 
 import java.awt.*;
 import java.util.Timer;

@@ -1,4 +1,4 @@
-package site.andorvini;
+package site.andorvini.players;
 
 import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
@@ -19,9 +19,13 @@ import org.javacord.api.audio.AudioSource;
 import org.javacord.api.entity.message.embed.EmbedBuilder;
 import org.javacord.api.entity.server.Server;
 import org.javacord.api.event.interaction.SlashCommandCreateEvent;
+import site.andorvini.miscellaneous.LavaplayerAudioSource;
+import site.andorvini.queue.Queue;
 
 import java.awt.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import static site.andorvini.miscellaneous.MiscMethods.formatDuration;
 
 public class Player {
 
@@ -124,7 +128,7 @@ public class Player {
                         .thenAccept(message -> {
                             EmbedBuilder embed = new EmbedBuilder()
                                     .setAuthor("Playing: ")
-                                    .addField("", "[" + trackTitle + "](" + trackUrl + ") | `" + Main.formatDuration(track.getDuration()) + "`")
+                                    .addField("", "[" + trackTitle + "](" + trackUrl + ") | `" + formatDuration(track.getDuration()) + "`")
                                     .setColor(Color.GREEN)
                                     .setFooter("Track in queue: " + queue.getQueueList().size());
 

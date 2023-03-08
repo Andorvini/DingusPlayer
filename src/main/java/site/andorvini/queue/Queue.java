@@ -1,4 +1,4 @@
-package site.andorvini;
+package site.andorvini.queue;
 
 import com.google.api.client.googleapis.services.CommonGoogleClientRequestInitializer;
 import com.google.api.client.http.HttpTransport;
@@ -13,6 +13,10 @@ import org.javacord.api.audio.AudioConnection;
 import org.javacord.api.entity.message.embed.EmbedBuilder;
 import org.javacord.api.entity.server.Server;
 import org.javacord.api.event.interaction.SlashCommandCreateEvent;
+
+import site.andorvini.Main;
+import site.andorvini.miscellaneous.AloneInChannelHandler;
+import site.andorvini.players.Player;
 
 import java.awt.*;
 import java.io.IOException;
@@ -166,34 +170,6 @@ public class Queue {
             methodResult = String.format("%d:%02d", minutes, seconds);
         }
         return methodResult;
-    }
-
-    public static String getVideoUrlFromName(String videoName) throws IOException {
-        HttpTransport httpTransport = new NetHttpTransport();
-        JsonFactory jsonFactory = new GsonFactory();
-
-        YouTube youtube = new YouTube.Builder(httpTransport, jsonFactory, null)
-                .setApplicationName("Dingus Player")
-                .setGoogleClientRequestInitializer(new CommonGoogleClientRequestInitializer(System.getenv("DP_YOUTUBE_API_KEY")))
-                .build();
-
-        YouTube.Search.List search = youtube.search().list(Collections.singletonList("id,snippet"));
-        search.setKey(System.getenv("DP_YOUTUBE_API_KEY"));
-        search.setQ(videoName);
-        search.setType(Collections.singletonList("video"));
-        search.setFields("items(id/kind,id/videoId,snippet/title,snippet/description,snippet/thumbnails/default/url)");
-        search.setMaxResults(10L);
-
-        SearchListResponse searchListResponse = search.execute();
-        List<SearchResult> searchResults = searchListResponse.getItems();
-
-        String videoId = searchResults.get(0).getId().getVideoId();
-
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("https://www.youtube.com/watch?v=");
-        stringBuilder.append(videoId);
-
-        return stringBuilder.toString();
     }
 
 }

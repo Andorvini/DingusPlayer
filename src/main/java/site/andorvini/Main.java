@@ -2,8 +2,6 @@ package site.andorvini;
 
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 
-import okhttp3.*;
-
 import org.javacord.api.DiscordApi;
 import org.javacord.api.DiscordApiBuilder;
 import org.javacord.api.audio.AudioConnection;
@@ -15,15 +13,21 @@ import org.javacord.api.entity.server.Server;
 import org.javacord.api.entity.user.User;
 import org.javacord.api.interaction.*;
 import org.javacord.api.entity.activity.ActivityType;
+import site.andorvini.miscellaneous.AloneInChannelHandler;
+import site.andorvini.players.GreetingPlayer;
+import site.andorvini.players.Player;
+import site.andorvini.queue.Queue;
 
 import java.awt.*;
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+
+import static site.andorvini.miscellaneous.MiscMethods.*;
+import static site.andorvini.miscellaneous.SosanieEblaMethod.getSosaniaEblaUrl;
+import static site.andorvini.miscellaneous.YoutubeMethods.getVideoUrlFromName;
+import static site.andorvini.miscellaneous.YoutubeMethods.isYouTubeLink;
 
 public class Main {
 
@@ -33,9 +37,9 @@ public class Main {
         return lastCommandChannel;
     }
 
-    private static HashMap<Long,Player> players = new HashMap<>();
+    private static HashMap<Long, Player> players = new HashMap<>();
 
-    private static HashMap<Long, Queue> queues = new HashMap<>();
+    private static HashMap<Long, site.andorvini.queue.Queue> queues = new HashMap<>();
 
     private static HashMap<Long, GreetingPlayer> greetingPlayers = new HashMap<>();
 
@@ -214,7 +218,7 @@ public class Main {
                 interactionServerId = interactionServer.getId();
 
                 if (!(queues.containsKey(interactionServerId))) {
-                    queues.put(interactionServerId, new Queue());
+                    queues.put(interactionServerId, new site.andorvini.queue.Queue());
                 }
 
                 if (!greetingPlayers.containsKey(interactionServerId)) {
@@ -235,13 +239,9 @@ public class Main {
                 System.out.println("[WARN] Maybe personal messages use or no value present");
             }
 
-            Queue currentQueue = queues.get(interactionServerId);
+            site.andorvini.queue.Queue currentQueue = queues.get(interactionServerId);
             GreetingPlayer currentGreetingPlayer = greetingPlayers.get(interactionServerId);
             Player currentPlayer = players.get(interactionServerId);
-
-//            currentGreetingPlayer.addOnTrackEndToGreetingPlayer(currentPlayer);
-//            currentPlayer.addOnTrackEndEventToPlayer(currentQueue);
-
            // isPlaying.set(currentPlayer.getAudioTrackNowPlaying() != null);
 
             if (!interaction.getChannel().get().getType().isServerChannelType()) {
@@ -287,7 +287,7 @@ public class Main {
                         trackUrl = commandOption;
                     } else {
                         try {
-                            trackUrl = Queue.getVideoUrlFromName(commandOption);
+                            trackUrl = getVideoUrlFromName(commandOption);
                         } catch (IOException ignored){}
                     }
 
@@ -301,8 +301,8 @@ public class Main {
                             String duration = null;
 
                             try {
-                                title = Queue.getYoutubeVideoTitleFromUrl(trackUrl, true);
-                                duration = Queue.getYoutubeVideoTitleFromUrl(trackUrl, false);
+                                title = site.andorvini.queue.Queue.getYoutubeVideoTitleFromUrl(trackUrl, true);
+                                duration = site.andorvini.queue.Queue.getYoutubeVideoTitleFromUrl(trackUrl, false);
                             } catch (IOException ignored) {}
 
                             embed = new EmbedBuilder()
@@ -357,12 +357,6 @@ public class Main {
 
                 String trackUrl = getSosaniaEblaUrl(textToConvert);
                 respondImmediatelyWithString(interaction, "Playing \"" + textToConvert + "\" with Alyona Flirt ");
-
-//                Server finalServer = interactionServer;
-//                userVoiceChannel.connect().thenAccept(audioConnection -> {
-//                    currentPlayer.setPause(true);
-//                    currentGreetingPlayer.greetingPlayer(api, audioConnection, convertedUrl, loopVar, slashCommandCreateEvent, true, finalServer, currentPlayer);
-//                });
 
                 if (api.getYourself().getConnectedVoiceChannel(interactionServer).isEmpty()) {
                     String finalTrackUrl = trackUrl;
@@ -531,11 +525,11 @@ public class Main {
                     }
 
                     EmbedBuilder skipEmbed = new EmbedBuilder()
-                            .addInlineField("__**Skipping:**__ ", "[" + Queue.getYoutubeVideoTitleFromUrl(currentQueue.getQueueList().peek(), true) + "](" + currentQueue.getQueueList().peek() + ")")
+                            .addInlineField("__**Skipping:**__ ", "[" + site.andorvini.queue.Queue.getYoutubeVideoTitleFromUrl(currentQueue.getQueueList().peek(), true) + "](" + currentQueue.getQueueList().peek() + ")")
                             .setColor(Color.GREEN);
 
                     if (secondTrackInQueue != null) {
-                        skipEmbed.addInlineField("__**Next track:**__ ", "[" + Queue.getYoutubeVideoTitleFromUrl(secondTrackInQueue, true) + "](" + secondTrackInQueue + ")");
+                        skipEmbed.addInlineField("__**Next track:**__ ", "[" + site.andorvini.queue.Queue.getYoutubeVideoTitleFromUrl(secondTrackInQueue, true) + "](" + secondTrackInQueue + ")");
                     } else {
                         skipEmbed.addInlineField("__**No next track :(**__","");
                     }
@@ -637,88 +631,6 @@ public class Main {
             }
         });
 
-    }
-
-    public static String getSosaniaEblaUrl(String text) {
-        try {
-
-            OkHttpClient okHttpClient = new OkHttpClient();
-
-            String requestUrl = "https://api.sosanie-ebla-bot-premium.vapronva.pw/tts/request/wav";
-
-            RequestBody body = RequestBody.create(MediaType.parse("application/json"),
-                    "{\"query\":\"" + text + "\"," +
-                            "\"user_id\": 1,"  +
-                            "\"voice\": {"+
-                            "          \"speakerLang\": \"ru\"," +
-                            "          \"speakerName\": \"alyona\"," +
-                            "          \"speakerEmotion\": \"flirt\"," +
-                            "          \"company\": \"tinkoff\"" +
-                            "}}");
-
-            Request.Builder requestBuilder = new Request.Builder()
-                    .url(requestUrl)
-                    .post(body)
-                    .addHeader("X-API-key", System.getenv("DP_SOSANIE_API_KEY"));
-
-            Call call = okHttpClient.newCall(requestBuilder.build());
-
-            Response response = call.execute();
-            String responseBody = response.body().string();
-
-            return responseBody;
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return null;
-    }
-
-    public static String formatDuration(long millis) {
-        long minutes = TimeUnit.MILLISECONDS.toMinutes(millis);
-        long seconds = TimeUnit.MILLISECONDS.toSeconds(millis) - TimeUnit.MINUTES.toSeconds(minutes);
-
-        return String.format("%d:%02d", minutes, seconds);
-    }
-
-    public static void respondImmediatelyWithString(SlashCommandInteraction interaction, String text){
-        interaction.createImmediateResponder()
-                .setContent(text)
-                .respond()
-                .join();
-    }
-
-    public static void respondImmediatelyWithEmbed(SlashCommandInteraction interaction,EmbedBuilder embed){
-        interaction.createImmediateResponder()
-                .addEmbeds(embed)
-                .respond()
-                .join();
-    }
-
-    public static boolean isYouTubeLink(String str) {
-        String pattern = "^(http(s)?:\\/\\/)?((w){3}.)?youtu(be|.be)?(\\.com)?\\/.+";
-        Pattern youtubePattern = Pattern.compile(pattern);
-        Matcher matcher = youtubePattern.matcher(str);
-        return matcher.matches();
-    }
-
-    public static boolean isUrl(String str) {
-        Pattern urlPattern = Pattern.compile("^((https?|ftp)://)?[a-z0-9]+([\\-\\.]{1}[a-z0-9]+)*\\.[a-z]{2,5}(:[0-9]{1,5})?(/.*)?$", Pattern.CASE_INSENSITIVE);
-        Matcher matcher = urlPattern.matcher(str);
-        return matcher.matches();
-    }
-
-    public static long convertToMilliseconds(String time) {
-        String[] tokens = time.split(":");
-        int minutes = Integer.parseInt(tokens[0]);
-        int seconds = Integer.parseInt(tokens[1]);
-        return (minutes * 60 + seconds) * 1000;
-    }
-
-    public static boolean isValidTimeFormat(String time) {
-        String regex = "^\\d+:[0-5]\\d$";
-        return time.matches(regex);
     }
 
 }

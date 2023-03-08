@@ -1,4 +1,4 @@
-package site.andorvini;
+package site.andorvini.players;
 
 import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
@@ -12,11 +12,13 @@ import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason;
+
 import org.javacord.api.DiscordApi;
 import org.javacord.api.audio.AudioConnection;
 import org.javacord.api.audio.AudioSource;
 import org.javacord.api.entity.server.Server;
 import org.javacord.api.event.interaction.SlashCommandCreateEvent;
+import site.andorvini.miscellaneous.LavaplayerAudioSource;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -29,9 +31,6 @@ public class GreetingPlayer {
     private Server server;
 
     private DiscordApi api;
-
-    public void addOnTrackEndToGreetingPlayer(Player playerFrom) {
-    }
 
     public void greetingPlayer(DiscordApi apiFrom, AudioConnection audioConnection, String trackUrl, AtomicBoolean loopVar, SlashCommandCreateEvent slashCommandCreateEvent, boolean isSlash, Server serverFrom, Player playerFrom){
         AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
