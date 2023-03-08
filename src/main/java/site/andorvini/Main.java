@@ -256,6 +256,8 @@ public class Main {
                     String commandOption = interaction.getOptionByName("query").get().getStringValue().get().replaceAll("\\[", "%5B").replaceAll("]", "%5D");
                     String trackUrl = null;
 
+                    System.out.println("CUMMMMMMMMMMMMMMMM");
+
                     lastCommandChannel = interaction.getChannel().get();
 
                     if (isUrl(commandOption)) {
