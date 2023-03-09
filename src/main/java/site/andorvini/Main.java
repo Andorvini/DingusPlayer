@@ -43,8 +43,16 @@ public class Main {
 
     private static HashMap<Long, GreetingPlayer> greetingPlayers = new HashMap<>();
 
-    public static HashMap<Long, Player> getPlayers(){
-        return players;
+    public static void removePlayerFromPlayers(Long serverId){
+        players.remove(serverId);
+    }
+
+    public static void removeQueue(Long serverId){
+        queues.remove(serverId);
+    }
+
+    public static void removeGreetingPlayer(Long serverId){
+        greetingPlayers.remove(serverId);
     }
 
     public static void main(String[] args) {
@@ -242,7 +250,6 @@ public class Main {
             site.andorvini.queue.Queue currentQueue = queues.get(interactionServerId);
             GreetingPlayer currentGreetingPlayer = greetingPlayers.get(interactionServerId);
             Player currentPlayer = players.get(interactionServerId);
-           // isPlaying.set(currentPlayer.getAudioTrackNowPlaying() != null);
 
             if (!interaction.getChannel().get().getType().isServerChannelType()) {
                 interaction.createImmediateResponder()
@@ -582,6 +589,14 @@ public class Main {
             Server server = serverVoiceChannelMemberJoinEvent.getServer();
             User user = serverVoiceChannelMemberJoinEvent.getUser();
 
+            if (!players.containsKey(server.getId())){
+                players.put(server.getId(), new Player());
+            }
+
+            if (!greetingPlayers.containsKey(server.getId())){
+                greetingPlayers.put(server.getId(), new GreetingPlayer());
+            }
+
             Player currentPlayer = players.get(server.getId());
             GreetingPlayer currentGreetingPlayer = greetingPlayers.get(server.getId());
 
@@ -596,6 +611,7 @@ public class Main {
                 if (api.getYourself().getConnectedVoiceChannel(server).isEmpty()) {
                     String finalTrackUrl = trackUrl;
                     currentPlayer.setPause(true);
+
                     serverVoiceChannelMemberJoinEvent.getUser().getConnectedVoiceChannel(server).get().connect().thenAccept(audioConnection -> {
                         currentGreetingPlayer.greetingPlayer(api, audioConnection, finalTrackUrl, loopVar, null, false, server, currentPlayer);
                     });
