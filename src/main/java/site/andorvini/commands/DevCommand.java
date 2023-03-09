@@ -55,6 +55,8 @@ public class DevCommand {
                 hashmapsEmbed.addField("Queue", queues.get(interactionServerId).toString());
 
                 MiscMethods.respondImmediatelyWithEmbed(interaction, hashmapsEmbed);
+            } else {
+                MiscMethods.respondImmediatelyWithString(interaction, "There is no such query");
             }
         } else {
             MiscMethods.respondImmediatelyWithString(interaction, "You cant use ANALYTICS");
