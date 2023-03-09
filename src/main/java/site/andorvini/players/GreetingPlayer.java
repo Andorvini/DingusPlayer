@@ -18,6 +18,7 @@ import org.javacord.api.audio.AudioConnection;
 import org.javacord.api.audio.AudioSource;
 import org.javacord.api.entity.server.Server;
 import org.javacord.api.event.interaction.SlashCommandCreateEvent;
+import site.andorvini.Main;
 import site.andorvini.miscellaneous.LavaplayerAudioSource;
 
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -47,6 +48,8 @@ public class GreetingPlayer {
                     playerFrom.setPause(false);
                     if (playerFrom.getAudioTrackNowPlaying() == null) {
                         server.getConnectedVoiceChannel(api.getYourself()).get().disconnect();
+                        Main.removeGreetingPlayer(serverFrom.getId());
+                        Main.removePlayerFromPlayers(serverFrom.getId());
                     }
                     playerFrom.setSource();
                 }
