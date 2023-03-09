@@ -13,6 +13,7 @@ import org.javacord.api.entity.server.Server;
 import org.javacord.api.entity.user.User;
 import org.javacord.api.interaction.*;
 import org.javacord.api.entity.activity.ActivityType;
+import site.andorvini.commands.DevCommand;
 import site.andorvini.miscellaneous.AloneInChannelHandler;
 import site.andorvini.players.GreetingPlayer;
 import site.andorvini.players.Player;
@@ -53,6 +54,18 @@ public class Main {
 
     public static void removeGreetingPlayer(Long serverId){
         greetingPlayers.remove(serverId);
+    }
+
+    public static HashMap<Long, Player> getPlayers() {
+        return players;
+    }
+
+    public static HashMap<Long, GreetingPlayer> getGreetingPlayers() {
+        return greetingPlayers;
+    }
+
+    public static HashMap<Long, Queue> getQueues() {
+        return queues;
     }
 
     public static void main(String[] args) {
@@ -205,6 +218,13 @@ public class Main {
         SlashCommand seekCommand = SlashCommand.with("seek", "Seeks the song to specified position",
                         Arrays.asList(
                                 SlashCommandOption.create(SlashCommandOptionType.STRING, "position", "Positon to seek", true)
+                        ))
+                .createGlobal(api)
+                .join();
+
+        SlashCommand devCommand = SlashCommand.with("dev", "For dev purposes",
+                        Arrays.asList(
+                                SlashCommandOption.create(SlashCommandOptionType.STRING, "devQuery", "For dev purposes", true)
                         ))
                 .createGlobal(api)
                 .join();
@@ -582,6 +602,8 @@ public class Main {
 
                     respondImmediatelyWithEmbed(interaction, seekFailureEmbed);
                 }
+            } else if (fullCommandName.equals("dev")) {
+                DevCommand.triggerDevCommand(interaction, api);
             }
         });
 

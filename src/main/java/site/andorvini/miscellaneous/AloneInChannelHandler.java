@@ -5,6 +5,7 @@ import org.javacord.api.entity.channel.ServerVoiceChannel;
 import org.javacord.api.entity.channel.TextChannel;
 import org.javacord.api.entity.message.embed.EmbedBuilder;
 import org.javacord.api.entity.server.Server;
+import site.andorvini.Main;
 import site.andorvini.queue.Queue;
 import site.andorvini.players.Player;
 
@@ -80,6 +81,10 @@ public class AloneInChannelHandler {
                     server.getConnectedVoiceChannel(api.getYourself()).get().disconnect();
                     isTimerRunning = false;
                     timer.cancel();
+
+                    Main.removeQueue(server.getId());
+                    Main.removeGreetingPlayer(server.getId());
+                    Main.removePlayerFromPlayers(server.getId());
                 }
                 i--;
             }
