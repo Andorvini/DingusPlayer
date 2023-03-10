@@ -5,6 +5,7 @@ import org.javacord.api.entity.channel.ServerVoiceChannel;
 import org.javacord.api.entity.channel.TextChannel;
 import org.javacord.api.entity.message.embed.EmbedBuilder;
 import org.javacord.api.entity.server.Server;
+
 import site.andorvini.Main;
 import site.andorvini.queue.Queue;
 import site.andorvini.players.Player;
@@ -29,22 +30,24 @@ public class AloneInChannelHandler {
         return voiceChannel;
     }
 
-    public static void stopAloneTimer(){
+    public static void stopAloneTimer(boolean isWithReason){
         timer.cancel();
-        isTimerRunning = false;
-        String text = null;
+        if (isWithReason) {
+            isTimerRunning = false;
+            String text = null;
 
-        if (reason.equals("No tracks in queue")){
-            text = "Someone added track";
-        } else if (reason.equals("I'm alone :(")) {
-            text = "I'm not alone anymore!";
+            if (reason.equals("No tracks in queue")) {
+                text = "Someone added track";
+            } else if (reason.equals("I'm alone :(")) {
+                text = "I'm not alone anymore!";
+            }
+
+            EmbedBuilder emded = new EmbedBuilder()
+                    .setColor(Color.yellow)
+                    .addField(text, "I won't leave you now!");
+
+            lastChannel.sendMessage(emded);
         }
-
-        EmbedBuilder emded = new EmbedBuilder()
-                .setColor(Color.yellow)
-                        .addField(text, "I won't leave you now!");
-
-        lastChannel.sendMessage(emded);
     }
 
     public static boolean isAloneTimerRunning(){
@@ -85,6 +88,10 @@ public class AloneInChannelHandler {
                     Main.removeQueue(server.getId());
                     Main.removeGreetingPlayer(server.getId());
                     Main.removePlayerFromPlayers(server.getId());
+
+                    if (BatteryChanger.getIsFireAlarmSystemEnabled()) {
+                        BatteryChanger.startFireAlarmTimer();
+                    }
                 }
                 i--;
             }

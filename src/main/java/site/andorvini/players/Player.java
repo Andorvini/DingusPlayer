@@ -57,6 +57,10 @@ public class Player {
     public void setPosition(long milis){
         audioTrackNowPlaying.setPosition(milis);
     }
+
+    public void destroyPlayer(){
+        playerGlobal.destroy();
+    }
 //    ==================== GETTERS ===================
 
     public boolean getPause() {
@@ -123,18 +127,6 @@ public class Player {
 
                 System.out.println("[MSG] Track: " + trackTitle +  " loaded in server '" + serverFrom.getName() + "`");
 
-                    slashCommandCreateEventFrom.getInteraction()
-                        .respondLater()
-                        .thenAccept(message -> {
-                            EmbedBuilder embed = new EmbedBuilder()
-                                    .setAuthor("Playing: ")
-                                    .addField("", "[" + trackTitle + "](" + trackUrl + ") | `" + formatDuration(track.getDuration()) + "`")
-                                    .setColor(Color.GREEN)
-                                    .setFooter("Track in queue: " + queue.getQueueList().size());
-
-                            message.addEmbed(embed)
-                                    .update();
-                        });
                 playerGlobal.playTrack(track);
             }
 

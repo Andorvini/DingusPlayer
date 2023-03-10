@@ -33,7 +33,7 @@ public class GreetingPlayer {
 
     private DiscordApi api;
 
-    public void greetingPlayer(DiscordApi apiFrom, AudioConnection audioConnection, String trackUrl, AtomicBoolean loopVar, SlashCommandCreateEvent slashCommandCreateEvent, boolean isSlash, Server serverFrom, Player playerFrom){
+    public void greetingPlayer(DiscordApi apiFrom, AudioConnection audioConnection, String trackUrl, AtomicBoolean loopVar, SlashCommandCreateEvent slashCommandCreateEvent, boolean isSlash, Server serverFrom, Player playerFrom, boolean isFireAlarm){
         AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
 
         playerManager.registerSourceManager(new YoutubeAudioSourceManager());
@@ -47,9 +47,13 @@ public class GreetingPlayer {
                     System.out.println("[MSG] Greeting Player finished playing");
                     playerFrom.setPause(false);
                     if (playerFrom.getAudioTrackNowPlaying() == null) {
-                        server.getConnectedVoiceChannel(api.getYourself()).get().disconnect();
-                        Main.removeGreetingPlayer(serverFrom.getId());
-                        Main.removePlayerFromPlayers(serverFrom.getId());
+                        if (!isFireAlarm) {
+                            server.getConnectedVoiceChannel(api.getYourself()).get().disconnect();
+                            Main.removeGreetingPlayer(serverFrom.getId());
+                            Main.removePlayerFromPlayers(serverFrom.getId());
+                        } else {
+                            player.playTrack(track.makeClone());
+                        }
                     }
                     playerFrom.setSource();
                 }

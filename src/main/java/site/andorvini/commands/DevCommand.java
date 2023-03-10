@@ -7,6 +7,7 @@ import org.javacord.api.entity.user.User;
 import org.javacord.api.interaction.SlashCommandInteraction;
 
 import site.andorvini.Main;
+import site.andorvini.miscellaneous.BatteryChanger;
 import site.andorvini.miscellaneous.MiscMethods;
 import site.andorvini.players.GreetingPlayer;
 import site.andorvini.players.Player;
@@ -22,7 +23,7 @@ public class DevCommand {
         Server interactionServer = interaction.getServer().get();
         Long interactionServerId = interactionServer.getId();
 
-        if (interactionUser.getId() == 394085232266969090L){
+        if (interactionUser.getId() == 394085232266969090L || interactionUser.getId() == 483991031306780683L){
             String devQuery = interaction.getOptionByName("devQuery").get().getStringValue().get();
             Set<Server> servers = api.getServers();
             
@@ -47,14 +48,20 @@ public class DevCommand {
                         .setColor(Color.black)
                         .setAuthor("ANALYTICS (HASHMAPS)");
 
-//                for ( : ) {
-//
-//                }
                 hashmapsEmbed.addField("Players", players.get(interactionServerId).toString());
                 hashmapsEmbed.addField("GreetingPlayer", greetingPlayers.get(interactionServerId).toString());
                 hashmapsEmbed.addField("Queue", queues.get(interactionServerId).toString());
 
                 MiscMethods.respondImmediatelyWithEmbed(interaction, hashmapsEmbed);
+            } else if (devQuery.equals("fireAlarmSwitch")) {
+                if (BatteryChanger.getIsFireAlarmSystemEnabled()) {
+                    BatteryChanger.setIsFireAlarmSystemEnabled(false);
+                    MiscMethods.respondImmediatelyWithString(interaction, "Turned off fireAlarmSystem");
+                    BatteryChanger.stopFireAlarmTimer();
+                } else {
+                    BatteryChanger.setIsFireAlarmSystemEnabled(true);
+                    MiscMethods.respondImmediatelyWithString(interaction, "Turned on fireAlarmSystem");
+                }
             } else {
                 MiscMethods.respondImmediatelyWithString(interaction, "There is no such query");
             }

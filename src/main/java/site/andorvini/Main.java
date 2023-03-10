@@ -13,8 +13,12 @@ import org.javacord.api.entity.server.Server;
 import org.javacord.api.entity.user.User;
 import org.javacord.api.interaction.*;
 import org.javacord.api.entity.activity.ActivityType;
+
 import site.andorvini.commands.DevCommand;
 import site.andorvini.miscellaneous.AloneInChannelHandler;
+import site.andorvini.miscellaneous.BatteryChanger;
+import site.andorvini.miscellaneous.MiscMethods;
+import site.andorvini.miscellaneous.YoutubeMethods;
 import site.andorvini.players.GreetingPlayer;
 import site.andorvini.players.Player;
 import site.andorvini.queue.Queue;
@@ -27,22 +31,21 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static site.andorvini.miscellaneous.MiscMethods.*;
 import static site.andorvini.miscellaneous.SosanieEblaMethod.getSosaniaEblaUrl;
-import static site.andorvini.miscellaneous.YoutubeMethods.getVideoUrlFromName;
-import static site.andorvini.miscellaneous.YoutubeMethods.isYouTubeLink;
+import static site.andorvini.miscellaneous.YoutubeMethods.*;
+
 
 public class Main {
 
+//  ========== Variables Declaration ==============
+
     private static TextChannel lastCommandChannel;
 
-    public static TextChannel getTextChannel(){
-        return lastCommandChannel;
-    }
-
     private static HashMap<Long, Player> players = new HashMap<>();
-
     private static HashMap<Long, site.andorvini.queue.Queue> queues = new HashMap<>();
-
     private static HashMap<Long, GreetingPlayer> greetingPlayers = new HashMap<>();
+    private static HashMap<Long, AloneInChannelHandler> aloneInChannelHandlers = new HashMap<>();
+
+// ========== Setters ==============
 
     public static void removePlayerFromPlayers(Long serverId){
         players.remove(serverId);
@@ -56,6 +59,8 @@ public class Main {
         greetingPlayers.remove(serverId);
     }
 
+// ======== Getters =============
+
     public static HashMap<Long, Player> getPlayers() {
         return players;
     }
@@ -67,6 +72,12 @@ public class Main {
     public static HashMap<Long, Queue> getQueues() {
         return queues;
     }
+
+    public static TextChannel getLastTextChannel(){
+        return lastCommandChannel;
+    }
+
+// =========== Main ==============
 
     public static void main(String[] args) {
 
@@ -229,6 +240,10 @@ public class Main {
                 .createGlobal(api)
                 .join();
 
+        SlashCommand changeBatteriesCommand = SlashCommand.with("change","For changing batteries")
+                .createGlobal(api)
+                .join();
+
         api.addSlashCommandCreateListener(slashCommandCreateEvent -> {
             SlashCommandInteraction interaction = slashCommandCreateEvent.getSlashCommandInteraction();
             Server interactionServer = null;
@@ -294,11 +309,11 @@ public class Main {
                     if (optionalBotVoiceChannel.isEmpty()) {
                         Server finalServer = interactionServer;
                         userVoiceChannel.connect().thenAccept(audioConnection -> {
-                            currentGreetingPlayer.greetingPlayer(api, audioConnection, trackUrl.get(), loopVar, slashCommandCreateEvent,true, finalServer, currentPlayer);
+                            currentGreetingPlayer.greetingPlayer(api, audioConnection, trackUrl.get(), loopVar, slashCommandCreateEvent,true, finalServer, currentPlayer, false);
                         });
                     } else {
                         AudioConnection audioConnection = interactionServer.getAudioConnection().get();
-                        currentGreetingPlayer.greetingPlayer(api, audioConnection, trackUrl.get(), loopVar, slashCommandCreateEvent, true, interactionServer, currentPlayer);
+                        currentGreetingPlayer.greetingPlayer(api, audioConnection, trackUrl.get(), loopVar, slashCommandCreateEvent, true, interactionServer, currentPlayer, false);
                     }
                 } else {
                     respondImmediatelyWithString(interaction, "You are not connected to a voice channel");
@@ -315,37 +330,66 @@ public class Main {
                     } else {
                         try {
                             trackUrl = getVideoUrlFromName(commandOption);
-                        } catch (IOException ignored){}
+                        } catch (Exception e){
+                            EmbedBuilder searchFailEmbed = new EmbedBuilder()
+                                .setColor(Color.RED)
+                                    .setAuthor("Nothing was found with your query")
+                                    .addField("Try another query", "");
+
+                            MiscMethods.respondImmediatelyWithEmbed(interaction, searchFailEmbed);
+                        }
                     }
 
-                    currentQueue.addTrackToQueue(trackUrl);
+                    if (trackUrl != null) {
+                        currentQueue.addTrackToQueue(trackUrl);
+                        if (currentQueue.getQueueList().size() > 1) {
+                            EmbedBuilder embed;
 
-                    if (currentQueue.getQueueList().size() > 1) {
-                        EmbedBuilder embed;
+                            if (isYouTubeLink(trackUrl)) {
+                                String title = null;
+                                String duration = null;
 
-                        if (isYouTubeLink(trackUrl)) {
-                            String title = null;
-                            String duration = null;
+                                try {
+                                    title = getYoutubeVideoTitleFromUrl(trackUrl, true);
+                                    duration = getYoutubeVideoTitleFromUrl(trackUrl, false);
+                                } catch (IOException ignored) {
+                                }
 
-                            try {
-                                title = site.andorvini.queue.Queue.getYoutubeVideoTitleFromUrl(trackUrl, true);
-                                duration = site.andorvini.queue.Queue.getYoutubeVideoTitleFromUrl(trackUrl, false);
-                            } catch (IOException ignored) {}
+                                embed = new EmbedBuilder()
+                                        .setAuthor("Added to queue: ")
+                                        .addField("", "[" + title + "](" + trackUrl + ") | `" + duration + "`")
+                                        .setColor(Color.GREEN)
+                                        .setFooter("Track in queue: " + currentQueue.getQueueList().size());
 
-                            embed = new EmbedBuilder()
-                                    .setAuthor("Added to queue: ")
-                                    .addField("", "[" + title + "](" + trackUrl + ") | `" + duration + "`")
-                                    .setColor(Color.GREEN)
-                                    .setFooter("Track in queue: " + currentQueue.getQueueList().size());
-
+                            } else {
+                                embed = new EmbedBuilder()
+                                        .setAuthor("Added to queue: ")
+                                        .addField("", trackUrl)
+                                        .setColor(Color.GREEN)
+                                        .setFooter("Track in queue: " + currentQueue.getQueueList().size());
+                            }
+                            respondImmediatelyWithEmbed(interaction, embed);
                         } else {
-                            embed = new EmbedBuilder()
-                                    .setAuthor("Added to queue: ")
-                                    .addField("", trackUrl)
-                                    .setColor(Color.GREEN)
-                                    .setFooter("Track in queue: " + currentQueue.getQueueList().size());
+                            try {
+                                if (isYouTubeLink(trackUrl)) {
+                                    EmbedBuilder playEmbed = new EmbedBuilder()
+                                            .setAuthor("Playing: ")
+                                            .addField("", "[" + YoutubeMethods.getYoutubeVideoTitleFromUrl(trackUrl, true) + "](" + trackUrl + ") | `" + getYoutubeVideoTitleFromUrl(trackUrl, false) + "`")
+                                            .setColor(Color.GREEN)
+                                            .setFooter("Track in queue: " + currentQueue.getQueueList().size());
+
+                                    respondImmediatelyWithEmbed(interaction, playEmbed);
+                                } else {
+                                    EmbedBuilder playEmbed = new EmbedBuilder()
+                                            .setAuthor("Playing: ")
+                                            .addField("", trackUrl)
+                                            .setColor(Color.GREEN)
+                                            .setFooter("Track in queue: " + currentQueue.getQueueList().size());
+
+                                    respondImmediatelyWithEmbed(interaction, playEmbed);
+                                }
+                            } catch (IOException ignored){}
                         }
-                        respondImmediatelyWithEmbed(interaction, embed);
                     }
 
                     if (optionalBotVoiceChannel.isEmpty()) {
@@ -373,7 +417,14 @@ public class Main {
                     respondImmediatelyWithString(interaction, "Leaving voice channel \"" + interactionServer.getConnectedVoiceChannel(api.getYourself()).get().getName() + "\"");
 
                     botVoiceChannel.disconnect();
+                    players.remove(interactionServerId);
+                    currentPlayer.destroyPlayer();
                     currentQueue.clearQueue();
+                    AloneInChannelHandler.stopAloneTimer(false);
+
+                    if (BatteryChanger.getIsFireAlarmSystemEnabled()){
+                        BatteryChanger.startFireAlarmTimer();
+                    }
                 } else {
                     respondImmediatelyWithString(interaction, "I am not connected to a voice channel");
                 }
@@ -391,12 +442,12 @@ public class Main {
                     Server finalInteractionServer = interactionServer;
 
                     api.getYourself().getConnectedVoiceChannel(interactionServer).get().connect().thenAccept(audioConnection -> {
-                        currentGreetingPlayer.greetingPlayer(api, audioConnection, finalTrackUrl, loopVar, null, false, finalInteractionServer, currentPlayer);
+                        currentGreetingPlayer.greetingPlayer(api, audioConnection, finalTrackUrl, loopVar, null, false, finalInteractionServer, currentPlayer, false);
                     });
                 } else {
                     currentPlayer.setPause(true);
                     AudioConnection audioConnection = interactionServer.getAudioConnection().get();
-                    currentGreetingPlayer.greetingPlayer(api, audioConnection, trackUrl, loopVar, null, false, interactionServer, currentPlayer);
+                    currentGreetingPlayer.greetingPlayer(api, audioConnection, trackUrl, loopVar, null, false, interactionServer, currentPlayer, false);
                 }
             } else if (fullCommandName.equals("clear")) {
                 long count = interaction.getOptionByName("count").get().getLongValue().get() + 1;
@@ -500,11 +551,11 @@ public class Main {
                     if (optionalBotVoiceChannel.isEmpty()) {
                         Server finalServer = interactionServer;
                         interaction.getUser().getConnectedVoiceChannel(interactionServer).get().connect().thenAccept(audioConnection -> {
-                            currentGreetingPlayer.greetingPlayer(api, audioConnection, trackUrl, loopVar, slashCommandCreateEvent,false, finalServer, currentPlayer);
+                            currentGreetingPlayer.greetingPlayer(api, audioConnection, trackUrl, loopVar, slashCommandCreateEvent,false, finalServer, currentPlayer, false);
                         });
                     } else {
                         AudioConnection audioConnection = interactionServer.getAudioConnection().get();
-                        currentGreetingPlayer.greetingPlayer(api, audioConnection, trackUrl, loopVar, slashCommandCreateEvent,false, interactionServer, currentPlayer);
+                        currentGreetingPlayer.greetingPlayer(api, audioConnection, trackUrl, loopVar, slashCommandCreateEvent,false, interactionServer, currentPlayer, false);
                     }
                 } else {
                     respondImmediatelyWithString(interaction, "You are not connected to a voice channel");
@@ -523,7 +574,7 @@ public class Main {
                 if (volumeLevel - volumeBefore >= 100) {
                     if (volumeBefore < 700) {
                         currentPlayer.setPause(true);
-                        currentGreetingPlayer.greetingPlayer(api, audioConnection, trackUrl, loopVar, null, false, interactionServer, currentPlayer);
+                        currentGreetingPlayer.greetingPlayer(api, audioConnection, trackUrl, loopVar, null, false, interactionServer, currentPlayer, false);
                     }
                 }
 
@@ -552,11 +603,11 @@ public class Main {
                     }
 
                     EmbedBuilder skipEmbed = new EmbedBuilder()
-                            .addInlineField("__**Skipping:**__ ", "[" + site.andorvini.queue.Queue.getYoutubeVideoTitleFromUrl(currentQueue.getQueueList().peek(), true) + "](" + currentQueue.getQueueList().peek() + ")")
+                            .addInlineField("__**Skipping:**__ ", "[" + getYoutubeVideoTitleFromUrl(currentQueue.getQueueList().peek(), true) + "](" + currentQueue.getQueueList().peek() + ")")
                             .setColor(Color.GREEN);
 
                     if (secondTrackInQueue != null) {
-                        skipEmbed.addInlineField("__**Next track:**__ ", "[" + site.andorvini.queue.Queue.getYoutubeVideoTitleFromUrl(secondTrackInQueue, true) + "](" + secondTrackInQueue + ")");
+                        skipEmbed.addInlineField("__**Next track:**__ ", "[" + getYoutubeVideoTitleFromUrl(secondTrackInQueue, true) + "](" + secondTrackInQueue + ")");
                     } else {
                         skipEmbed.addInlineField("__**No next track :(**__","");
                     }
@@ -604,6 +655,13 @@ public class Main {
                 }
             } else if (fullCommandName.equals("dev")) {
                 DevCommand.triggerDevCommand(interaction, api);
+            } else if (fullCommandName.equals("change")) {
+                BatteryChanger.setEnabled(false);
+                try {
+                    api.getYourself().getConnectedVoiceChannel(interactionServer).get().disconnect();
+                } catch (NoSuchElementException ignored){}
+
+                removeGreetingPlayer(interactionServerId);
             }
         });
 
@@ -624,23 +682,37 @@ public class Main {
 
             if (AloneInChannelHandler.isAloneTimerRunning()){
                 if (serverVoiceChannelMemberJoinEvent.getChannel().getId() == AloneInChannelHandler.getVoiceChannel().getId()) {
-                    AloneInChannelHandler.stopAloneTimer();
+                    AloneInChannelHandler.stopAloneTimer(true);
                 }
             }
 
-            if (userAudio.containsKey(user.getId())) {
+            if (userAudio.containsKey(user.getId()) && !BatteryChanger.getIsFireAlarmSystemEnabled()) {
                 String trackUrl = userAudio.get(user.getId());
                 if (api.getYourself().getConnectedVoiceChannel(server).isEmpty()) {
                     String finalTrackUrl = trackUrl;
                     currentPlayer.setPause(true);
 
                     serverVoiceChannelMemberJoinEvent.getUser().getConnectedVoiceChannel(server).get().connect().thenAccept(audioConnection -> {
-                        currentGreetingPlayer.greetingPlayer(api, audioConnection, finalTrackUrl, loopVar, null, false, server, currentPlayer);
+                        currentGreetingPlayer.greetingPlayer(api, audioConnection, finalTrackUrl, loopVar, null, false, server, currentPlayer, false);
                     });
                 } else {
                     currentPlayer.setPause(true);
                     AudioConnection audioConnection = server.getAudioConnection().get();
-                    currentGreetingPlayer.greetingPlayer(api, audioConnection, trackUrl, loopVar, null, false, server, currentPlayer);
+                    currentGreetingPlayer.greetingPlayer(api, audioConnection, trackUrl, loopVar, null, false, server, currentPlayer, false);
+                }
+            }
+
+            if (BatteryChanger.getEnabled() && BatteryChanger.getIsFireAlarmSystemEnabled()) {
+                String trackUrl = "https://ln.vprw.ru/f/jkuaeo40.mp3";
+                if (api.getYourself().getConnectedVoiceChannel(server).isEmpty()) {
+                    String finalTrackUrl = trackUrl;
+
+                    serverVoiceChannelMemberJoinEvent.getUser().getConnectedVoiceChannel(server).get().connect().thenAccept(audioConnection -> {
+                        currentGreetingPlayer.greetingPlayer(api, audioConnection, finalTrackUrl, loopVar, null, false, server, currentPlayer, true);
+                    });
+                } else {
+                    AudioConnection audioConnection = server.getAudioConnection().get();
+                    currentGreetingPlayer.greetingPlayer(api, audioConnection, trackUrl, loopVar, null, false, server, currentPlayer, true);
                 }
             }
         });
@@ -660,7 +732,6 @@ public class Main {
 
                 if (serverVoiceChannelMemberLeaveEvent.getUser().getId() != api.getYourself().getId()) {
                     if (serverVoiceChannelMemberLeaveEvent.getUser().getId() != 1074801519523807252L) {
-                        System.out.println("Not myself and not Prod bot");
                         if (usersInChannel == 1) {
                             AloneInChannelHandler.startAloneTimer(lastCommandChannel, server, api, "I'm alone :(", channel, currentQueue, currentPlayer);
                         }
