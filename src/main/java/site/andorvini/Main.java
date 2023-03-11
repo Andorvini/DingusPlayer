@@ -36,7 +36,7 @@ import static site.andorvini.miscellaneous.YoutubeMethods.*;
 
 public class Main {
 
-//  ========== Variables Declaration ==============
+    //  ============ Variables Declaration ============
 
     private static TextChannel lastCommandChannel;
 
@@ -45,7 +45,7 @@ public class Main {
     private static HashMap<Long, GreetingPlayer> greetingPlayers = new HashMap<>();
     private static HashMap<Long, AloneInChannelHandler> aloneInChannelHandlers = new HashMap<>();
 
-// ========== Setters ==============
+    // ============ Setters ============
 
     public static void removePlayerFromPlayers(Long serverId){
         players.remove(serverId);
@@ -59,7 +59,7 @@ public class Main {
         greetingPlayers.remove(serverId);
     }
 
-// ======== Getters =============
+    // ============ Getters ============
 
     public static HashMap<Long, Player> getPlayers() {
         return players;
@@ -77,7 +77,7 @@ public class Main {
         return lastCommandChannel;
     }
 
-// =========== Main ==============
+    // ============ Main ============
 
     public static void main(String[] args) {
 
@@ -96,7 +96,7 @@ public class Main {
         userAudio.put(731939675438317588L, "https://storage.rferee.dev/assets/media/audio/clown_short.mp3");
         userAudio.put(412537382152306688L, "https://storage.rferee.dev/assets/media/audio/pilot.mp3");
 
-        // ============== TOKEN PROCCESING =============
+        // ============ TOKEN PROCESSING ============
 
         String token = null;
         token = System.getenv("DP_DISCORD_TOKEN");
@@ -138,17 +138,17 @@ public class Main {
             System.exit(1);
         }
 
-        // ============== BOT CREATION ==================
+        // ============ BOT CREATION ============
 
         AtomicBoolean loopVar = new AtomicBoolean(false);
         AtomicBoolean isPlaying = new AtomicBoolean(false);
 
         DiscordApi api = new DiscordApiBuilder().setToken(token).login().join();
 
-        // ================ ACVTIVITY SET =====================
+        // ============ ACTIVITY SET ============
         api.updateActivity(ActivityType.LISTENING,"\"Antipathy World\"");
 
-        // ================== SLASH COMMAND CREATION ==================
+        // ============ SLASH COMMAND CREATION ============
         SlashCommand playCommand =
                 SlashCommand.with("play","Play music from provided Youtube URL",
                                 Arrays. asList(

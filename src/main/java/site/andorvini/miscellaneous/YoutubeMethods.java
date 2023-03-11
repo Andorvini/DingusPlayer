@@ -20,7 +20,7 @@ import java.util.regex.Pattern;
 
 public class YoutubeMethods {
 
-//  ============= Returns TRUE if str is youtube link ==============
+    //  ============ Returns TRUE if str is youtube link ============
     public static boolean isYouTubeLink(String str) {
         String pattern = "^(http(s)?:\\/\\/)?((w){3}.)?youtu(be|.be)?(\\.com)?\\/.+";
         Pattern youtubePattern = Pattern.compile(pattern);
@@ -28,7 +28,7 @@ public class YoutubeMethods {
         return matcher.matches();
     }
 
-//  ============== Returns video from name ================
+    //  ============ Returns video from name ============
 
     public static String getVideoUrlFromName(String videoName) throws IOException {
         HttpTransport httpTransport = new NetHttpTransport();
@@ -58,7 +58,7 @@ public class YoutubeMethods {
         return stringBuilder.toString();
     }
 
-//  ============== Returns video title from url if isTitle == true, else returns video duration ==============
+    //  ============ Returns video title from url if isTitle == true, else returns video duration ============
 
     public static String getYoutubeVideoTitleFromUrl(String url, boolean isTitle) throws IOException {
 
@@ -97,8 +97,8 @@ public class YoutubeMethods {
 
                 methodResult = video.getSnippet().getTitle();
             } catch (Exception e) {
-                System.out.println("[WARN] Not youtube link");
-                methodResult = "Uknown title";
+                System.out.println("[WARN] Not a YouTube link");
+                methodResult = "Unknown title";
             }
 
         } else {

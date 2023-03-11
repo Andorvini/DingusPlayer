@@ -39,9 +39,9 @@ public class Player {
     private AtomicBoolean loopVar;
     private Server server;
 
-//    ================= SETTERS ==================
+//    ============ SETTERS ============
     public void setPause(boolean paused) {
-        System.out.println("[MSG] Seeting pause to " + paused);
+        System.out.println("[MSG] Setting pause to " + paused);
         playerGlobal.setPaused(paused);
     }
 
@@ -61,7 +61,8 @@ public class Player {
     public void destroyPlayer(){
         playerGlobal.destroy();
     }
-//    ==================== GETTERS ===================
+
+    //    ============ GETTERS ============
 
     public boolean getPause() {
         return playerGlobal.isPaused();
@@ -79,7 +80,7 @@ public class Player {
         return playerGlobal.getVolume();
     }
 
-//    ================ MAIN METHODS ===================
+    //    ============ MAIN METHODS ============
 
     public void musicPlayer(DiscordApi apiFrom, AudioConnection audioConnectionFrom, String trackUrl, AtomicBoolean loopVarFrom, SlashCommandCreateEvent slashCommandCreateEventFrom, boolean isSlashFrom, Server serverFrom, Queue queue){
         AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
