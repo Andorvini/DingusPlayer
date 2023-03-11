@@ -29,7 +29,7 @@
     <li>Picking random user from a voice channel</li>
 </ul>
 
-P.S If you need to contact (placeholder) to retrieve Sseblo API key for TTS to work
+P.S You need to contact (placeholder) to retrieve Sseblo API key for TTS to work
 
 <h2>Self-Hosting</h2>
 
@@ -38,7 +38,7 @@ P.S If you need to contact (placeholder) to retrieve Sseblo API key for TTS to w
 | Environment Variable Name |                                            Purpose                                            |
 |---------------------------|:---------------------------------------------------------------------------------------------:|
 | DP_DISCORD_TOKEN          |                                       Discord API token                                       |
- | DP_SOSANIE_TTS_ENABLED    |                                   Defines if TTS is enabled                                   |
+| DP_SOSANIE_TTS_ENABLED    |                                   Defines if TTS is enabled                                   |
 | DP_SOSANIE_API_KEY        |                   Sseblo API key, needed only if the item is on top is true                   |
 | DP_YOUTUBE_API_KEY        |                                        Youtube API key                                        |
 | DP_YOUTUBE_LOGIN          | Login for Youtube account, i suggest you creating a new account that will be used only by bot |
