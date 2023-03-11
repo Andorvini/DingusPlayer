@@ -1,6 +1,7 @@
 package site.andorvini.commands;
 
 import org.javacord.api.DiscordApi;
+import org.javacord.api.entity.channel.ServerVoiceChannel;
 import org.javacord.api.entity.message.embed.EmbedBuilder;
 import org.javacord.api.entity.server.Server;
 import org.javacord.api.entity.user.User;
@@ -14,8 +15,11 @@ import site.andorvini.players.Player;
 import site.andorvini.queue.Queue;
 
 import java.awt.*;
-import java.util.HashMap;
-import java.util.Set;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.*;
+import java.util.List;
 
 public class DevCommand {
     public static void triggerDevCommand(SlashCommandInteraction interaction, DiscordApi api){
@@ -26,7 +30,7 @@ public class DevCommand {
         if (interactionUser.getId() == 394085232266969090L || interactionUser.getId() == 483991031306780683L){
             String devQuery = interaction.getOptionByName("devQuery").get().getStringValue().get();
             Set<Server> servers = api.getServers();
-            
+
             if (devQuery.equals("servers")) {
 
                 EmbedBuilder serversEmbed = new EmbedBuilder()
@@ -62,11 +66,62 @@ public class DevCommand {
                     BatteryChanger.setIsFireAlarmSystemEnabled(true);
                     MiscMethods.respondImmediatelyWithString(interaction, "Turned on fireAlarmSystem");
                 }
+            } else if (devQuery.equals("sortVoiceChannels")) {
+                Server server = interaction.getServer().get();
+
+                List<ServerVoiceChannel> voiceChannels = server.getVoiceChannels();
+
+                ArrayList<ServerVoiceChannel> reverted = new ArrayList<>();
+
+                for (ServerVoiceChannel voiceChannel: voiceChannels) {
+                    reverted.add(voiceChannel);
+                }
+
+                Collections.reverse(reverted);
+
+                int i = 0;
+                for (ServerVoiceChannel channel : voiceChannels) {
+                    if(reverted.get(i).getName().equals("github copilot")){
+                        channel.delete();
+                    } else {
+                        channel.updateName(reverted.get(i).getName());
+                        channel.updateBitrate(128000);
+                    }
+                    i++;
+                }
+            } else if (devQuery.equals("getFromBackup")) {
+                Server server = interaction.getServer().get();
+
+                ArrayList<String> lines = readFileToList("backup.txt");
+                for (String name : lines) {
+                    server.createVoiceChannelBuilder().setName(name).setCategory(server.getChannelCategoryById(1035263696705949758L).get()).create();
+                }
+
+            } else if (devQuery.equals("clearVoices")) {
+                for (ServerVoiceChannel channel : interactionServer.getVoiceChannels()) {
+                    channel.delete();
+                }
             } else {
                 MiscMethods.respondImmediatelyWithString(interaction, "There is no such query");
             }
         } else {
             MiscMethods.respondImmediatelyWithString(interaction, "You cant use ANALYTICS");
         }
+    }
+
+    public static ArrayList<String> readFileToList(String filename) {
+        ArrayList<String> lines = new ArrayList<String>();
+        try {
+            BufferedReader reader = new BufferedReader(new FileReader(filename));
+            String line = reader.readLine();
+            while (line != null) {
+                lines.add(line);
+                line = reader.readLine();
+            }
+            reader.close();
+        } catch (IOException e) {
+            System.out.println("Error reading file: " + e.getMessage());
+        }
+        return lines;
     }
 }
