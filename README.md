@@ -46,7 +46,7 @@ P.S If you need to contact (placeholder) to retrieve Sseblo API key for TTS to w
 
 <h3>Not Docker</h3>
 
-<h3>Dev Tools Queries (`/dev`)</h3>
+<h3>Dev Tools Queries ( `/dev` )</h3>
 
 | Query                  |                               Description                               |
 |------------------------|:-----------------------------------------------------------------------:|
