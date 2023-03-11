@@ -66,7 +66,7 @@ public class DevCommand {
                 MiscMethods.respondImmediatelyWithString(interaction, "There is no such query");
             }
         } else {
-            MiscMethods.respondImmediatelyWithString(interaction, "You cant use ANALYTICS");
+            MiscMethods.respondImmediatelyWithString(interaction, "You can't use ANALYTICS");
         }
     }
 }

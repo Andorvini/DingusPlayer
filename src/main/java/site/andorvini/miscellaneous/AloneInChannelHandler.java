@@ -37,7 +37,7 @@ public class AloneInChannelHandler {
             String text = null;
 
             if (reason.equals("No tracks in queue")) {
-                text = "Someone added track";
+                text = "Someone added a track";
             } else if (reason.equals("I'm alone :(")) {
                 text = "I'm not alone anymore!";
             }
