@@ -94,7 +94,7 @@ public class DevCommand {
 
                 ArrayList<String> lines = readFileToList("backup.txt");
                 for (String name : lines) {
-                    server.createVoiceChannelBuilder().setName(name).setCategory(server.getChannelCategoryById(1035263696705949758L).get()).create();
+                    server.createVoiceChannelBuilder().setName(name).create();
                 }
 
             } else if (devQuery.equals("clearVoices")) {
