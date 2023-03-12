@@ -93,9 +93,12 @@ public class DevCommand {
                 Server server = interaction.getServer().get();
 
                 ArrayList<String> lines = readFileToList("backup.txt");
-                for (String name : lines) {
-                    server.createVoiceChannelBuilder().setName(name).create();
-                }
+
+//                for (String name : lines) {
+//                    server.createVoiceChannelBuilder().setName(name).create();
+//                }
+
+                server.createVoiceChannelBuilder().setName("cumming").create();
 
             } else if (devQuery.equals("clearVoices")) {
                 for (ServerVoiceChannel channel : interactionServer.getVoiceChannels()) {
