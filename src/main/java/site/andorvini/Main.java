@@ -441,7 +441,7 @@ public class Main {
                     currentPlayer.setPause(true);
                     Server finalInteractionServer = interactionServer;
 
-                    api.getYourself().getConnectedVoiceChannel(interactionServer).get().connect().thenAccept(audioConnection -> {
+                    userVoiceChannel.connect().thenAccept(audioConnection -> {
                         currentGreetingPlayer.greetingPlayer(api, audioConnection, finalTrackUrl, loopVar, null, false, finalInteractionServer, currentPlayer, false);
                     });
                 } else {
@@ -530,10 +530,7 @@ public class Main {
                             .setColor(Color.ORANGE);
                 }
 
-                interaction.createImmediateResponder()
-                        .addEmbeds(embed)
-                        .respond()
-                        .join();
+                MiscMethods.respondImmediatelyWithEmbed(interaction, embed);
             } else if (fullCommandName.equals("random")) {
                 lastCommandChannel = interaction.getChannel().get();
                 if (optionalUserVoiceChannel.isPresent()) {
