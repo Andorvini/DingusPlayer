@@ -21,8 +21,6 @@ import org.javacord.api.event.interaction.SlashCommandCreateEvent;
 import site.andorvini.Main;
 import site.andorvini.miscellaneous.LavaplayerAudioSource;
 
-import java.util.concurrent.atomic.AtomicBoolean;
-
 public class GreetingPlayer {
 
     private AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
@@ -33,7 +31,7 @@ public class GreetingPlayer {
 
     private DiscordApi api;
 
-    public void greetingPlayer(DiscordApi apiFrom, AudioConnection audioConnection, String trackUrl, AtomicBoolean loopVar, SlashCommandCreateEvent slashCommandCreateEvent, boolean isSlash, Server serverFrom, Player playerFrom, boolean isFireAlarm){
+    public void greetingPlayer(DiscordApi apiFrom, AudioConnection audioConnection, String trackUrl, SlashCommandCreateEvent slashCommandCreateEvent, boolean isSlash, Server serverFrom, Player playerFrom, boolean isFireAlarm){
         AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
 
         playerManager.registerSourceManager(new YoutubeAudioSourceManager());

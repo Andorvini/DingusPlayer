@@ -76,15 +76,15 @@ public class Queue {
         return trackUrlQueue;
     }
 
-    public void skipTrack(DiscordApi api, AudioConnection audioConnection, AtomicBoolean loopVar, SlashCommandCreateEvent slashCommandCreateEvent, boolean isSlash, Server server, AtomicBoolean isPlayingNow, Player playerFrom) {
+    public void skipTrack(DiscordApi api, AudioConnection audioConnection, SlashCommandCreateEvent slashCommandCreateEvent, boolean isSlash, Server server, AtomicBoolean isPlayingNow, Player playerFrom) {
         player = playerFrom;
 
         trackUrlQueue.remove();
         playerFrom.stopPlaying();
-        queueController(api, audioConnection, loopVar, slashCommandCreateEvent, isSlash, server, player);
+        queueController(api, audioConnection, slashCommandCreateEvent, isSlash, server, player);
     }
 
-    public void queueController(DiscordApi api, AudioConnection audioConnection, AtomicBoolean loopVar, SlashCommandCreateEvent slashCommandCreateEvent, boolean isSlash, Server server, Player playerFrom) {
+    public void queueController(DiscordApi api, AudioConnection audioConnection, SlashCommandCreateEvent slashCommandCreateEvent, boolean isSlash, Server server, Player playerFrom) {
         String trackUrl = trackUrlQueue.peek();
 
         player = playerFrom;
@@ -92,13 +92,13 @@ public class Queue {
         if (getQueueList().size() == 0){
             AloneInChannelHandler.startAloneTimer(Main.getLastTextChannel(), server, api, "No tracks in queue", null, this, player);
         } else if (playerFrom.getAudioTrackNowPlaying() == null) {
-            playerFrom.musicPlayer(api, audioConnection, trackUrl, loopVar, slashCommandCreateEvent, isSlash, server, this);
+            playerFrom.musicPlayer(api, audioConnection, trackUrl, slashCommandCreateEvent, isSlash, server, this);
         }
     }
 
-    public void queueOnTrackEnd(DiscordApi api, AudioConnection audioConnection, AtomicBoolean loopVar, SlashCommandCreateEvent slashCommandCreateEvent, boolean isSlash, Server server) {
+    public void queueOnTrackEnd(DiscordApi api, AudioConnection audioConnection, SlashCommandCreateEvent slashCommandCreateEvent, boolean isSlash, Server server) {
         trackUrlQueue.remove();
-        queueController(api, audioConnection, loopVar, slashCommandCreateEvent, isSlash, server, player);
+        queueController(api, audioConnection, slashCommandCreateEvent, isSlash, server, player);
     }
 
 }

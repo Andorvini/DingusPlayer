@@ -15,6 +15,7 @@ import org.javacord.api.interaction.*;
 import org.javacord.api.entity.activity.ActivityType;
 
 import site.andorvini.commands.DevCommand;
+import site.andorvini.handlers.ButtonHandler;
 import site.andorvini.miscellaneous.AloneInChannelHandler;
 import site.andorvini.miscellaneous.BatteryChanger;
 import site.andorvini.miscellaneous.MiscMethods;
@@ -44,6 +45,8 @@ public class Main {
     private static HashMap<Long, site.andorvini.queue.Queue> queues = new HashMap<>();
     private static HashMap<Long, GreetingPlayer> greetingPlayers = new HashMap<>();
     private static HashMap<Long, AloneInChannelHandler> aloneInChannelHandlers = new HashMap<>();
+
+    private static DiscordApi apiGlobal;
 
     // ============ Setters ============
 
@@ -75,6 +78,10 @@ public class Main {
 
     public static TextChannel getLastTextChannel(){
         return lastCommandChannel;
+    }
+
+    public static DiscordApi getApi(){
+        return apiGlobal;
     }
 
     // ============ Main ============
@@ -140,109 +147,19 @@ public class Main {
 
         // ============ BOT CREATION ============
 
-        AtomicBoolean loopVar = new AtomicBoolean(false);
         AtomicBoolean isPlaying = new AtomicBoolean(false);
 
         DiscordApi api = new DiscordApiBuilder().setToken(token).login().join();
+
+        apiGlobal = api;
+
+        ButtonHandler.buttonHandler();
 
         // ============ ACTIVITY SET ============
         api.updateActivity(ActivityType.LISTENING,"\"Antipathy World\"");
 
         // ============ SLASH COMMAND CREATION ============
-        SlashCommand playCommand =
-                SlashCommand.with("play","Play music from provided Youtube URL",
-                                Arrays. asList(
-                                        SlashCommandOption.create(SlashCommandOptionType.STRING, "query", "Link to music, or just name", true)
-                                ))
-                .createGlobal(api)
-                .join();
-
-        SlashCommand phonyCommand =
-                SlashCommand.with("phony", "Play ANTIPATHY WORLD",
-                                Arrays.asList(
-                                            SlashCommandOption.createWithChoices(SlashCommandOptionType.STRING, "version", "Choose version of song", true,
-                                                    Arrays.asList(
-                                                            SlashCommandOptionChoice.create("Russian remix", "rus"),
-                                                            SlashCommandOptionChoice.create("Original", "original")))
-                                            ))
-                        .createGlobal(api)
-                        .join();
-
-        SlashCommand loopCommand = SlashCommand.with("loop","Lop music")
-                .createGlobal(api)
-                .join();
-
-        SlashCommand leaveCommand =
-                SlashCommand.with("leave","Leave voice channel")
-                .createGlobal(api)
-                .join();
-
-        SlashCommand pauseCommand = SlashCommand.with("pause","Pause music")
-                .createGlobal(api)
-                .join();
-
-        SlashCommand ssebloCommand = SlashCommand.with("sseblo","Convert text into voice using sseblobotapi",
-                Arrays.asList(
-                        SlashCommandOption.create(SlashCommandOptionType.STRING, "text", "Text you want to voice", true)
-                ))
-                .createGlobal(api)
-                .join();
-
-        SlashCommand clearCommand = SlashCommand.with("clear","Delete specified number of messages",
-                Arrays.asList(
-                        SlashCommandOption.create(SlashCommandOptionType.LONG,"count","Message count",true)
-                ))
-                .createGlobal(api)
-                .join();
-
-        SlashCommand npCommand = SlashCommand.with("np","Show what song is playing now")
-                .createGlobal(api)
-                .join();
-
-        SlashCommand randomUserCommand = SlashCommand.with("random","Pick random user")
-                .createGlobal(api)
-                .join();
-
-        SlashCommand pingCommand = SlashCommand.with("ping", "Ping!")
-                .createGlobal(api)
-                .join();
-
-        SlashCommand queueCommand = SlashCommand.with("queue", "Shows all tracks in queue")
-                .createGlobal(api)
-                .join();
-
-        SlashCommand lyricsCommand = SlashCommand.with("lyrics", "Shows lyrics of currently playing track")
-                .createGlobal(api)
-                .join();
-
-        SlashCommand volumeCommand = SlashCommand.with("volume","Set the volume",
-                        Arrays.asList(
-                                SlashCommandOption.create(SlashCommandOptionType.LONG, "volumelvl", "Volume level (Max. 1000)", true)
-                        ))
-                .createGlobal(api)
-                .join();
-
-        SlashCommand skipCommand = SlashCommand.with("skip", "Skips currently playing track")
-                .createGlobal(api)
-                .join();
-
-        SlashCommand seekCommand = SlashCommand.with("seek", "Seeks the song to specified position",
-                        Arrays.asList(
-                                SlashCommandOption.create(SlashCommandOptionType.STRING, "position", "Positon to seek", true)
-                        ))
-                .createGlobal(api)
-                .join();
-
-        SlashCommand devCommand = SlashCommand.with("dev", "For dev purposes",
-                        Arrays.asList(
-                                SlashCommandOption.create(SlashCommandOptionType.STRING, "devQuery", "For dev purposes", true)
-                        ))
-                .createGlobal(api)
-                .join();
-
-        SlashCommand changeBatteriesCommand = SlashCommand.with("change","For changing batteries")
-                .createGlobal(api)
-                .join();
+        SlashCommandsRegister.registerSlashCommands(api);
 
         api.addSlashCommandCreateListener(slashCommandCreateEvent -> {
             SlashCommandInteraction interaction = slashCommandCreateEvent.getSlashCommandInteraction();
@@ -278,9 +195,7 @@ public class Main {
                 optionalBotVoiceChannel = api.getYourself().getConnectedVoiceChannel(interactionServer);
                 botVoiceChannel = optionalBotVoiceChannel.get();
 
-            } catch (NoSuchElementException e) {
-                System.out.println("[WARN] Maybe personal messages use or no value present");
-            }
+            } catch (NoSuchElementException ignored) {}
 
             site.andorvini.queue.Queue currentQueue = queues.get(interactionServerId);
             GreetingPlayer currentGreetingPlayer = greetingPlayers.get(interactionServerId);
@@ -309,11 +224,11 @@ public class Main {
                     if (optionalBotVoiceChannel.isEmpty()) {
                         Server finalServer = interactionServer;
                         userVoiceChannel.connect().thenAccept(audioConnection -> {
-                            currentGreetingPlayer.greetingPlayer(api, audioConnection, trackUrl.get(), loopVar, slashCommandCreateEvent,true, finalServer, currentPlayer, false);
+                            currentGreetingPlayer.greetingPlayer(api, audioConnection, trackUrl.get(), slashCommandCreateEvent,true, finalServer, currentPlayer, false);
                         });
                     } else {
                         AudioConnection audioConnection = interactionServer.getAudioConnection().get();
-                        currentGreetingPlayer.greetingPlayer(api, audioConnection, trackUrl.get(), loopVar, slashCommandCreateEvent, true, interactionServer, currentPlayer, false);
+                        currentGreetingPlayer.greetingPlayer(api, audioConnection, trackUrl.get(), slashCommandCreateEvent, true, interactionServer, currentPlayer, false);
                     }
                 } else {
                     respondImmediatelyWithString(interaction, "You are not connected to a voice channel");
@@ -368,7 +283,13 @@ public class Main {
                                         .setColor(Color.GREEN)
                                         .setFooter("Track in queue: " + currentQueue.getQueueList().size());
                             }
-                            respondImmediatelyWithEmbed(interaction, embed);
+
+                            interaction.createImmediateResponder()
+                                    .addEmbed(embed)
+//                                    .addComponents(ActionRow.of(Button.success("pause", "⏸"),
+//                                            Button.create("skip", ButtonStyle.SUCCESS, "Skip")))
+                                    .respond()
+                                    .join();
                         } else {
                             try {
                                 if (isYouTubeLink(trackUrl)) {
@@ -395,21 +316,21 @@ public class Main {
                     if (optionalBotVoiceChannel.isEmpty()) {
                         Server finalServer = interactionServer;
                         userVoiceChannel.connect().thenAccept(audioConnection -> {
-                            currentQueue.queueController(api, audioConnection, loopVar, slashCommandCreateEvent,true, finalServer, currentPlayer);
+                            currentQueue.queueController(api, audioConnection, slashCommandCreateEvent,true, finalServer, currentPlayer);
                         });
                     } else {
                         AudioConnection audioConnection = interactionServer.getAudioConnection().get();
-                        currentQueue.queueController(api, audioConnection, loopVar, slashCommandCreateEvent,true, interactionServer, currentPlayer);
+                        currentQueue.queueController(api, audioConnection, slashCommandCreateEvent,true, interactionServer, currentPlayer);
                     }
                 } else {
                     respondImmediatelyWithString(interaction, "You are not connected to a voice channel");
                 }
             } else if (fullCommandName.equals("loop")) {
-                if (loopVar.get() == false) {
-                    loopVar.set(true);
+                if (!currentPlayer.getLoopVar()){
+                    currentPlayer.setLoopVar(true);
                     respondImmediatelyWithString(interaction,"Looping is now enabled");
                 } else {
-                    loopVar.set(false);
+                    currentPlayer.setLoopVar(false);
                     respondImmediatelyWithString(interaction,"Looping is now disabled");
                 }
             } else if (fullCommandName.equals("leave")) {
@@ -442,12 +363,12 @@ public class Main {
                     Server finalInteractionServer = interactionServer;
 
                     userVoiceChannel.connect().thenAccept(audioConnection -> {
-                        currentGreetingPlayer.greetingPlayer(api, audioConnection, finalTrackUrl, loopVar, null, false, finalInteractionServer, currentPlayer, false);
+                        currentGreetingPlayer.greetingPlayer(api, audioConnection, finalTrackUrl, null, false, finalInteractionServer, currentPlayer, false);
                     });
                 } else {
                     currentPlayer.setPause(true);
                     AudioConnection audioConnection = interactionServer.getAudioConnection().get();
-                    currentGreetingPlayer.greetingPlayer(api, audioConnection, trackUrl, loopVar, null, false, interactionServer, currentPlayer, false);
+                    currentGreetingPlayer.greetingPlayer(api, audioConnection, trackUrl, null, false, interactionServer, currentPlayer, false);
                 }
             } else if (fullCommandName.equals("clear")) {
                 long count = interaction.getOptionByName("count").get().getLongValue().get() + 1;
@@ -486,7 +407,7 @@ public class Main {
 
                 String identifier = null;
 
-                if (loopVar.get()) {
+                if (currentPlayer.getLoopVar()) {
                     loop = "Loop enabled";
                 } else {
                     loop = "Loop disabled";
@@ -548,11 +469,11 @@ public class Main {
                     if (optionalBotVoiceChannel.isEmpty()) {
                         Server finalServer = interactionServer;
                         interaction.getUser().getConnectedVoiceChannel(interactionServer).get().connect().thenAccept(audioConnection -> {
-                            currentGreetingPlayer.greetingPlayer(api, audioConnection, trackUrl, loopVar, slashCommandCreateEvent,false, finalServer, currentPlayer, false);
+                            currentGreetingPlayer.greetingPlayer(api, audioConnection, trackUrl, slashCommandCreateEvent,false, finalServer, currentPlayer, false);
                         });
                     } else {
                         AudioConnection audioConnection = interactionServer.getAudioConnection().get();
-                        currentGreetingPlayer.greetingPlayer(api, audioConnection, trackUrl, loopVar, slashCommandCreateEvent,false, interactionServer, currentPlayer, false);
+                        currentGreetingPlayer.greetingPlayer(api, audioConnection, trackUrl, slashCommandCreateEvent,false, interactionServer, currentPlayer, false);
                     }
                 } else {
                     respondImmediatelyWithString(interaction, "You are not connected to a voice channel");
@@ -571,7 +492,7 @@ public class Main {
                 if (volumeLevel - volumeBefore >= 100) {
                     if (volumeBefore < 700) {
                         currentPlayer.setPause(true);
-                        currentGreetingPlayer.greetingPlayer(api, audioConnection, trackUrl, loopVar, null, false, interactionServer, currentPlayer, false);
+                        currentGreetingPlayer.greetingPlayer(api, audioConnection, trackUrl, null, false, interactionServer, currentPlayer, false);
                     }
                 }
 
@@ -616,11 +537,11 @@ public class Main {
                 if (optionalBotVoiceChannel.isEmpty()) {
                     Server finalServer = interactionServer;
                     interaction.getUser().getConnectedVoiceChannel(interactionServer).get().connect().thenAccept(audioConnection -> {
-                        currentQueue.skipTrack (api, audioConnection, loopVar, slashCommandCreateEvent,true, finalServer, isPlaying, currentPlayer);
+                        currentQueue.skipTrack (api, audioConnection, slashCommandCreateEvent,true, finalServer, isPlaying, currentPlayer);
                     });
                 } else {
                     AudioConnection audioConnection = interactionServer.getAudioConnection().get();
-                    currentQueue.skipTrack(api, audioConnection, loopVar, slashCommandCreateEvent,true, interactionServer, isPlaying, currentPlayer);
+                    currentQueue.skipTrack(api, audioConnection, slashCommandCreateEvent,true, interactionServer, isPlaying, currentPlayer);
                 }
             } else if (fullCommandName.equals("seek")) {
                 String position = interaction.getOptionByName("position").get().getStringValue().get();
@@ -690,12 +611,12 @@ public class Main {
                     currentPlayer.setPause(true);
 
                     serverVoiceChannelMemberJoinEvent.getUser().getConnectedVoiceChannel(server).get().connect().thenAccept(audioConnection -> {
-                        currentGreetingPlayer.greetingPlayer(api, audioConnection, finalTrackUrl, loopVar, null, false, server, currentPlayer, false);
+                        currentGreetingPlayer.greetingPlayer(api, audioConnection, finalTrackUrl, null, false, server, currentPlayer, false);
                     });
                 } else {
                     currentPlayer.setPause(true);
                     AudioConnection audioConnection = server.getAudioConnection().get();
-                    currentGreetingPlayer.greetingPlayer(api, audioConnection, trackUrl, loopVar, null, false, server, currentPlayer, false);
+                    currentGreetingPlayer.greetingPlayer(api, audioConnection, trackUrl, null, false, server, currentPlayer, false);
                 }
             }
 
@@ -705,11 +626,11 @@ public class Main {
                     String finalTrackUrl = trackUrl;
 
                     serverVoiceChannelMemberJoinEvent.getUser().getConnectedVoiceChannel(server).get().connect().thenAccept(audioConnection -> {
-                        currentGreetingPlayer.greetingPlayer(api, audioConnection, finalTrackUrl, loopVar, null, false, server, currentPlayer, true);
+                        currentGreetingPlayer.greetingPlayer(api, audioConnection, finalTrackUrl, null, false, server, currentPlayer, true);
                     });
                 } else {
                     AudioConnection audioConnection = server.getAudioConnection().get();
-                    currentGreetingPlayer.greetingPlayer(api, audioConnection, trackUrl, loopVar, null, false, server, currentPlayer, true);
+                    currentGreetingPlayer.greetingPlayer(api, audioConnection, trackUrl, null, false, server, currentPlayer, true);
                 }
             }
         });
