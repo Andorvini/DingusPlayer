@@ -17,7 +17,6 @@ import org.javacord.api.DiscordApi;
 import org.javacord.api.audio.AudioConnection;
 import org.javacord.api.audio.AudioSource;
 import org.javacord.api.entity.server.Server;
-import org.javacord.api.event.interaction.SlashCommandCreateEvent;
 import site.andorvini.miscellaneous.LavaplayerAudioSource;
 import site.andorvini.queue.Queue;
 
@@ -31,7 +30,6 @@ public class Player {
     private AudioSource source;
     private DiscordApi api;
     private AudioConnection audioConnection;
-    private SlashCommandCreateEvent slashCommandCreateEvent;
     private AtomicBoolean loopVar = new AtomicBoolean(false);
     private Server server;
 
@@ -86,7 +84,7 @@ public class Player {
 
     //    ============ MAIN METHODS ============
 
-    public void musicPlayer(DiscordApi apiFrom, AudioConnection audioConnectionFrom, String trackUrl, SlashCommandCreateEvent slashCommandCreateEventFrom, boolean isSlashFrom, Server serverFrom, Queue queue){
+    public void musicPlayer(DiscordApi apiFrom, AudioConnection audioConnectionFrom, String trackUrl, Server serverFrom, Queue queue){
         AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
 
         AudioEventAdapter adapter = new AudioEventAdapter() {
@@ -99,7 +97,7 @@ public class Player {
                         System.out.println("[MSG] Loop engaged");
                     } else {
                         System.out.println("[MSG] Loop disengaged");
-                        queue.queueOnTrackEnd(api, audioConnection, slashCommandCreateEvent,true, server);
+                        queue.queueOnTrackEnd(api, audioConnection, server);
                         player.destroy();
                         playerGlobal.removeListener(this);
                     }
@@ -115,7 +113,6 @@ public class Player {
         playerManager.registerSourceManager(new HttpAudioSourceManager());
         playerManager.registerSourceManager(new BandcampAudioSourceManager());
 
-        slashCommandCreateEvent = slashCommandCreateEventFrom;
         server = serverFrom;
 
         api = apiFrom;

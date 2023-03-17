@@ -1,39 +1,28 @@
 package site.andorvini;
 
-import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
-
 import org.javacord.api.DiscordApi;
 import org.javacord.api.DiscordApiBuilder;
 import org.javacord.api.audio.AudioConnection;
 import org.javacord.api.entity.channel.ServerVoiceChannel;
 import org.javacord.api.entity.channel.TextChannel;
-import org.javacord.api.entity.message.MessageSet;
-import org.javacord.api.entity.message.embed.EmbedBuilder;
 import org.javacord.api.entity.server.Server;
 import org.javacord.api.entity.user.User;
 import org.javacord.api.interaction.*;
 import org.javacord.api.entity.activity.ActivityType;
 
-import site.andorvini.commands.DevCommand;
+import site.andorvini.commands.*;
+import site.andorvini.commands.Random;
 import site.andorvini.handlers.ButtonHandler;
 import site.andorvini.miscellaneous.AloneInChannelHandler;
 import site.andorvini.miscellaneous.BatteryChanger;
-import site.andorvini.miscellaneous.MiscMethods;
-import site.andorvini.miscellaneous.YoutubeMethods;
 import site.andorvini.players.GreetingPlayer;
 import site.andorvini.players.Player;
 import site.andorvini.queue.Queue;
 
-import java.awt.*;
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
 
 import static site.andorvini.miscellaneous.MiscMethods.*;
-import static site.andorvini.miscellaneous.SosanieEblaMethod.getSosaniaEblaUrl;
-import static site.andorvini.miscellaneous.YoutubeMethods.*;
-
 
 public class Main {
 
@@ -41,10 +30,9 @@ public class Main {
 
     private static TextChannel lastCommandChannel;
 
-    private static HashMap<Long, Player> players = new HashMap<>();
+        private static HashMap<Long, Player> players = new HashMap<>();
     private static HashMap<Long, site.andorvini.queue.Queue> queues = new HashMap<>();
     private static HashMap<Long, GreetingPlayer> greetingPlayers = new HashMap<>();
-    private static HashMap<Long, AloneInChannelHandler> aloneInChannelHandlers = new HashMap<>();
 
     private static DiscordApi apiGlobal;
 
@@ -105,20 +93,11 @@ public class Main {
 
         // ============ TOKEN PROCESSING ============
 
-        String token = null;
-        token = System.getenv("DP_DISCORD_TOKEN");
-
-        String ssEbloApiToken = null;
-        ssEbloApiToken = System.getenv("DP_SOSANIE_API_KEY");
-
-        String youtubeApiToken = null;
-        youtubeApiToken = System.getenv("DP_YOUTUBE_API_KEY");
-
-        String youtubeLogin = null;
-        youtubeLogin = System.getenv("DP_YOUTUBE_LOGIN");
-
-        String youtubePassword = null;
-        youtubePassword = System.getenv("DP_YOUTUBE_PASSWORD");
+        String token = System.getenv("DP_DISCORD_TOKEN");
+        String ssEbloApiToken = System.getenv("DP_SOSANIE_API_KEY");
+        String youtubeApiToken = System.getenv("DP_YOUTUBE_API_KEY");
+        String youtubeLogin = System.getenv("DP_YOUTUBE_LOGIN");
+        String youtubePassword = System.getenv("DP_YOUTUBE_PASSWORD");
 
         if (token == null) {
             System.out.println("[ERROR] DP_DISCORD_TOKEN environment variable not found");
@@ -126,12 +105,12 @@ public class Main {
         }
 
         if (ssEbloApiToken == null) {
-            System.out.println("[ERROR] API_KEY environment variable not found");
+            System.out.println("[ERROR] DP_SOSANIE_API_KEY environment variable not found");
             System.exit(1);
         }
 
         if (youtubeApiToken == null) {
-            System.out.println("[ERROR] YOUTUBE_API_KEY environment variable not found");
+            System.out.println("[ERROR] DP_YOUTUBE_API_KEY environment variable not found");
             System.exit(1);
         }
 
@@ -147,10 +126,7 @@ public class Main {
 
         // ============ BOT CREATION ============
 
-        AtomicBoolean isPlaying = new AtomicBoolean(false);
-
         DiscordApi api = new DiscordApiBuilder().setToken(token).login().join();
-
         apiGlobal = api;
 
         ButtonHandler.buttonHandler();
@@ -197,7 +173,7 @@ public class Main {
 
             } catch (NoSuchElementException ignored) {}
 
-            site.andorvini.queue.Queue currentQueue = queues.get(interactionServerId);
+            Queue currentQueue = queues.get(interactionServerId);
             GreetingPlayer currentGreetingPlayer = greetingPlayers.get(interactionServerId);
             Player currentPlayer = players.get(interactionServerId);
 
@@ -207,300 +183,29 @@ public class Main {
                         .respond()
                         .join();
             } else if (fullCommandName.equals("phony")) {
-                if (optionalUserVoiceChannel.isPresent()) {
-                    AtomicReference<String> trackUrl = new AtomicReference<>("https://storage.rferee.dev/assets/media/audio/phony-ru.flac");
-                    String interactionOption = interaction.getOptionByName("version").get().getStringValue().get();
-
-                    lastCommandChannel = interaction.getChannel().get();
-
-                    if (interactionOption.equals("rus")) {
-                        trackUrl.set("https://storage.rferee.dev/assets/media/audio/phony-ru.flac");
-                    } else if (interactionOption.equals("original")) {
-                        trackUrl.set("https://storage.rferee.dev/assets/media/audio/phony-jp.flac");
-                    }
-
-                    currentPlayer.setPause(true);
-
-                    if (optionalBotVoiceChannel.isEmpty()) {
-                        Server finalServer = interactionServer;
-                        userVoiceChannel.connect().thenAccept(audioConnection -> {
-                            currentGreetingPlayer.greetingPlayer(api, audioConnection, trackUrl.get(), slashCommandCreateEvent,true, finalServer, currentPlayer, false);
-                        });
-                    } else {
-                        AudioConnection audioConnection = interactionServer.getAudioConnection().get();
-                        currentGreetingPlayer.greetingPlayer(api, audioConnection, trackUrl.get(), slashCommandCreateEvent, true, interactionServer, currentPlayer, false);
-                    }
-                } else {
-                    respondImmediatelyWithString(interaction, "You are not connected to a voice channel");
-                }
+                Phony.phony(api, interaction, optionalUserVoiceChannel, lastCommandChannel, currentPlayer, optionalBotVoiceChannel, interactionServer, userVoiceChannel, currentGreetingPlayer);
             } else if (fullCommandName.equals("play")) {
-                if (optionalUserVoiceChannel.isPresent()) {
-                    String commandOption = interaction.getOptionByName("query").get().getStringValue().get().replaceAll("\\[", "%5B").replaceAll("]", "%5D");
-                    String trackUrl = null;
-
-                    lastCommandChannel = interaction.getChannel().get();
-
-                    if (isUrl(commandOption)) {
-                        trackUrl = commandOption;
-                    } else {
-                        try {
-                            trackUrl = getVideoUrlFromName(commandOption);
-                        } catch (Exception e){
-                            EmbedBuilder searchFailEmbed = new EmbedBuilder()
-                                .setColor(Color.RED)
-                                    .setAuthor("Nothing was found with your query")
-                                    .addField("Try another query", "");
-
-                            MiscMethods.respondImmediatelyWithEmbed(interaction, searchFailEmbed);
-                        }
-                    }
-
-                    if (trackUrl != null) {
-                        currentQueue.addTrackToQueue(trackUrl);
-                        if (currentQueue.getQueueList().size() > 1) {
-                            EmbedBuilder embed;
-
-                            if (isYouTubeLink(trackUrl)) {
-                                String title = null;
-                                String duration = null;
-
-                                try {
-                                    title = getYoutubeVideoTitleFromUrl(trackUrl, true);
-                                    duration = getYoutubeVideoTitleFromUrl(trackUrl, false);
-                                } catch (IOException ignored) {
-                                }
-
-                                embed = new EmbedBuilder()
-                                        .setAuthor("Added to queue: ")
-                                        .addField("", "[" + title + "](" + trackUrl + ") | `" + duration + "`")
-                                        .setColor(Color.GREEN)
-                                        .setFooter("Track in queue: " + currentQueue.getQueueList().size());
-
-                            } else {
-                                embed = new EmbedBuilder()
-                                        .setAuthor("Added to queue: ")
-                                        .addField("", trackUrl)
-                                        .setColor(Color.GREEN)
-                                        .setFooter("Track in queue: " + currentQueue.getQueueList().size());
-                            }
-
-                            interaction.createImmediateResponder()
-                                    .addEmbed(embed)
-//                                    .addComponents(ActionRow.of(Button.success("pause", "⏸"),
-//                                            Button.create("skip", ButtonStyle.SUCCESS, "Skip")))
-                                    .respond()
-                                    .join();
-                        } else {
-                            try {
-                                if (isYouTubeLink(trackUrl)) {
-                                    EmbedBuilder playEmbed = new EmbedBuilder()
-                                            .setAuthor("Playing: ")
-                                            .addField("", "[" + YoutubeMethods.getYoutubeVideoTitleFromUrl(trackUrl, true) + "](" + trackUrl + ") | `" + getYoutubeVideoTitleFromUrl(trackUrl, false) + "`")
-                                            .setColor(Color.GREEN)
-                                            .setFooter("Track in queue: " + currentQueue.getQueueList().size());
-
-                                    respondImmediatelyWithEmbed(interaction, playEmbed);
-                                } else {
-                                    EmbedBuilder playEmbed = new EmbedBuilder()
-                                            .setAuthor("Playing: ")
-                                            .addField("", trackUrl)
-                                            .setColor(Color.GREEN)
-                                            .setFooter("Track in queue: " + currentQueue.getQueueList().size());
-
-                                    respondImmediatelyWithEmbed(interaction, playEmbed);
-                                }
-                            } catch (IOException ignored){}
-                        }
-                    }
-
-                    if (optionalBotVoiceChannel.isEmpty()) {
-                        Server finalServer = interactionServer;
-                        userVoiceChannel.connect().thenAccept(audioConnection -> {
-                            currentQueue.queueController(api, audioConnection, slashCommandCreateEvent,true, finalServer, currentPlayer);
-                        });
-                    } else {
-                        AudioConnection audioConnection = interactionServer.getAudioConnection().get();
-                        currentQueue.queueController(api, audioConnection, slashCommandCreateEvent,true, interactionServer, currentPlayer);
-                    }
-                } else {
-                    respondImmediatelyWithString(interaction, "You are not connected to a voice channel");
-                }
+                Play.play(api, interaction, interactionServer, optionalUserVoiceChannel, currentQueue, optionalBotVoiceChannel, currentPlayer, userVoiceChannel, lastCommandChannel);
             } else if (fullCommandName.equals("loop")) {
-                if (!currentPlayer.getLoopVar()){
-                    currentPlayer.setLoopVar(true);
-                    respondImmediatelyWithString(interaction,"Looping is now enabled");
-                } else {
-                    currentPlayer.setLoopVar(false);
-                    respondImmediatelyWithString(interaction,"Looping is now disabled");
-                }
+                Loop.loop(interaction, currentPlayer);
             } else if (fullCommandName.equals("leave")) {
-                if (optionalBotVoiceChannel.isPresent()) {
-                    respondImmediatelyWithString(interaction, "Leaving voice channel \"" + interactionServer.getConnectedVoiceChannel(api.getYourself()).get().getName() + "\"");
-
-                    botVoiceChannel.disconnect();
-                    players.remove(interactionServerId);
-                    currentPlayer.destroyPlayer();
-                    currentQueue.clearQueue();
-                    AloneInChannelHandler.stopAloneTimer(false);
-
-                    if (BatteryChanger.getIsFireAlarmSystemEnabled()){
-                        BatteryChanger.startFireAlarmTimer();
-                    }
-                } else {
-                    respondImmediatelyWithString(interaction, "I am not connected to a voice channel");
-                }
+                Leave.leave(api, interaction, interactionServer, optionalBotVoiceChannel, botVoiceChannel, interactionServerId, currentPlayer, currentQueue, players);
             } else if (fullCommandName.equals("sseblo")) {
-                lastCommandChannel = interaction.getChannel().get();
-
-                String textToConvert = interaction.getOptionByName("text").get().getStringValue().get();
-
-                String trackUrl = getSosaniaEblaUrl(textToConvert);
-                respondImmediatelyWithString(interaction, "Playing \"" + textToConvert + "\" with Alyona Flirt ");
-
-                if (api.getYourself().getConnectedVoiceChannel(interactionServer).isEmpty()) {
-                    String finalTrackUrl = trackUrl;
-                    currentPlayer.setPause(true);
-                    Server finalInteractionServer = interactionServer;
-
-                    userVoiceChannel.connect().thenAccept(audioConnection -> {
-                        currentGreetingPlayer.greetingPlayer(api, audioConnection, finalTrackUrl, null, false, finalInteractionServer, currentPlayer, false);
-                    });
-                } else {
-                    currentPlayer.setPause(true);
-                    AudioConnection audioConnection = interactionServer.getAudioConnection().get();
-                    currentGreetingPlayer.greetingPlayer(api, audioConnection, trackUrl, null, false, interactionServer, currentPlayer, false);
-                }
+                Sseblo.sseblo(api, interaction, interactionServer, currentPlayer, currentGreetingPlayer, userVoiceChannel, lastCommandChannel);
             } else if (fullCommandName.equals("clear")) {
-                long count = interaction.getOptionByName("count").get().getLongValue().get() + 1;
-                TextChannel channel = interaction.getChannel().get();
-
-                MessageSet messagesToDelete = channel.getMessages((int) count).join();
-
-                respondImmediatelyWithString(interaction, "Deleted " + count + " messages");
-
-                try {
-                    Thread.sleep(2000);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-
-                channel.bulkDelete(messagesToDelete);
+                Clear.clear(interaction);
             } else if (fullCommandName.equals("pause")) {
-                if (currentPlayer.getPause()) {
-                    respondImmediatelyWithString(interaction, "Unpaused");
-
-                    currentPlayer.setPause(false);
-                } else {
-                    respondImmediatelyWithString(interaction, "Paused");
-
-                    currentPlayer.setPause(true);
-                }
+                Pause.pause(interaction, currentPlayer);
             } else if (fullCommandName.equals("np")) {
-                AudioTrack audioTrackNowPlaying = currentPlayer.getAudioTrackNowPlaying();
-
-                String loop = null;
-                String pause = null;
-
-                long duration = 0;
-                long position = 0;
-                int volume = 0;
-
-                String identifier = null;
-
-                if (currentPlayer.getLoopVar()) {
-                    loop = "Loop enabled";
-                } else {
-                    loop = "Loop disabled";
-                }
-
-                if (currentPlayer.getPause()) {
-                    pause = "Now paused";
-                } else {
-                    pause = "Playing";
-                }
-
-                if (audioTrackNowPlaying != null) {
-                    duration = audioTrackNowPlaying.getDuration();
-                    position = audioTrackNowPlaying.getPosition();
-                    volume = currentPlayer.getVolume();
-
-                    identifier = audioTrackNowPlaying.getIdentifier();
-
-                    if (identifier.startsWith("http")) {
-
-                    } else {
-                        identifier = "https://www.youtube.com/watch?v=" + identifier;
-                    }
-                }
-
-                EmbedBuilder embed = null;
-
-                if (audioTrackNowPlaying == null) {
-                    embed = new EmbedBuilder()
-                            .setAuthor("No playing track")
-                            .setDescription("Use `/play` command to play track")
-                            .setColor(Color.RED);
-                } else {
-                    embed = new EmbedBuilder()
-                            .setAuthor(audioTrackNowPlaying.getInfo().title, identifier, "https://indiefy.net/static/img/landing/distribution/icons/apple_music_icon.png")
-                            .setTitle("Duration")
-                            .setDescription(formatDuration(position) + " / " + formatDuration(duration))
-                            .addInlineField("Volume", String.valueOf(volume))
-                            .addInlineField("Loop", loop)
-                            .addInlineField("Pause", pause)
-                            .setColor(Color.ORANGE);
-                }
-
-                MiscMethods.respondImmediatelyWithEmbed(interaction, embed);
+                NowPlaying.np(interaction, currentPlayer);
             } else if (fullCommandName.equals("random")) {
-                lastCommandChannel = interaction.getChannel().get();
-                if (optionalUserVoiceChannel.isPresent()) {
-                    Set<User> userSet = interaction.getUser().getConnectedVoiceChannel(interactionServer).get().getConnectedUsers();
-
-                    User randomUser = userSet.stream().skip(new Random().nextInt(userSet.size())).findFirst().orElse(null);
-
-                    assert randomUser != null;
-                    String trackUrl = getSosaniaEblaUrl(randomUser.getDisplayName(interactionServer));
-
-                    respondImmediatelyWithString(interaction,randomUser.getName());
-
-                    currentPlayer.setPause(true);
-
-                    if (optionalBotVoiceChannel.isEmpty()) {
-                        Server finalServer = interactionServer;
-                        interaction.getUser().getConnectedVoiceChannel(interactionServer).get().connect().thenAccept(audioConnection -> {
-                            currentGreetingPlayer.greetingPlayer(api, audioConnection, trackUrl, slashCommandCreateEvent,false, finalServer, currentPlayer, false);
-                        });
-                    } else {
-                        AudioConnection audioConnection = interactionServer.getAudioConnection().get();
-                        currentGreetingPlayer.greetingPlayer(api, audioConnection, trackUrl, slashCommandCreateEvent,false, interactionServer, currentPlayer, false);
-                    }
-                } else {
-                    respondImmediatelyWithString(interaction, "You are not connected to a voice channel");
-                }
+                Random.random(api, interaction, interactionServer, lastCommandChannel, currentPlayer, currentGreetingPlayer, optionalBotVoiceChannel, optionalUserVoiceChannel);
             } else if (fullCommandName.equals("ping")) {
                 respondImmediatelyWithString(interaction, "Pong!");
             } else if (fullCommandName.equals("lyrics")) {
                 respondImmediatelyWithString(interaction, "Not implemented yet. (Because musixmatch shit)");
             } else if (fullCommandName.equals("volume")) {
-                Long volumeLevel = interaction.getOptionByName("volumelvl").get().getLongValue().get();
-                int volumeBefore = currentPlayer.getVolume();
-                currentPlayer.setVolume(volumeLevel);
-                String trackUrl = "https://storage.rferee.dev/assets/media/audio/alyona_volume_warning.wav";
-                AudioConnection audioConnection = interactionServer.getAudioConnection().get();
-
-                if (volumeLevel - volumeBefore >= 100) {
-                    if (volumeBefore < 700) {
-                        currentPlayer.setPause(true);
-                        currentGreetingPlayer.greetingPlayer(api, audioConnection, trackUrl, null, false, interactionServer, currentPlayer, false);
-                    }
-                }
-
-                if (volumeLevel > 900) {
-                    respondImmediatelyWithString(interaction, "ТЫ ЧЕ ЕБАНУТЫЙ? КАКОЙ " + volumeLevel + "? ТЕБЕ ЧЕ ЖИТЬ НАДОЕЛО?");
-                } else {
-                    respondImmediatelyWithString(interaction, "Volume set to " + volumeLevel);
-                }
+                Volume.volume(api, interaction, currentPlayer, interactionServer, currentGreetingPlayer);
             } else if (fullCommandName.equals("queue")) {
                 try {
                     respondImmediatelyWithEmbed(interaction, currentQueue.getQueueEmbed());
@@ -508,78 +213,13 @@ public class Main {
                     throw new RuntimeException(e);
                 }
             } else if (fullCommandName.equals("skip")) {
-                try {
-                    String secondTrackInQueue = null;
-
-                    int i = 0;
-                    for (String trackUrl : currentQueue.getQueueList()) {
-                        if (i == 1) {
-                            secondTrackInQueue = trackUrl;
-                            break;
-                        }
-                        i++;
-                    }
-
-                    EmbedBuilder skipEmbed = new EmbedBuilder()
-                            .addInlineField("__**Skipping:**__ ", "[" + getYoutubeVideoTitleFromUrl(currentQueue.getQueueList().peek(), true) + "](" + currentQueue.getQueueList().peek() + ")")
-                            .setColor(Color.GREEN);
-
-                    if (secondTrackInQueue != null) {
-                        skipEmbed.addInlineField("__**Next track:**__ ", "[" + getYoutubeVideoTitleFromUrl(secondTrackInQueue, true) + "](" + secondTrackInQueue + ")");
-                    } else {
-                        skipEmbed.addInlineField("__**No next track :(**__","");
-                    }
-
-                    respondImmediatelyWithEmbed(interaction, skipEmbed);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-                if (optionalBotVoiceChannel.isEmpty()) {
-                    Server finalServer = interactionServer;
-                    interaction.getUser().getConnectedVoiceChannel(interactionServer).get().connect().thenAccept(audioConnection -> {
-                        currentQueue.skipTrack (api, audioConnection, slashCommandCreateEvent,true, finalServer, isPlaying, currentPlayer);
-                    });
-                } else {
-                    AudioConnection audioConnection = interactionServer.getAudioConnection().get();
-                    currentQueue.skipTrack(api, audioConnection, slashCommandCreateEvent,true, interactionServer, isPlaying, currentPlayer);
-                }
+                Skip.skip(api, interaction, interactionServer, optionalBotVoiceChannel, currentQueue, currentPlayer);
             } else if (fullCommandName.equals("seek")) {
-                String position = interaction.getOptionByName("position").get().getStringValue().get();
-
-                if (isValidTimeFormat(position)) {
-                    long milis = convertToMilliseconds(position);
-                    if (!(milis > currentPlayer.getAudioTrackNowPlaying().getDuration())) {
-                        EmbedBuilder seekEmbed = new EmbedBuilder()
-                                .addField("__**Seeking track: **__", currentPlayer.getAudioTrackNowPlaying().getInfo().title)
-                                .addInlineField("Previous position: ", "`" + formatDuration(currentPlayer.getAudioTrackNowPlaying().getPosition()) + "`")
-                                .addInlineField("New position: ", "`" + position + "`")
-                                .setColor(Color.GREEN);
-
-                        currentPlayer.setPosition(milis);
-                        respondImmediatelyWithEmbed(interaction, seekEmbed);
-                    } else {
-                        EmbedBuilder seekLongFailureEmbed = new EmbedBuilder()
-                                .addField("__**Incorrect position**__", "Track duration is `" + formatDuration(currentPlayer.getAudioTrackNowPlaying().getDuration()) + "`")
-                                .setColor(Color.red);
-
-                        respondImmediatelyWithEmbed(interaction, seekLongFailureEmbed);
-                    }
-                } else {
-                    EmbedBuilder seekFailureEmbed = new EmbedBuilder()
-                            .addField("__**Incorrect position format**__", "Use `minutes:seconds` format")
-                            .setColor(Color.red);
-
-                    respondImmediatelyWithEmbed(interaction, seekFailureEmbed);
-                }
+                Seek.seek(interaction, currentPlayer);
             } else if (fullCommandName.equals("dev")) {
                 DevCommand.triggerDevCommand(interaction, api);
             } else if (fullCommandName.equals("change")) {
-                BatteryChanger.setEnabled(false);
-                try {
-                    api.getYourself().getConnectedVoiceChannel(interactionServer).get().disconnect();
-                } catch (NoSuchElementException ignored){}
-
-                removeGreetingPlayer(interactionServerId);
+                ChangeBatteries.change(api, interactionServer);
             }
         });
 
@@ -611,12 +251,12 @@ public class Main {
                     currentPlayer.setPause(true);
 
                     serverVoiceChannelMemberJoinEvent.getUser().getConnectedVoiceChannel(server).get().connect().thenAccept(audioConnection -> {
-                        currentGreetingPlayer.greetingPlayer(api, audioConnection, finalTrackUrl, null, false, server, currentPlayer, false);
+                        currentGreetingPlayer.greetingPlayer(api, audioConnection, finalTrackUrl, currentPlayer, server, false);
                     });
                 } else {
                     currentPlayer.setPause(true);
                     AudioConnection audioConnection = server.getAudioConnection().get();
-                    currentGreetingPlayer.greetingPlayer(api, audioConnection, trackUrl, null, false, server, currentPlayer, false);
+                    currentGreetingPlayer.greetingPlayer(api, audioConnection, trackUrl, currentPlayer, server, false);
                 }
             }
 
@@ -626,11 +266,11 @@ public class Main {
                     String finalTrackUrl = trackUrl;
 
                     serverVoiceChannelMemberJoinEvent.getUser().getConnectedVoiceChannel(server).get().connect().thenAccept(audioConnection -> {
-                        currentGreetingPlayer.greetingPlayer(api, audioConnection, finalTrackUrl, null, false, server, currentPlayer, true);
+                        currentGreetingPlayer.greetingPlayer(api, audioConnection, finalTrackUrl, currentPlayer, server, true);
                     });
                 } else {
                     AudioConnection audioConnection = server.getAudioConnection().get();
-                    currentGreetingPlayer.greetingPlayer(api, audioConnection, trackUrl, null, false, server, currentPlayer, true);
+                    currentGreetingPlayer.greetingPlayer(api, audioConnection, trackUrl, currentPlayer, server, true);
                 }
             }
         });
