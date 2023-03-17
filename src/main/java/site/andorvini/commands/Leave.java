@@ -24,7 +24,6 @@ public class Leave {
             players.remove(interactionServerId);
             currentPlayer.destroyPlayer();
             currentQueue.clearQueue();
-            AloneInChannelHandler.stopAloneTimer(false);
 
             if (BatteryChanger.getIsFireAlarmSystemEnabled()){
                 BatteryChanger.startFireAlarmTimer();

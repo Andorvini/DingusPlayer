@@ -30,7 +30,7 @@ public class Main {
 
     private static TextChannel lastCommandChannel;
 
-        private static HashMap<Long, Player> players = new HashMap<>();
+    private static HashMap<Long, Player> players = new HashMap<>();
     private static HashMap<Long, site.andorvini.queue.Queue> queues = new HashMap<>();
     private static HashMap<Long, GreetingPlayer> greetingPlayers = new HashMap<>();
 
@@ -99,6 +99,7 @@ public class Main {
         String youtubeLogin = System.getenv("DP_YOUTUBE_LOGIN");
         String youtubePassword = System.getenv("DP_YOUTUBE_PASSWORD");
 
+
         if (token == null) {
             System.out.println("[ERROR] DP_DISCORD_TOKEN environment variable not found");
             System.exit(1);
@@ -150,8 +151,6 @@ public class Main {
             ServerVoiceChannel botVoiceChannel = null;
 
             try {
-                interactionServer = slashCommandCreateEvent.getInteraction().getServer().get();
-                interactionServerId = interactionServer.getId();
 
                 if (!(queues.containsKey(interactionServerId))) {
                     queues.put(interactionServerId, new site.andorvini.queue.Queue());
@@ -164,6 +163,9 @@ public class Main {
                 if (!players.containsKey(interactionServerId)) {
                     players.put(interactionServerId, new Player());
                 }
+
+                interactionServer = slashCommandCreateEvent.getInteraction().getServer().get();
+                interactionServerId = interactionServer.getId();
 
                 optionalUserVoiceChannel = interaction.getUser().getConnectedVoiceChannel(interactionServer);
                 userVoiceChannel = optionalUserVoiceChannel.get();
