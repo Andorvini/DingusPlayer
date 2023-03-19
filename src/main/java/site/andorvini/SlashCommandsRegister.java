@@ -125,5 +125,9 @@ public class SlashCommandsRegister {
         SlashCommand changeBatteriesCommand = SlashCommand.with("change","For changing batteries")
                 .createGlobal(api)
                 .join();
+
+        SlashCommand randomPromptCommand = SlashCommand.with("randomprompt", "Returns a random prompt from promts.txt")
+                .createGlobal(api)
+                .join();
     }
 }

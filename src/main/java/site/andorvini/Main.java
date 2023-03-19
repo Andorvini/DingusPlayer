@@ -142,8 +142,10 @@ public class Main {
 
         api.addSlashCommandCreateListener(slashCommandCreateEvent -> {
             SlashCommandInteraction interaction = slashCommandCreateEvent.getSlashCommandInteraction();
+
             Server interactionServer = null;
             Long interactionServerId = null;
+
             String fullCommandName = interaction.getFullCommandName();
 
             Optional<ServerVoiceChannel> optionalUserVoiceChannel = null;
@@ -156,25 +158,24 @@ public class Main {
                 interactionServer = slashCommandCreateEvent.getInteraction().getServer().get();
                 interactionServerId = interactionServer.getId();
 
-                if (!(queues.containsKey(interactionServerId))) {
-                    queues.put(interactionServerId, new site.andorvini.queue.Queue());
-                }
-
-                if (!greetingPlayers.containsKey(interactionServerId)) {
-                    greetingPlayers.put(interactionServerId, new GreetingPlayer());
-                }
-
-                if (!players.containsKey(interactionServerId)) {
-                    players.put(interactionServerId, new Player());
-                }
-
                 optionalUserVoiceChannel = interaction.getUser().getConnectedVoiceChannel(interactionServer);
                 userVoiceChannel = optionalUserVoiceChannel.get();
 
                 optionalBotVoiceChannel = api.getYourself().getConnectedVoiceChannel(interactionServer);
                 botVoiceChannel = optionalBotVoiceChannel.get();
-
             } catch (NoSuchElementException ignored) {}
+
+            if (!queues.containsKey(interactionServerId)) {
+                queues.put(interactionServerId, new site.andorvini.queue.Queue());
+            }
+
+            if (!greetingPlayers.containsKey(interactionServerId)) {
+                greetingPlayers.put(interactionServerId, new GreetingPlayer());
+            }
+
+            if (!players.containsKey(interactionServerId)) {
+                players.put(interactionServerId, new Player());
+            }
 
             Queue currentQueue = queues.get(interactionServerId);
             GreetingPlayer currentGreetingPlayer = greetingPlayers.get(interactionServerId);
@@ -223,6 +224,8 @@ public class Main {
                 DevCommand.triggerDevCommand(interaction, api);
             } else if (fullCommandName.equals("change")) {
                 ChangeBatteries.change(api, interactionServer);
+            } else if (fullCommandName.equals("randomprompt")){
+                RandomPrompt.randomPrompt(interaction);
             }
         });
 

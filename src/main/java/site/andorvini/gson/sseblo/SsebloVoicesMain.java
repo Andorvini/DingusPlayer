@@ -1,6 +1,5 @@
 package site.andorvini.gson.sseblo;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 public class SsebloVoicesMain {
@@ -32,3 +31,9 @@ public class SsebloVoicesMain {
         this.data = data;
     }
 }
+
+class SsebloVoicesData {
+
+}
+
+//class SsebloVoices
