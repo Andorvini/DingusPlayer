@@ -1,11 +1,10 @@
 package site.andorvini;
 
 import org.javacord.api.DiscordApi;
-import org.javacord.api.interaction.SlashCommand;
-import org.javacord.api.interaction.SlashCommandOption;
-import org.javacord.api.interaction.SlashCommandOptionChoice;
-import org.javacord.api.interaction.SlashCommandOptionType;
+import org.javacord.api.interaction.*;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 
 public class SlashCommandsRegister {
@@ -47,6 +46,27 @@ public class SlashCommandsRegister {
                         Arrays.asList(
                                 SlashCommandOption.create(SlashCommandOptionType.STRING, "text", "Text you want to voice", true)
                         ))
+                .createGlobal(api)
+                .join();
+
+        ArrayList<SlashCommandOptionChoice> voiceTitles = new ArrayList<>();
+//        int i = 0;
+//        try {
+//            for (SsebloVoicesData data : SsebloVoicesListModel.getSsebloVoices().getData()) {
+//                voiceTitles.add(SlashCommandOptionChoice.create(data.getTitle(), data.getTitle()));
+//                if (i == 24){
+//                    break;
+//                }
+//                i++;
+//            }
+//        } catch (Exception ignored){}
+
+        SlashCommand sseblo = SlashCommand.with("sseblo", "Convert text",
+                Arrays.asList(
+                        SlashCommandOption.create(SlashCommandOptionType.STRING, "text", "text", true),
+                        SlashCommandOption.createWithChoices(SlashCommandOptionType.STRING, "voice", "voice", false,
+                               voiceTitles)
+                ))
                 .createGlobal(api)
                 .join();
 

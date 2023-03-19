@@ -76,6 +76,8 @@ public class Main {
 
     public static void main(String[] args) {
 
+
+
         /*
          * 998958761618190421L = Sukran = rferee = https://storage.rferee.dev/assets/media/audio/sukran.mp3
          * 394085232266969090L = doka swarm = andorvini = https://storage.rferee.dev/assets/media/audio/dokaswam.mp3
@@ -151,6 +153,8 @@ public class Main {
             ServerVoiceChannel botVoiceChannel = null;
 
             try {
+                interactionServer = slashCommandCreateEvent.getInteraction().getServer().get();
+                interactionServerId = interactionServer.getId();
 
                 if (!(queues.containsKey(interactionServerId))) {
                     queues.put(interactionServerId, new site.andorvini.queue.Queue());
@@ -163,9 +167,6 @@ public class Main {
                 if (!players.containsKey(interactionServerId)) {
                     players.put(interactionServerId, new Player());
                 }
-
-                interactionServer = slashCommandCreateEvent.getInteraction().getServer().get();
-                interactionServerId = interactionServer.getId();
 
                 optionalUserVoiceChannel = interaction.getUser().getConnectedVoiceChannel(interactionServer);
                 userVoiceChannel = optionalUserVoiceChannel.get();

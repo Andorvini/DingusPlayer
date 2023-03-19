@@ -1,7 +1,9 @@
 package site.andorvini.commands;
 
+import com.google.gson.GsonBuilder;
 import org.javacord.api.DiscordApi;
 import org.javacord.api.entity.channel.ServerVoiceChannel;
+import org.javacord.api.entity.channel.TextChannel;
 import org.javacord.api.entity.message.embed.EmbedBuilder;
 import org.javacord.api.entity.server.Server;
 import org.javacord.api.entity.user.User;
@@ -22,7 +24,7 @@ import java.util.*;
 import java.util.List;
 
 public class DevCommand {
-    public static void triggerDevCommand(SlashCommandInteraction interaction, DiscordApi api){
+    public static void triggerDevCommand(SlashCommandInteraction interaction, DiscordApi api) {
         User interactionUser = interaction.getUser();
         Server interactionServer = interaction.getServer().get();
         Long interactionServerId = interactionServer.getId();
@@ -104,6 +106,11 @@ public class DevCommand {
                 for (ServerVoiceChannel channel : interactionServer.getVoiceChannels()) {
                     channel.delete();
                 }
+//            } else if (devQuery.equals("gsonTest")) {
+//                TextChannel channel = interaction.getChannel().get();
+//                try {
+//                   System.out.println(new GsonBuilder().setPrettyPrinting().create().toJson(SsebloVoicesListModel.getSsebloVoices()));
+//                } catch (IOException e){}
             } else {
                 MiscMethods.respondImmediatelyWithString(interaction, "There is no such query");
             }

@@ -23,7 +23,9 @@ public class Sseblo {
 
         if (api.getYourself().getConnectedVoiceChannel(interactionServer).isEmpty()) {
             String finalTrackUrl = trackUrl;
-            currentPlayer.setPause(true);
+            try {
+                currentPlayer.setPause(true);
+            } catch (NullPointerException ignored){}
             Server finalInteractionServer = interactionServer;
 
             userVoiceChannel.connect().thenAccept(audioConnection -> {
