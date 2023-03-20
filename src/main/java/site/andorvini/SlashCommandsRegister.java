@@ -3,51 +3,40 @@ package site.andorvini;
 import org.javacord.api.DiscordApi;
 import org.javacord.api.interaction.*;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 public class SlashCommandsRegister {
 
     public static void registerSlashCommands(DiscordApi api){
-        SlashCommand playCommand =
+        SlashCommandBuilder playCommand =
                 SlashCommand.with("play","Play music from provided Youtube URL",
                                 Arrays. asList(
                                         SlashCommandOption.create(SlashCommandOptionType.STRING, "query", "Link to music, or just name", true)
-                                ))
-                        .createGlobal(api)
-                        .join();
+                                ));
 
-        SlashCommand phonyCommand =
+        SlashCommandBuilder phonyCommand =
                 SlashCommand.with("phony", "Play ANTIPATHY WORLD",
                                 Arrays.asList(
                                         SlashCommandOption.createWithChoices(SlashCommandOptionType.STRING, "version", "Choose version of song", true,
                                                 Arrays.asList(
                                                         SlashCommandOptionChoice.create("Russian remix", "rus"),
                                                         SlashCommandOptionChoice.create("Original", "original")))
-                                ))
-                        .createGlobal(api)
-                        .join();
+                                ));
 
-        SlashCommand loopCommand = SlashCommand.with("loop","Lop music")
-                .createGlobal(api)
-                .join();
+        SlashCommandBuilder loopCommand = SlashCommand.with("loop","Lop music");
 
-        SlashCommand leaveCommand =
-                SlashCommand.with("leave","Leave voice channel")
-                        .createGlobal(api)
-                        .join();
+        SlashCommandBuilder leaveCommand =
+                SlashCommand.with("leave","Leave voice channel");
 
-        SlashCommand pauseCommand = SlashCommand.with("pause","Pause music")
-                .createGlobal(api)
-                .join();
+        SlashCommandBuilder pauseCommand = SlashCommand.with("pause","Pause music");
 
-        SlashCommand ssebloCommand = SlashCommand.with("sseblo","Convert text into voice using sseblobotapi",
+        SlashCommandBuilder ssebloCommand = SlashCommand.with("sseblo","Convert text into voice using sseblobotapi",
                         Arrays.asList(
                                 SlashCommandOption.create(SlashCommandOptionType.STRING, "text", "Text you want to voice", true)
-                        ))
-                .createGlobal(api)
-                .join();
+                        ));
 
         ArrayList<SlashCommandOptionChoice> voiceTitles = new ArrayList<>();
 //        int i = 0;
@@ -61,73 +50,70 @@ public class SlashCommandsRegister {
 //            }
 //        } catch (Exception ignored){}
 
-        SlashCommand sseblo = SlashCommand.with("sseblo", "Convert text",
+        SlashCommandBuilder sseblo = SlashCommand.with("sseblo", "Convert text",
                 Arrays.asList(
                         SlashCommandOption.create(SlashCommandOptionType.STRING, "text", "text", true),
                         SlashCommandOption.createWithChoices(SlashCommandOptionType.STRING, "voice", "voice", false,
                                voiceTitles)
-                ))
-                .createGlobal(api)
-                .join();
+                ));
 
-        SlashCommand clearCommand = SlashCommand.with("clear","Delete specified number of messages",
+        SlashCommandBuilder clearCommand = SlashCommand.with("clear","Delete specified number of messages",
                         Arrays.asList(
                                 SlashCommandOption.create(SlashCommandOptionType.LONG,"count","Message count",true)
-                        ))
-                .createGlobal(api)
-                .join();
+                        ));
 
-        SlashCommand npCommand = SlashCommand.with("np","Show what song is playing now")
-                .createGlobal(api)
-                .join();
+        SlashCommandBuilder npCommand = SlashCommand.with("np","Show what song is playing now");
 
-        SlashCommand randomUserCommand = SlashCommand.with("random","Pick random user")
-                .createGlobal(api)
-                .join();
+        SlashCommandBuilder randomUserCommand = SlashCommand.with("random","Pick random user");
 
-        SlashCommand pingCommand = SlashCommand.with("ping", "Ping!")
-                .createGlobal(api)
-                .join();
+        SlashCommandBuilder pingCommand = SlashCommand.with("ping", "Ping!");
 
-        SlashCommand queueCommand = SlashCommand.with("queue", "Shows all tracks in queue")
-                .createGlobal(api)
-                .join();
+        SlashCommandBuilder queueCommand = SlashCommand.with("queue", "Shows all tracks in queue");
 
-        SlashCommand lyricsCommand = SlashCommand.with("lyrics", "Shows lyrics of currently playing track")
-                .createGlobal(api)
-                .join();
+        SlashCommandBuilder lyricsCommand = SlashCommand.with("lyrics", "Shows lyrics of currently playing track");
 
-        SlashCommand volumeCommand = SlashCommand.with("volume","Set the volume",
+        SlashCommandBuilder volumeCommand = SlashCommand.with("volume","Set the volume",
                         Arrays.asList(
                                 SlashCommandOption.create(SlashCommandOptionType.LONG, "volumelvl", "Volume level (Max. 1000)", true)
-                        ))
-                .createGlobal(api)
-                .join();
+                        ));
 
-        SlashCommand skipCommand = SlashCommand.with("skip", "Skips currently playing track")
-                .createGlobal(api)
-                .join();
+        SlashCommandBuilder skipCommand = SlashCommand.with("skip", "Skips currently playing track");
 
-        SlashCommand seekCommand = SlashCommand.with("seek", "Seeks the song to specified position",
+        SlashCommandBuilder seekCommand = SlashCommand.with("seek", "Seeks the song to specified position",
                         Arrays.asList(
                                 SlashCommandOption.create(SlashCommandOptionType.STRING, "position", "Positon to seek", true)
-                        ))
-                .createGlobal(api)
-                .join();
+                        ));
 
-        SlashCommand devCommand = SlashCommand.with("dev", "For dev purposes",
+        SlashCommandBuilder devCommand = SlashCommand.with("dev", "For dev purposes",
                         Arrays.asList(
                                 SlashCommandOption.create(SlashCommandOptionType.STRING, "devQuery", "For dev purposes", true)
-                        ))
-                .createGlobal(api)
-                .join();
+                        ));
 
-        SlashCommand changeBatteriesCommand = SlashCommand.with("change","For changing batteries")
-                .createGlobal(api)
-                .join();
+        SlashCommandBuilder changeBatteriesCommand = SlashCommand.with("change","For changing batteries");
 
-        SlashCommand randomPromptCommand = SlashCommand.with("randomprompt", "Returns a random prompt from promts.txt")
-                .createGlobal(api)
-                .join();
+        SlashCommandBuilder randomPromptCommand = SlashCommand.with("randomprompt", "Returns a random prompt from promts.txt");
+
+        Set<SlashCommandBuilder> builders = new HashSet<>();
+
+        builders.add(playCommand);
+        builders.add(phonyCommand);
+        builders.add(loopCommand);
+        builders.add(leaveCommand);
+        builders.add(pauseCommand);
+        builders.add(sseblo);
+        builders.add(clearCommand);
+        builders.add(npCommand);
+        builders.add(randomUserCommand);
+        builders.add(pingCommand);
+        builders.add(queueCommand);
+        builders.add(lyricsCommand);
+        builders.add(volumeCommand);
+        builders.add(skipCommand);
+        builders.add(seekCommand);
+        builders.add(devCommand);
+        builders.add(changeBatteriesCommand);
+        builders.add(randomPromptCommand);
+
+        api.bulkOverwriteGlobalApplicationCommands(builders).join();
     }
 }

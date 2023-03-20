@@ -12,8 +12,7 @@ import site.andorvini.players.Player;
 import java.util.HashMap;
 
 public class ButtonHandler {
-    public static void buttonHandler(){
-        DiscordApi api = Main.getApi();
+    public static void buttonHandler(DiscordApi api){
 
         api.addMessageComponentCreateListener(messageComponentCreateEvent -> {
             MessageComponentInteraction messageComponentInteraction = messageComponentCreateEvent.getMessageComponentInteraction();
