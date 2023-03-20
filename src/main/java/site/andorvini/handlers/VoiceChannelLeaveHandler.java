@@ -5,6 +5,7 @@ import org.javacord.api.entity.channel.ServerVoiceChannel;
 import org.javacord.api.entity.channel.TextChannel;
 import org.javacord.api.entity.server.Server;
 import org.javacord.api.entity.user.User;
+import site.andorvini.Main;
 import site.andorvini.miscellaneous.AloneInChannelHandler;
 import site.andorvini.players.Player;
 import site.andorvini.queue.Queue;
@@ -13,7 +14,7 @@ import java.util.HashMap;
 import java.util.Set;
 
 public class VoiceChannelLeaveHandler {
-    public static void addVoiceChannelLeaveHandler(DiscordApi api, HashMap<Long, Queue> queues, HashMap<Long, Player> players, TextChannel lastCommandChannel){
+    public static void addVoiceChannelLeaveHandler(DiscordApi api, HashMap<Long, Queue> queues, HashMap<Long, Player> players){
         api.addServerVoiceChannelMemberLeaveListener(serverVoiceChannelMemberLeaveEvent -> {
             Server server = serverVoiceChannelMemberLeaveEvent.getServer();
             ServerVoiceChannel channel = serverVoiceChannelMemberLeaveEvent.getChannel();
@@ -21,6 +22,7 @@ public class VoiceChannelLeaveHandler {
             Player currentPlayer = players.get(server.getId());
             Queue currentQueue = queues.get(server.getId());
 
+            TextChannel lastCommandChannel = Main.getLastCommandChannel(server.getId());
 
             if (api.getYourself().getConnectedVoiceChannel(server).isPresent() && api.getYourself().getConnectedVoiceChannel(server).get() == channel) {
 

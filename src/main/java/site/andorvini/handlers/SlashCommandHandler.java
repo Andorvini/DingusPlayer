@@ -6,6 +6,8 @@ import org.javacord.api.entity.channel.TextChannel;
 import org.javacord.api.entity.server.Server;
 import org.javacord.api.interaction.SlashCommandInteraction;
 
+import org.w3c.dom.Text;
+import site.andorvini.Main;
 import site.andorvini.commands.*;
 import site.andorvini.players.GreetingPlayer;
 import site.andorvini.players.Player;
@@ -20,7 +22,7 @@ import static site.andorvini.miscellaneous.MiscMethods.respondImmediatelyWithEmb
 import static site.andorvini.miscellaneous.MiscMethods.respondImmediatelyWithString;
 
 public class SlashCommandHandler {
-    public static void addSlashCommandsHadler(DiscordApi api, HashMap<Long, Player> players, HashMap<Long, site.andorvini.queue.Queue> queues, HashMap<Long, GreetingPlayer> greetingPlayers, TextChannel lastCommandChannel){
+    public static void addSlashCommandsHadler(DiscordApi api, HashMap<Long, Player> players, HashMap<Long, site.andorvini.queue.Queue> queues, HashMap<Long, GreetingPlayer> greetingPlayers){
         api.addSlashCommandCreateListener(slashCommandCreateEvent -> {
             SlashCommandInteraction interaction = slashCommandCreateEvent.getSlashCommandInteraction();
 
@@ -62,7 +64,9 @@ public class SlashCommandHandler {
             GreetingPlayer currentGreetingPlayer = greetingPlayers.get(interactionServerId);
             Player currentPlayer = players.get(interactionServerId);
 
+            Main.addLastTextChannel(interactionServerId, interaction.getChannel().get());
 
+            TextChannel lastCommandChannel = Main.getLastCommandChannel(interactionServerId);
 
             if (!interaction.getChannel().get().getType().isServerChannelType()) {
                 interaction.createImmediateResponder()
@@ -78,7 +82,9 @@ public class SlashCommandHandler {
             } else if (fullCommandName.equals("leave")) {
                 Leave.leave(api, interaction, interactionServer, optionalBotVoiceChannel, botVoiceChannel, interactionServerId, currentPlayer, currentQueue, players);
             } else if (fullCommandName.equals("sseblo")) {
-                Sseblo.sseblo(api, interaction, interactionServer, currentPlayer, currentGreetingPlayer, userVoiceChannel, lastCommandChannel);
+                if (System.getenv("DP_SOSANIE_TTS_ENABLED").equals("true")) {
+                    Sseblo.sseblo(api, interaction, interactionServer, currentPlayer, currentGreetingPlayer, userVoiceChannel, lastCommandChannel);
+                }
             } else if (fullCommandName.equals("clear")) {
                 Clear.clear(interaction);
             } else if (fullCommandName.equals("pause")) {

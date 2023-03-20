@@ -100,7 +100,6 @@ public class SlashCommandsRegister {
         builders.add(loopCommand);
         builders.add(leaveCommand);
         builders.add(pauseCommand);
-        builders.add(sseblo);
         builders.add(clearCommand);
         builders.add(npCommand);
         builders.add(randomUserCommand);
@@ -113,6 +112,11 @@ public class SlashCommandsRegister {
         builders.add(devCommand);
         builders.add(changeBatteriesCommand);
         builders.add(randomPromptCommand);
+
+        // ============ ADD /SSEBLO IF ENABLED ============
+        if (System.getenv("DP_SOSANIE_TTS_ENABLED").equals("true")) {
+            builders.add(sseblo);
+        }
 
         api.bulkOverwriteGlobalApplicationCommands(builders).join();
     }

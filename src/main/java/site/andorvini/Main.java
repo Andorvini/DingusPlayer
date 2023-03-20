@@ -42,6 +42,10 @@ public class Main {
         greetingPlayers.remove(serverId);
     }
 
+    public static void addLastTextChannel(Long serverId, TextChannel channel){
+        lastTextChannels.put(serverId, channel);
+    }
+
     // ============ Getters ============
 
     public static HashMap<Long, Player> getPlayers() {
@@ -56,12 +60,12 @@ public class Main {
         return queues;
     }
 
-    public static TextChannel getLastTextChannel(){
-        return lastCommandChannel;
-    }
-
     public static DiscordApi getApi(){
         return apiGlobal;
+    }
+
+    public static TextChannel getLastCommandChannel(Long id){
+        return lastTextChannels.get(id);
     }
 
     // ============ Main ============
@@ -79,9 +83,6 @@ public class Main {
         if (token == null) {
             System.out.println("[ERROR] DP_DISCORD_TOKEN environment variable not found");
             System.exit(1);
-        } else if (ssEbloApiToken == null) {
-            System.out.println("[ERROR] DP_SOSANIE_API_KEY environment variable not found");
-            System.exit(1);
         } else if (youtubeApiToken == null) {
             System.out.println("[ERROR] DP_YOUTUBE_API_KEY environment variable not found");
             System.exit(1);
@@ -91,10 +92,14 @@ public class Main {
         } else if (youtubePassword == null) {
             System.out.println("[ERROR] DP_YOUTUBE_PASSWORD environment variable not found");
             System.exit(1);
+        } else if (System.getenv("DP_SOSANIE_TTS_ENABLED").equals("true")){
+             if (ssEbloApiToken == null) {
+                 System.out.println("[ERROR] DP_SOSANIE_API_KEY environment variable not found");
+                 System.exit(1);
+             }
         }
 
         // ============ BOT CREATION ============
-
         DiscordApi api = new DiscordApiBuilder().setToken(token).login().join();
         apiGlobal = api;
 
@@ -105,9 +110,9 @@ public class Main {
         SlashCommandsRegister.registerSlashCommands(api);
 
         // ============ HANDLERS REG ============
-        SlashCommandHandler.addSlashCommandsHadler(api, players, queues, greetingPlayers, lastCommandChannel);
+        SlashCommandHandler.addSlashCommandsHadler(api, players, queues, greetingPlayers);
         VoiceChannelJoinHandler.addVoiceChannelJoinHandler(api, players, greetingPlayers);
-        VoiceChannelLeaveHandler.addVoiceChannelLeaveHandler(api, queues, players, lastCommandChannel);
+        VoiceChannelLeaveHandler.addVoiceChannelLeaveHandler(api, queues, players);
         ButtonHandler.buttonHandler(api);
     }
 }

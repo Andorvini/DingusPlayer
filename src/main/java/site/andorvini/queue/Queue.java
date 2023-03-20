@@ -88,7 +88,7 @@ public class Queue {
         player = playerFrom;
 
         if (getQueueList().size() == 0){
-            AloneInChannelHandler.startAloneTimer(Main.getLastTextChannel(), server, api, "No tracks in queue", null, this, player);
+            AloneInChannelHandler.startAloneTimer(Main.getLastCommandChannel(server.getId()), server, api, "No tracks in queue", null, this, player);
         } else if (playerFrom.getAudioTrackNowPlaying() == null) {
             playerFrom.musicPlayer(api, audioConnection, trackUrl, server, this);
         }
