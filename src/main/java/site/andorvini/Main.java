@@ -5,6 +5,10 @@ import org.javacord.api.DiscordApiBuilder;
 import org.javacord.api.entity.channel.TextChannel;
 import org.javacord.api.entity.activity.ActivityType;
 
+import org.javacord.api.util.logging.FallbackLoggerConfiguration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import site.andorvini.handlers.ButtonHandler;
 import site.andorvini.handlers.SlashCommandHandler;
 import site.andorvini.handlers.VoiceChannelJoinHandler;
@@ -24,6 +28,8 @@ public class Main {
     private static HashMap<Long, TextChannel> lastTextChannels = new HashMap<>();
 
     private static DiscordApi apiGlobal;
+
+    //private static final Logger logger = LoggerFactory.getLogger(Main.class);
 
     // ============ Setters ============
 
@@ -70,6 +76,9 @@ public class Main {
     public static void main(String[] args) {
 
         // ============ TOKEN PROCESSING ============
+
+        FallbackLoggerConfiguration.setDebug(true);
+        FallbackLoggerConfiguration.setTrace(true);
 
         String token = System.getenv("DP_DISCORD_TOKEN");
         String ssEbloApiToken = System.getenv("DP_SOSANIE_API_KEY");

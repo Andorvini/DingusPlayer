@@ -60,6 +60,7 @@ public class VoiceChannelJoinHandler {
                         currentGreetingPlayer.greetingPlayer(api, audioConnection, finalTrackUrl, currentPlayer, server, false);
                     });
                 } else {
+                    System.out.println("asdasd4");
                     currentPlayer.setPause(true);
                     AudioConnection audioConnection = server.getAudioConnection().get();
                     currentGreetingPlayer.greetingPlayer(api, audioConnection, trackUrl, currentPlayer, server, false);
