@@ -4,6 +4,7 @@ import org.javacord.api.DiscordApi;
 import org.javacord.api.audio.AudioConnection;
 import org.javacord.api.entity.server.Server;
 import org.javacord.api.entity.user.User;
+
 import site.andorvini.Main;
 import site.andorvini.miscellaneous.AloneInChannelHandler;
 import site.andorvini.miscellaneous.BatteryChanger;
@@ -53,7 +54,7 @@ public class VoiceChannelJoinHandler {
             GreetingPlayer currentGreetingPlayer = greetingPlayers.get(server.getId());
 
             if (currentAloneInChannelHandler.isAloneTimerRunning()){
-                if (serverVoiceChannelMemberJoinEvent.getChannel().getId() == currentAloneInChannelHandler.getVoiceChannel().getId()) {
+                if (serverVoiceChannelMemberJoinEvent.getChannel().getId() == api.getYourself().getConnectedVoiceChannel(server).get().getId()) {
                     currentAloneInChannelHandler.stopAloneTimer(true);
                 }
             }

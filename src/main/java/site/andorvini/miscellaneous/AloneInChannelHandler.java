@@ -1,7 +1,6 @@
 package site.andorvini.miscellaneous;
 
 import org.javacord.api.DiscordApi;
-import org.javacord.api.entity.channel.ServerVoiceChannel;
 import org.javacord.api.entity.channel.TextChannel;
 import org.javacord.api.entity.message.embed.EmbedBuilder;
 import org.javacord.api.entity.server.Server;
@@ -20,11 +19,6 @@ public class AloneInChannelHandler {
     private boolean isTimerRunning;
     private TextChannel lastChannel;
     private String reason;
-    private ServerVoiceChannel voiceChannel;
-
-    public ServerVoiceChannel getVoiceChannel() {
-        return voiceChannel;
-    }
 
     public void stopAloneTimer(boolean isWithReason){
         timer.cancel();
@@ -50,16 +44,12 @@ public class AloneInChannelHandler {
         return isTimerRunning;
     }
 
-    public void startAloneTimer(TextChannel channel, Server server, DiscordApi api, String reasonFrom, ServerVoiceChannel voiceChannelFrom, Queue queue, Player player) {
+    public void startAloneTimer(TextChannel channel, Server server, DiscordApi api, String reasonFrom, Queue queue, Player player) {
 
         timer = new Timer();
         isTimerRunning = true;
         lastChannel = channel;
         reason = reasonFrom;
-
-        if (voiceChannelFrom != null) {
-            voiceChannel = voiceChannelFrom;
-        }
 
         int leaveSeconds = 60;
 

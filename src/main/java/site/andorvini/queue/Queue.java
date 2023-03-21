@@ -48,8 +48,8 @@ public class Queue {
         int queueSize = trackUrlQueue.size();
 
         EmbedBuilder queueEmbed = null;
-
         String nowPlayingTitle = null;
+
         try {
             nowPlayingTitle = Objects.requireNonNullElse(player.getAudioTrackNowPlaying().getInfo().title, "Nothing is playing now");
         } catch (NullPointerException e) {
@@ -101,7 +101,9 @@ public class Queue {
 
             AloneInChannelHandler currentAloneInChannelHandler = Main.getAloneInChannelHandlers().get(serverId);
 
-            currentAloneInChannelHandler.startAloneTimer(Main.getLastCommandChannel(server.getId()), server, api, "No tracks in queue", null, this, player);
+            if (!currentAloneInChannelHandler.isAloneTimerRunning()) {
+                currentAloneInChannelHandler.startAloneTimer(Main.getLastCommandChannel(server.getId()), server, api, "No tracks in queue", this, player);
+            }
         } else if (playerFrom.getAudioTrackNowPlaying() == null) {
             playerFrom.musicPlayer(api, audioConnection, trackUrl, server, this);
         }

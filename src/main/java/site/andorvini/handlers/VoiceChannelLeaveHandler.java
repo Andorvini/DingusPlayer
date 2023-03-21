@@ -5,6 +5,7 @@ import org.javacord.api.entity.channel.ServerVoiceChannel;
 import org.javacord.api.entity.channel.TextChannel;
 import org.javacord.api.entity.server.Server;
 import org.javacord.api.entity.user.User;
+
 import site.andorvini.Main;
 import site.andorvini.miscellaneous.AloneInChannelHandler;
 import site.andorvini.players.Player;
@@ -39,7 +40,9 @@ public class VoiceChannelLeaveHandler {
                 if (serverVoiceChannelMemberLeaveEvent.getUser().getId() != api.getYourself().getId()) {
                     if (serverVoiceChannelMemberLeaveEvent.getUser().getId() != 1074801519523807252L) {
                         if (usersInChannel == 1) {
-                            currentAloneInChannelHandler.startAloneTimer(lastCommandChannel, server, api, "I'm alone :(", channel, currentQueue, currentPlayer);
+                            if (!currentAloneInChannelHandler.isAloneTimerRunning()) {
+                                currentAloneInChannelHandler.startAloneTimer(lastCommandChannel, server, api, "I'm alone :(", currentQueue, currentPlayer);
+                            }
                         }
                     }
                 }

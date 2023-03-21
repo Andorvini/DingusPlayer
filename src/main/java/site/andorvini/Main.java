@@ -5,8 +5,6 @@ import org.javacord.api.DiscordApiBuilder;
 import org.javacord.api.entity.channel.TextChannel;
 import org.javacord.api.entity.activity.ActivityType;
 
-import org.javacord.api.util.logging.FallbackLoggerConfiguration;
-
 import site.andorvini.handlers.ButtonHandler;
 import site.andorvini.handlers.SlashCommandHandler;
 import site.andorvini.handlers.VoiceChannelJoinHandler;

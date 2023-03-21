@@ -17,17 +17,15 @@ import org.javacord.api.DiscordApi;
 import org.javacord.api.audio.AudioConnection;
 import org.javacord.api.audio.AudioSource;
 import org.javacord.api.entity.server.Server;
+
 import site.andorvini.Main;
 import site.andorvini.miscellaneous.LavaplayerAudioSource;
 
 public class GreetingPlayer {
 
     private AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
-
     private AudioPlayer player = playerManager.createPlayer();
-
     private Server server;
-
     private DiscordApi api;
 
     public void greetingPlayer(DiscordApi apiFrom, AudioConnection audioConnection, String trackUrl, Player playerFrom, Server serverFrom, boolean isFireAlarm){
