@@ -6,7 +6,6 @@ import org.javacord.api.entity.channel.TextChannel;
 import org.javacord.api.entity.server.Server;
 import org.javacord.api.interaction.SlashCommandInteraction;
 
-import org.w3c.dom.Text;
 import site.andorvini.Main;
 import site.andorvini.commands.*;
 import site.andorvini.players.GreetingPlayer;
@@ -82,8 +81,8 @@ public class SlashCommandHandler {
             } else if (fullCommandName.equals("leave")) {
                 Leave.leave(api, interaction, interactionServer, optionalBotVoiceChannel, botVoiceChannel, interactionServerId, currentPlayer, currentQueue, players);
             } else if (fullCommandName.equals("sseblo")) {
-                if (System.getenv("DP_SOSANIE_TTS_ENABLED").equals("true")) {
-                    Sseblo.sseblo(api, interaction, interactionServer, currentPlayer, currentGreetingPlayer, userVoiceChannel, lastCommandChannel);
+                if (System.getenv("DP_SOSANIE_TTS_ENABLED").equals("true")){
+                    Sseblo.sseblo(api, interaction, interactionServer, currentPlayer, currentGreetingPlayer, userVoiceChannel);
                 }
             } else if (fullCommandName.equals("clear")) {
                 Clear.clear(interaction);

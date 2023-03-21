@@ -18,9 +18,6 @@ import java.util.*;
 public class Main {
 
     //  ============ Variables Declaration ============
-
-    private static TextChannel lastCommandChannel;
-
     private static HashMap<Long, Player> players = new HashMap<>();
     private static HashMap<Long, site.andorvini.queue.Queue> queues = new HashMap<>();
     private static HashMap<Long, GreetingPlayer> greetingPlayers = new HashMap<>();

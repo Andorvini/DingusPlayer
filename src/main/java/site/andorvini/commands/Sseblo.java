@@ -6,6 +6,7 @@ import org.javacord.api.entity.channel.ServerVoiceChannel;
 import org.javacord.api.entity.channel.TextChannel;
 import org.javacord.api.entity.server.Server;
 import org.javacord.api.interaction.SlashCommandInteraction;
+
 import site.andorvini.players.GreetingPlayer;
 import site.andorvini.players.Player;
 
@@ -13,8 +14,7 @@ import static site.andorvini.miscellaneous.MiscMethods.respondImmediatelyWithStr
 import static site.andorvini.miscellaneous.SosanieEblaMethod.getSosaniaEblaUrl;
 
 public class Sseblo {
-    public static void sseblo(DiscordApi api, SlashCommandInteraction interaction, Server interactionServer, Player currentPlayer, GreetingPlayer currentGreetingPlayer, ServerVoiceChannel userVoiceChannel, TextChannel lastCommandChannel){
-        lastCommandChannel = interaction.getChannel().get();
+    public static void sseblo(DiscordApi api, SlashCommandInteraction interaction, Server interactionServer, Player currentPlayer, GreetingPlayer currentGreetingPlayer, ServerVoiceChannel userVoiceChannel){
 
         String textToConvert = interaction.getOptionByName("text").get().getStringValue().get();
 

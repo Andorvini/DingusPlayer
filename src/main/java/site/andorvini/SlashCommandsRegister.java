@@ -118,6 +118,7 @@ public class SlashCommandsRegister {
             builders.add(sseblo);
         }
 
-        api.bulkOverwriteGlobalApplicationCommands(builders).join();
+        api.bulkOverwriteGlobalApplicationCommands(builders)
+                .join();
     }
 }
