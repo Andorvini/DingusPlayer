@@ -17,6 +17,7 @@ public class VoiceChannelLeaveHandler {
     public static void addVoiceChannelLeaveHandler(DiscordApi api, HashMap<Long, Queue> queues, HashMap<Long, Player> players){
         api.addServerVoiceChannelMemberLeaveListener(serverVoiceChannelMemberLeaveEvent -> {
             Server server = serverVoiceChannelMemberLeaveEvent.getServer();
+            Long serverId = server.getId();
             ServerVoiceChannel channel = serverVoiceChannelMemberLeaveEvent.getChannel();
 
             Player currentPlayer = players.get(server.getId());
@@ -26,13 +27,19 @@ public class VoiceChannelLeaveHandler {
 
             if (api.getYourself().getConnectedVoiceChannel(server).isPresent() && api.getYourself().getConnectedVoiceChannel(server).get() == channel) {
 
+                if (!Main.getAloneInChannelHandlers().containsKey(serverId)){
+                    Main.addAloneInChannelHandlers(serverId);
+                }
+
+                AloneInChannelHandler currentAloneInChannelHandler = Main.getAloneInChannelHandlers().get(serverId);
+
                 Set<User> users = channel.getConnectedUsers();
                 int usersInChannel = users.size();
 
                 if (serverVoiceChannelMemberLeaveEvent.getUser().getId() != api.getYourself().getId()) {
                     if (serverVoiceChannelMemberLeaveEvent.getUser().getId() != 1074801519523807252L) {
                         if (usersInChannel == 1) {
-                            AloneInChannelHandler.startAloneTimer(lastCommandChannel, server, api, "I'm alone :(", channel, currentQueue, currentPlayer);
+                            currentAloneInChannelHandler.startAloneTimer(lastCommandChannel, server, api, "I'm alone :(", channel, currentQueue, currentPlayer);
                         }
                     }
                 }

@@ -37,9 +37,7 @@ public class GreetingPlayer {
         playerManager.registerSourceManager(new HttpAudioSourceManager());
         playerManager.registerSourceManager(new BandcampAudioSourceManager());
 
-        System.out.println("sadads");
-
-        player.addListener(new AudioEventAdapter() {
+        AudioEventAdapter audioEventAdapter = new AudioEventAdapter() {
             @Override
             public void onTrackEnd(AudioPlayer player, AudioTrack track, AudioTrackEndReason endReason) {
                 if (endReason == AudioTrackEndReason.FINISHED) {
@@ -55,9 +53,12 @@ public class GreetingPlayer {
                         }
                     }
                     playerFrom.setSource();
+                    player.removeListener(this);
                 }
             }
-        });
+        };
+
+        player.addListener(audioEventAdapter);
 
         AudioSource source = new LavaplayerAudioSource(apiFrom, player);
 

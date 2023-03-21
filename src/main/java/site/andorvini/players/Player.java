@@ -104,6 +104,8 @@ public class Player {
                     }
                 } else if (endReason == AudioTrackEndReason.LOAD_FAILED) {
                     player.playTrack(track.makeClone());
+                } else if (endReason == AudioTrackEndReason.STOPPED) {
+                    playerGlobal.removeListener(this);
                 }
             }
         };

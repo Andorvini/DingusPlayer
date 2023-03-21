@@ -6,13 +6,12 @@ import org.javacord.api.entity.channel.TextChannel;
 import org.javacord.api.entity.activity.ActivityType;
 
 import org.javacord.api.util.logging.FallbackLoggerConfiguration;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import site.andorvini.handlers.ButtonHandler;
 import site.andorvini.handlers.SlashCommandHandler;
 import site.andorvini.handlers.VoiceChannelJoinHandler;
 import site.andorvini.handlers.VoiceChannelLeaveHandler;
+import site.andorvini.miscellaneous.AloneInChannelHandler;
 import site.andorvini.players.GreetingPlayer;
 import site.andorvini.players.Player;
 import site.andorvini.queue.Queue;
@@ -26,10 +25,9 @@ public class Main {
     private static HashMap<Long, site.andorvini.queue.Queue> queues = new HashMap<>();
     private static HashMap<Long, GreetingPlayer> greetingPlayers = new HashMap<>();
     private static HashMap<Long, TextChannel> lastTextChannels = new HashMap<>();
+    private static HashMap<Long, AloneInChannelHandler> aloneInChannelHandlers = new HashMap<>();
 
     private static DiscordApi apiGlobal;
-
-    //private static final Logger logger = LoggerFactory.getLogger(Main.class);
 
     // ============ Setters ============
 
@@ -47,6 +45,10 @@ public class Main {
 
     public static void addLastTextChannel(Long serverId, TextChannel channel){
         lastTextChannels.put(serverId, channel);
+    }
+
+    public static void addAloneInChannelHandlers(Long serverId){
+        aloneInChannelHandlers.put(serverId, new AloneInChannelHandler());
     }
 
     // ============ Getters ============
@@ -71,15 +73,15 @@ public class Main {
         return lastTextChannels.get(id);
     }
 
+    public static HashMap<Long, AloneInChannelHandler> getAloneInChannelHandlers(){
+        return aloneInChannelHandlers;
+    }
+
     // ============ Main ============
 
     public static void main(String[] args) {
 
         // ============ TOKEN PROCESSING ============
-
-        FallbackLoggerConfiguration.setDebug(true);
-        FallbackLoggerConfiguration.setTrace(true);
-
         String token = System.getenv("DP_DISCORD_TOKEN");
         String ssEbloApiToken = System.getenv("DP_SOSANIE_API_KEY");
         String youtubeApiToken = System.getenv("DP_YOUTUBE_API_KEY");

@@ -19,14 +19,18 @@ import static site.andorvini.miscellaneous.YoutubeMethods.getYoutubeVideoTitleFr
 public class Queue {
 
     private java.util.Queue<String> trackUrlQueue = new LinkedList<String>();
-
     private Player player;
+    private Server serverQueue;
 
     public void addTrackToQueue(String track) {
 
-        if (AloneInChannelHandler.isAloneTimerRunning()) {
-            AloneInChannelHandler.stopAloneTimer(true);
-        }
+        try {
+            AloneInChannelHandler currentAloneInChannelHandler = Main.getAloneInChannelHandlers().get(serverQueue.getId());
+
+            if (currentAloneInChannelHandler.isAloneTimerRunning()) {
+                currentAloneInChannelHandler.stopAloneTimer(true);
+            }
+        } catch (Exception ignored){}
 
         trackUrlQueue.add(track);
     }
@@ -84,11 +88,20 @@ public class Queue {
 
     public void queueController(DiscordApi api, AudioConnection audioConnection, Server server, Player playerFrom) {
         String trackUrl = trackUrlQueue.peek();
+        Long serverId = server.getId();
+        serverQueue = server;
 
         player = playerFrom;
 
         if (getQueueList().size() == 0){
-            AloneInChannelHandler.startAloneTimer(Main.getLastCommandChannel(server.getId()), server, api, "No tracks in queue", null, this, player);
+
+            if (!Main.getAloneInChannelHandlers().containsKey(serverId)){
+                Main.addAloneInChannelHandlers(serverId);
+            }
+
+            AloneInChannelHandler currentAloneInChannelHandler = Main.getAloneInChannelHandlers().get(serverId);
+
+            currentAloneInChannelHandler.startAloneTimer(Main.getLastCommandChannel(server.getId()), server, api, "No tracks in queue", null, this, player);
         } else if (playerFrom.getAudioTrackNowPlaying() == null) {
             playerFrom.musicPlayer(api, audioConnection, trackUrl, server, this);
         }

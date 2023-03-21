@@ -4,6 +4,7 @@ import org.javacord.api.DiscordApi;
 import org.javacord.api.audio.AudioConnection;
 import org.javacord.api.entity.server.Server;
 import org.javacord.api.entity.user.User;
+import site.andorvini.Main;
 import site.andorvini.miscellaneous.AloneInChannelHandler;
 import site.andorvini.miscellaneous.BatteryChanger;
 import site.andorvini.players.GreetingPlayer;
@@ -31,6 +32,7 @@ public class VoiceChannelJoinHandler {
 
         api.addServerVoiceChannelMemberJoinListener(serverVoiceChannelMemberJoinEvent -> {
             Server server = serverVoiceChannelMemberJoinEvent.getServer();
+            Long serverId = server.getId();
             User user = serverVoiceChannelMemberJoinEvent.getUser();
 
             if (!players.containsKey(server.getId())){
@@ -41,12 +43,18 @@ public class VoiceChannelJoinHandler {
                 greetingPlayers.put(server.getId(), new GreetingPlayer());
             }
 
+            if (!Main.getAloneInChannelHandlers().containsKey(serverId)){
+                Main.addAloneInChannelHandlers(serverId);
+            }
+
+            AloneInChannelHandler currentAloneInChannelHandler = Main.getAloneInChannelHandlers().get(serverId);
+
             Player currentPlayer = players.get(server.getId());
             GreetingPlayer currentGreetingPlayer = greetingPlayers.get(server.getId());
 
-            if (AloneInChannelHandler.isAloneTimerRunning()){
-                if (serverVoiceChannelMemberJoinEvent.getChannel().getId() == AloneInChannelHandler.getVoiceChannel().getId()) {
-                    AloneInChannelHandler.stopAloneTimer(true);
+            if (currentAloneInChannelHandler.isAloneTimerRunning()){
+                if (serverVoiceChannelMemberJoinEvent.getChannel().getId() == currentAloneInChannelHandler.getVoiceChannel().getId()) {
+                    currentAloneInChannelHandler.stopAloneTimer(true);
                 }
             }
 
@@ -60,7 +68,6 @@ public class VoiceChannelJoinHandler {
                         currentGreetingPlayer.greetingPlayer(api, audioConnection, finalTrackUrl, currentPlayer, server, false);
                     });
                 } else {
-                    System.out.println("asdasd4");
                     currentPlayer.setPause(true);
                     AudioConnection audioConnection = server.getAudioConnection().get();
                     currentGreetingPlayer.greetingPlayer(api, audioConnection, trackUrl, currentPlayer, server, false);

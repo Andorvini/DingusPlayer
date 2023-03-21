@@ -16,21 +16,17 @@ import java.util.TimerTask;
 
 public class AloneInChannelHandler {
 
-    private static Timer timer;
+    private Timer timer;
+    private boolean isTimerRunning;
+    private TextChannel lastChannel;
+    private String reason;
+    private ServerVoiceChannel voiceChannel;
 
-    private static boolean isTimerRunning;
-
-    private static TextChannel lastChannel;
-
-    private static String reason;
-
-    private static ServerVoiceChannel voiceChannel;
-
-    public static ServerVoiceChannel getVoiceChannel() {
+    public ServerVoiceChannel getVoiceChannel() {
         return voiceChannel;
     }
 
-    public static void stopAloneTimer(boolean isWithReason){
+    public void stopAloneTimer(boolean isWithReason){
         timer.cancel();
         if (isWithReason) {
             isTimerRunning = false;
@@ -50,11 +46,11 @@ public class AloneInChannelHandler {
         }
     }
 
-    public static boolean isAloneTimerRunning(){
+    public boolean isAloneTimerRunning(){
         return isTimerRunning;
     }
 
-    public static void startAloneTimer(TextChannel channel, Server server, DiscordApi api, String reasonFrom, ServerVoiceChannel voiceChannelFrom, Queue queue, Player player) {
+    public void startAloneTimer(TextChannel channel, Server server, DiscordApi api, String reasonFrom, ServerVoiceChannel voiceChannelFrom, Queue queue, Player player) {
 
         timer = new Timer();
         isTimerRunning = true;
