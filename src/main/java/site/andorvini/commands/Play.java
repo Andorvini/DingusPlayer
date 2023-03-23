@@ -3,7 +3,6 @@ package site.andorvini.commands;
 import org.javacord.api.DiscordApi;
 import org.javacord.api.audio.AudioConnection;
 import org.javacord.api.entity.channel.ServerVoiceChannel;
-import org.javacord.api.entity.channel.TextChannel;
 import org.javacord.api.entity.message.embed.EmbedBuilder;
 import org.javacord.api.entity.server.Server;
 import org.javacord.api.interaction.SlashCommandInteraction;
@@ -21,12 +20,10 @@ import static site.andorvini.miscellaneous.YoutubeMethods.*;
 import static site.andorvini.miscellaneous.YoutubeMethods.getYoutubeVideoTitleFromUrl;
 
 public class Play {
-    public static void play(DiscordApi api, SlashCommandInteraction interaction, Server interactionServer, Optional<ServerVoiceChannel> optionalUserVoiceChannel, Queue currentQueue, Optional<ServerVoiceChannel> optionalBotVoiceChannel, Player currentPlayer, ServerVoiceChannel userVoiceChannel, TextChannel lastCommandChannel){
+    public static void play(DiscordApi api, SlashCommandInteraction interaction, Server interactionServer, Optional<ServerVoiceChannel> optionalUserVoiceChannel, Queue currentQueue, Optional<ServerVoiceChannel> optionalBotVoiceChannel, Player currentPlayer, ServerVoiceChannel userVoiceChannel){
         if (optionalUserVoiceChannel.isPresent()) {
             String commandOption = interaction.getOptionByName("query").get().getStringValue().get().replaceAll("\\[", "%5B").replaceAll("]", "%5D");
             String trackUrl = null;
-
-            lastCommandChannel = interaction.getChannel().get();
 
             if (isUrl(commandOption)) {
                 trackUrl = commandOption;

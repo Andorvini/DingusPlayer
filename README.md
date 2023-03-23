@@ -1,6 +1,7 @@
-![https://gitlab.internal.rferee.dev/andorvini-external/dingus-player/badges/master/pipeline.svg](https://gitlab.internal.rferee.dev/andorvini-external/dingus-player/)
-![https://wakatime.com/badge/user/f40d191c-28ee-465f-b951-6d8cae19f30f/project/5b9872dd-7c16-455e-8252-a1e7fcd8280d.svg](https://wakatime.com/badge/user/f40d191c-28ee-465f-b951-6d8cae19f30f/project/5b9872dd-7c16-455e-8252-a1e7fcd8280d.svg)
 
+![https://wakatime.com/badge/user/f40d191c-28ee-465f-b951-6d8cae19f30f/project/5b9872dd-7c16-455e-8252-a1e7fcd8280d.svg](https://wakatime.com/badge/user/f40d191c-28ee-465f-b951-6d8cae19f30f/project/5b9872dd-7c16-455e-8252-a1e7fcd8280d.svg)
+![https://gitlab.internal.rferee.dev/andorvini-external/dingus-player](https://gitlab.internal.rferee.dev/andorvini-external/dingus-player/badges/master/pipeline.svg)
+[![DeepSource](https://deepsource.io/gh/Andorvini/DingusPlayer.svg/?label=active+issues&show_trend=true&token=lD2WmPBYq7_ih4hBj6R10OY8)](https://deepsource.io/gh/Andorvini/DingusPlayer/?ref=repository-badge)
 <h1>Dingus Player</h1>
 
 <h2>Discord Music Bot</h2>
@@ -32,7 +33,7 @@
     <li>Picking random user from a voice channel</li>
 </ul>
 
-P.S You need to contact (placeholder) to retrieve Sseblo API key for TTS to work
+P.S You need to contact `me@vprw.ru` to retrieve Sseblo API key for TTS to work
 
 <h2>Self-Hosting</h2>
 

@@ -27,23 +27,23 @@ public class Main {
 
     // ============ Setters ============
 
-    public static void removePlayerFromPlayers(Long serverId){
+    public static void removePlayerFromPlayers(Long serverId) {
         players.remove(serverId);
     }
 
-    public static void removeQueue(Long serverId){
+    public static void removeQueue(Long serverId) {
         queues.remove(serverId);
     }
 
-    public static void removeGreetingPlayer(Long serverId){
+    public static void removeGreetingPlayer(Long serverId) {
         greetingPlayers.remove(serverId);
     }
 
-    public static void addLastTextChannel(Long serverId, TextChannel channel){
+    public static void addLastTextChannel(Long serverId, TextChannel channel) {
         lastTextChannels.put(serverId, channel);
     }
 
-    public static void addAloneInChannelHandlers(Long serverId){
+    public static void addAloneInChannelHandlers(Long serverId) {
         aloneInChannelHandlers.put(serverId, new AloneInChannelHandler());
     }
 

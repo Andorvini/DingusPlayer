@@ -3,7 +3,6 @@ package site.andorvini.commands;
 import org.javacord.api.DiscordApi;
 import org.javacord.api.audio.AudioConnection;
 import org.javacord.api.entity.channel.ServerVoiceChannel;
-import org.javacord.api.entity.channel.TextChannel;
 import org.javacord.api.entity.server.Server;
 import org.javacord.api.entity.user.User;
 import org.javacord.api.interaction.SlashCommandInteraction;
@@ -17,8 +16,7 @@ import static site.andorvini.miscellaneous.MiscMethods.respondImmediatelyWithStr
 import static site.andorvini.miscellaneous.SosanieEblaMethod.getSosaniaEblaUrl;
 
 public class Random {
-    public static void random(DiscordApi api, SlashCommandInteraction interaction, Server interactionServer, TextChannel lastCommandChannel, Player currentPlayer, GreetingPlayer currentGreetingPlayer, Optional<ServerVoiceChannel> optionalBotVoiceChannel, Optional<ServerVoiceChannel> optionalUserVoiceChannel){
-        lastCommandChannel = interaction.getChannel().get();
+    public static void random(DiscordApi api, SlashCommandInteraction interaction, Server interactionServer, Player currentPlayer, GreetingPlayer currentGreetingPlayer, Optional<ServerVoiceChannel> optionalBotVoiceChannel, Optional<ServerVoiceChannel> optionalUserVoiceChannel){
         if (optionalUserVoiceChannel.isPresent()) {
             Set<User> userSet = interaction.getUser().getConnectedVoiceChannel(interactionServer).get().getConnectedUsers();
 

@@ -73,9 +73,9 @@ public class SlashCommandHandler {
                         .respond()
                         .join();
             } else if (fullCommandName.equals("phony")) {
-                Phony.phony(api, interaction, optionalUserVoiceChannel, lastCommandChannel, currentPlayer, optionalBotVoiceChannel, interactionServer, userVoiceChannel, currentGreetingPlayer);
+                Phony.phony(api, interaction, optionalUserVoiceChannel, currentPlayer, optionalBotVoiceChannel, interactionServer, userVoiceChannel, currentGreetingPlayer);
             } else if (fullCommandName.equals("play")) {
-                Play.play(api, interaction, interactionServer, optionalUserVoiceChannel, currentQueue, optionalBotVoiceChannel, currentPlayer, userVoiceChannel, lastCommandChannel);
+                Play.play(api, interaction, interactionServer, optionalUserVoiceChannel, currentQueue, optionalBotVoiceChannel, currentPlayer, userVoiceChannel);
             } else if (fullCommandName.equals("loop")) {
                 Loop.loop(interaction, currentPlayer);
             } else if (fullCommandName.equals("leave")) {
@@ -91,7 +91,7 @@ public class SlashCommandHandler {
             } else if (fullCommandName.equals("np")) {
                 NowPlaying.np(interaction, currentPlayer);
             } else if (fullCommandName.equals("random")) {
-                Random.random(api, interaction, interactionServer, lastCommandChannel, currentPlayer, currentGreetingPlayer, optionalBotVoiceChannel, optionalUserVoiceChannel);
+                Random.random(api, interaction, interactionServer, currentPlayer, currentGreetingPlayer, optionalBotVoiceChannel, optionalUserVoiceChannel);
             } else if (fullCommandName.equals("ping")) {
                 respondImmediatelyWithString(interaction, "Pong!");
             } else if (fullCommandName.equals("lyrics")) {
