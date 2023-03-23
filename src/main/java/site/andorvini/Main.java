@@ -25,8 +25,6 @@ public class Main {
     private static HashMap<Long, TextChannel> lastTextChannels = new HashMap<>();
     private static HashMap<Long, AloneInChannelHandler> aloneInChannelHandlers = new HashMap<>();
 
-    private static DiscordApi apiGlobal;
-
     // ============ Setters ============
 
     public static void removePlayerFromPlayers(Long serverId){
@@ -61,10 +59,6 @@ public class Main {
 
     public static HashMap<Long, Queue> getQueues() {
         return queues;
-    }
-
-    public static DiscordApi getApi(){
-        return apiGlobal;
     }
 
     public static TextChannel getLastCommandChannel(Long id){
@@ -107,7 +101,6 @@ public class Main {
 
         // ============ BOT CREATION ============
         DiscordApi api = new DiscordApiBuilder().setToken(token).login().join();
-        apiGlobal = api;
 
         // ============ ACTIVITY SET ============
         api.updateActivity(ActivityType.LISTENING,"\"Antipathy World\"");

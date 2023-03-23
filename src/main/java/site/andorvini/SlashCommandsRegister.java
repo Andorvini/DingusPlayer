@@ -26,7 +26,7 @@ public class SlashCommandsRegister {
                                                         SlashCommandOptionChoice.create("Original", "original")))
                                 ));
 
-        SlashCommandBuilder loopCommand = SlashCommand.with("loop","Lop music");
+        SlashCommandBuilder loopCommand = SlashCommand.with("loop","Loop music");
 
         SlashCommandBuilder leaveCommand =
                 SlashCommand.with("leave","Leave voice channel");
