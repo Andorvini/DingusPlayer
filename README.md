@@ -1,3 +1,6 @@
+![https://gitlab.internal.rferee.dev/andorvini-external/dingus-player/badges/master/pipeline.svg](https://gitlab.internal.rferee.dev/andorvini-external/dingus-player/)
+![https://wakatime.com/badge/user/f40d191c-28ee-465f-b951-6d8cae19f30f/project/5b9872dd-7c16-455e-8252-a1e7fcd8280d.svg](https://wakatime.com/badge/user/f40d191c-28ee-465f-b951-6d8cae19f30f/project/5b9872dd-7c16-455e-8252-a1e7fcd8280d.svg)
+
 <h1>Dingus Player</h1>
 
 <h2>Discord Music Bot</h2>
@@ -55,3 +58,5 @@ P.S You need to contact (placeholder) to retrieve Sseblo API key for TTS to work
 | sortVoiceChannels      |                    Reversing the voice channel order                    |
 | getFromBackup          | Will create all the voice channels that will be defined in `backup.txt` |
 | clearVoices            |              Deletes all the voice channels in the server               |
+
+
