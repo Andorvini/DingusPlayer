@@ -27,6 +27,8 @@ public class Phony {
 
             currentPlayer.setPause(true);
 
+            respondImmediatelyWithString(interaction, "PHONY NOW");
+
             if (optionalBotVoiceChannel.isEmpty()) {
                 Server finalServer = interactionServer;
                 userVoiceChannel.connect().thenAccept(audioConnection -> {
