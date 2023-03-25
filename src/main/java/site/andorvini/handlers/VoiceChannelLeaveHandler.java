@@ -8,6 +8,7 @@ import org.javacord.api.entity.user.User;
 
 import site.andorvini.Main;
 import site.andorvini.miscellaneous.AloneInChannelHandler;
+import site.andorvini.players.GreetingPlayer;
 import site.andorvini.players.Player;
 import site.andorvini.queue.Queue;
 
@@ -15,14 +16,15 @@ import java.util.HashMap;
 import java.util.Set;
 
 public class VoiceChannelLeaveHandler {
-    public static void addVoiceChannelLeaveHandler(DiscordApi api, HashMap<Long, Queue> queues, HashMap<Long, Player> players){
+    public static void addVoiceChannelLeaveHandler(DiscordApi api, HashMap<Long, Queue> queues, HashMap<Long, Player> players, HashMap<Long, GreetingPlayer> greetingPlayers){
         api.addServerVoiceChannelMemberLeaveListener(serverVoiceChannelMemberLeaveEvent -> {
             Server server = serverVoiceChannelMemberLeaveEvent.getServer();
             Long serverId = server.getId();
             ServerVoiceChannel channel = serverVoiceChannelMemberLeaveEvent.getChannel();
 
-            Player currentPlayer = players.get(server.getId());
-            Queue currentQueue = queues.get(server.getId());
+            Player currentPlayer = players.get(serverId);
+            Queue currentQueue = queues.get(serverId);
+            GreetingPlayer currentGreetingPlayer = greetingPlayers.get(serverId);
 
             TextChannel lastCommandChannel = Main.getLastCommandChannel(server.getId());
 
@@ -40,7 +42,9 @@ public class VoiceChannelLeaveHandler {
                 if (serverVoiceChannelMemberLeaveEvent.getUser().getId() != api.getYourself().getId()) {
                     if (serverVoiceChannelMemberLeaveEvent.getUser().getId() != 1074801519523807252L) {
                         if (usersInChannel == 1) {
-                            if (!currentAloneInChannelHandler.isAloneTimerRunning()) {
+                            if (!currentAloneInChannelHandler.isAloneTimerRunning() && !currentGreetingPlayer.isPlaying()) {
+                                System.out.println(currentGreetingPlayer.isPlaying());
+                                System.out.println("starting timer because leave");
                                 currentAloneInChannelHandler.startAloneTimer(lastCommandChannel, server, api, "I'm alone :(", currentQueue, currentPlayer);
                             }
                         }

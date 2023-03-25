@@ -28,6 +28,14 @@ public class GreetingPlayer {
     private Server server;
     private DiscordApi api;
 
+    public boolean isPlaying() {
+        if (player.getPlayingTrack() == null) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     public void greetingPlayer(DiscordApi apiFrom, AudioConnection audioConnection, String trackUrl, Player playerFrom, Server serverFrom, boolean isFireAlarm){
         AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
 

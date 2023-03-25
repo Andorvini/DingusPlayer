@@ -111,7 +111,7 @@ public class Main {
         // ============ HANDLERS REG ============
         SlashCommandHandler.addSlashCommandsHadler(api, players, queues, greetingPlayers);
         VoiceChannelJoinHandler.addVoiceChannelJoinHandler(api, players, greetingPlayers);
-        VoiceChannelLeaveHandler.addVoiceChannelLeaveHandler(api, queues, players);
+        VoiceChannelLeaveHandler.addVoiceChannelLeaveHandler(api, queues, players, greetingPlayers);
         ButtonHandler.buttonHandler(api);
     }
 }
