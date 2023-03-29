@@ -1,7 +1,10 @@
 package site.andorvini.miscellaneous;
 
+import org.javacord.api.DiscordApi;
 import org.javacord.api.entity.message.embed.EmbedBuilder;
+import org.javacord.api.entity.server.Server;
 import org.javacord.api.interaction.SlashCommandInteraction;
+import site.andorvini.Main;
 
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
@@ -9,7 +12,7 @@ import java.util.regex.Pattern;
 
 public class MiscMethods {
 
-//  ============= Respond With Plain Text ==================
+//  =============== Respond With Plain Text ===============
 
     public static void respondImmediatelyWithString(SlashCommandInteraction interaction, String text){
         interaction.createImmediateResponder()
@@ -18,7 +21,7 @@ public class MiscMethods {
                 .join();
     }
 
-//  ============= Respond With Embed ====================
+//  =============== Respond With Embed ===============
 
     public static void respondImmediatelyWithEmbed(SlashCommandInteraction interaction, EmbedBuilder embed){
         interaction.createImmediateResponder()
@@ -27,7 +30,7 @@ public class MiscMethods {
                 .join();
     }
 
-//  ================= Format duration from milis to minutes:seconds ===============
+//  =============== Format duration from milis to minutes:seconds ===============
 
     public static String formatDuration(long millis) {
         long minutes = TimeUnit.MILLISECONDS.toMinutes(millis);
@@ -36,7 +39,7 @@ public class MiscMethods {
         return String.format("%d:%02d", minutes, seconds);
     }
 
-// =================== Returns true if str is url =================
+// =============== Returns true if str is url ===============
 
     public static boolean isUrl(String str) {
         Pattern urlPattern = Pattern.compile("^((https?|ftp)://)?[a-z0-9]+([\\-\\.]{1}[a-z0-9]+)*\\.[a-z]{2,5}(:[0-9]{1,5})?(/.*)?$", Pattern.CASE_INSENSITIVE);
@@ -44,7 +47,7 @@ public class MiscMethods {
         return matcher.matches();
     }
 
-//  ======================= Converts from minutes:seconds to milis ==============
+//  =============== Converts from minutes:seconds to milis ===============
 
     public static long convertToMilliseconds(String time) {
         String[] tokens = time.split(":");
@@ -53,10 +56,19 @@ public class MiscMethods {
         return (minutes * 60 + seconds) * 1000;
     }
 
-//  =============== Checks if time is in minutes:seconds format ================
+//  =============== Checks if time is in minutes:seconds format ===============
 
     public static boolean isValidTimeFormat(String time) {
         String regex = "^\\d+:[0-5]\\d$";
         return time.matches(regex);
+    }
+
+//  =============== Disconnects the bot and deletes all hashmaps ===============
+
+    public static void disconnectBot(DiscordApi api, Server server) {
+        Long serverId = server.getId();
+
+        api.getYourself().getConnectedVoiceChannel(server).get().disconnect();
+        Main.removeAllHashmaps(serverId);
     }
 }

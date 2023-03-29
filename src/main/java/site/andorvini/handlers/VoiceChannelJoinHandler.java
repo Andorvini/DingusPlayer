@@ -8,6 +8,7 @@ import org.javacord.api.entity.user.User;
 import site.andorvini.Main;
 import site.andorvini.miscellaneous.AloneInChannelHandler;
 import site.andorvini.miscellaneous.BatteryChanger;
+import site.andorvini.miscellaneous.MiscMethods;
 import site.andorvini.players.GreetingPlayer;
 import site.andorvini.players.Player;
 
@@ -46,6 +47,17 @@ public class VoiceChannelJoinHandler {
 
             if (!Main.getAloneInChannelHandlers().containsKey(serverId)){
                 Main.addAloneInChannelHandlers(serverId);
+            }
+
+            if (serverVoiceChannelMemberJoinEvent.isMove() && serverVoiceChannelMemberJoinEvent.getUser().getId() == api.getYourself().getId()) {
+                try {
+                    Thread.sleep(2000);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+                if (api.getYourself().getConnectedVoiceChannel(server).isPresent()) {
+                    MiscMethods.disconnectBot(api, server);
+                }
             }
 
             AloneInChannelHandler currentAloneInChannelHandler = Main.getAloneInChannelHandlers().get(serverId);

@@ -11,6 +11,10 @@ import java.util.Set;
 public class SlashCommandsRegister {
 
     public static void registerSlashCommands(DiscordApi api){
+        ArrayList<SlashCommandBuilder> commands = new ArrayList<>();
+
+        //TODO
+
         SlashCommandBuilder playCommand =
                 SlashCommand.with("play","Play music from provided Youtube URL",
                                 Arrays. asList(

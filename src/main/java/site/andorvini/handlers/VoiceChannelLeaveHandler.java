@@ -8,6 +8,7 @@ import org.javacord.api.entity.user.User;
 
 import site.andorvini.Main;
 import site.andorvini.miscellaneous.AloneInChannelHandler;
+import site.andorvini.miscellaneous.MiscMethods;
 import site.andorvini.players.GreetingPlayer;
 import site.andorvini.players.Player;
 import site.andorvini.queue.Queue;
@@ -27,6 +28,17 @@ public class VoiceChannelLeaveHandler {
             GreetingPlayer currentGreetingPlayer = greetingPlayers.get(serverId);
 
             TextChannel lastCommandChannel = Main.getLastCommandChannel(server.getId());
+
+            if (serverVoiceChannelMemberLeaveEvent.isMove() && serverVoiceChannelMemberLeaveEvent.getUser().getId() == api.getYourself().getId()) {
+                try {
+                    Thread.sleep(2000);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+                if (api.getYourself().getConnectedVoiceChannel(server).isPresent()) {
+                    MiscMethods.disconnectBot(api, server);
+                }
+            }
 
             if (api.getYourself().getConnectedVoiceChannel(server).isPresent() && api.getYourself().getConnectedVoiceChannel(server).get() == channel) {
 

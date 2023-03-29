@@ -3,6 +3,7 @@ package site.andorvini.commands;
 import org.javacord.api.DiscordApi;
 import org.javacord.api.entity.server.Server;
 import site.andorvini.miscellaneous.BatteryChanger;
+import site.andorvini.miscellaneous.MiscMethods;
 
 import java.util.NoSuchElementException;
 
@@ -14,7 +15,7 @@ public class ChangeBatteries {
 
         BatteryChanger.setEnabled(false);
         try {
-            api.getYourself().getConnectedVoiceChannel(interactionServer).get().disconnect();
+            MiscMethods.disconnectBot(api, interactionServer);
         } catch (NoSuchElementException ignored){}
 
         removeGreetingPlayer(interactionServerId);

@@ -47,6 +47,14 @@ public class Main {
         aloneInChannelHandlers.put(serverId, new AloneInChannelHandler());
     }
 
+    public static void removeAllHashmaps(Long serverId) {
+        players.remove(serverId);
+        queues.remove(serverId);
+        greetingPlayers.remove(serverId);
+        lastTextChannels.remove(serverId);
+        aloneInChannelHandlers.remove(serverId);
+    }
+
     // ============ Getters ============
 
     public static HashMap<Long, Player> getPlayers() {
