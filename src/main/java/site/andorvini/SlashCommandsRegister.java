@@ -93,6 +93,11 @@ public class SlashCommandsRegister {
                                 SlashCommandOption.create(SlashCommandOptionType.STRING, "devQuery", "For dev purposes", true)
                         ));
 
+        SlashCommandBuilder reklamaCommand = SlashCommand.with("reklama", "Sets reaction",
+                Arrays.asList(
+                        SlashCommandOption.create(SlashCommandOptionType.STRING, "messageId", "Message ID (Should be copied with Shift)", true)
+                ));
+
         SlashCommandBuilder changeBatteriesCommand = SlashCommand.with("change","For changing batteries");
 
         SlashCommandBuilder randomPromptCommand = SlashCommand.with("randomprompt", "Returns a random prompt from promts.txt");
@@ -116,6 +121,7 @@ public class SlashCommandsRegister {
         builders.add(devCommand);
         builders.add(changeBatteriesCommand);
         builders.add(randomPromptCommand);
+        builders.add(reklamaCommand);
 
         // ============ ADD /SSEBLO IF ENABLED ============
         if (System.getenv("DP_SOSANIE_TTS_ENABLED").equals("true")) {

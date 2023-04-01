@@ -5,6 +5,7 @@ import org.javacord.api.DiscordApiBuilder;
 import org.javacord.api.entity.channel.TextChannel;
 import org.javacord.api.entity.activity.ActivityType;
 
+import org.javacord.api.entity.intent.Intent;
 import site.andorvini.handlers.ButtonHandler;
 import site.andorvini.handlers.SlashCommandHandler;
 import site.andorvini.handlers.VoiceChannelJoinHandler;
@@ -108,7 +109,7 @@ public class Main {
         }
 
         // ============ BOT CREATION ============
-        DiscordApi api = new DiscordApiBuilder().setToken(token).login().join();
+        DiscordApi api = new DiscordApiBuilder().setToken(token).addIntents(Intent.MESSAGE_CONTENT).login().join();
 
         // ============ ACTIVITY SET ============
         api.updateActivity(ActivityType.LISTENING,"\"Antipathy World\"");

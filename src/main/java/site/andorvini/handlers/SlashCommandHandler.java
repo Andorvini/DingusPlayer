@@ -114,6 +114,8 @@ public class SlashCommandHandler {
                 ChangeBatteries.change(api, interactionServer);
             } else if (fullCommandName.equals("randomprompt")){
                 RandomPrompt.randomPrompt(interaction);
+            } else if (fullCommandName.equals("reklama")) {
+                ReklamaCommand.reklama(api, interaction);
             }
         });
     }
