@@ -6,6 +6,7 @@ import org.javacord.api.entity.server.Server;
 import org.javacord.api.entity.user.User;
 
 import site.andorvini.Main;
+import site.andorvini.database.GreetingsDatabase;
 import site.andorvini.miscellaneous.AloneInChannelHandler;
 import site.andorvini.miscellaneous.BatteryChanger;
 import site.andorvini.miscellaneous.MiscMethods;
@@ -25,17 +26,12 @@ public class VoiceChannelJoinHandler {
          * 412537382152306688L = Dogs in the house with huge bASS = ThisPilot = https://storage.rferee.dev/assets/media/audio/pilot.mp3
          */
 
-        HashMap<Long, String> userAudio = new HashMap<>();
-        userAudio.put(998958761618190421L, "https://storage.rferee.dev/assets/media/audio/sukran.mp3");
-        userAudio.put(394085232266969090L, "https://storage.rferee.dev/assets/media/audio/dokaswam.mp3");
-        userAudio.put(483991031306780683L, "https://storage.rferee.dev/assets/media/audio/v_nalicii_yubico.mp3");
-        userAudio.put(731939675438317588L, "https://storage.rferee.dev/assets/media/audio/clown_short.mp3");
-        userAudio.put(412537382152306688L, "https://storage.rferee.dev/assets/media/audio/pilot.mp3");
-
         api.addServerVoiceChannelMemberJoinListener(serverVoiceChannelMemberJoinEvent -> {
             Server server = serverVoiceChannelMemberJoinEvent.getServer();
             Long serverId = server.getId();
             User user = serverVoiceChannelMemberJoinEvent.getUser();
+
+            String userAudio = GreetingsDatabase.getGreetingUrl(serverId, user.getId());
 
             if (!players.containsKey(server.getId())){
                 players.put(server.getId(), new Player());
@@ -71,8 +67,8 @@ public class VoiceChannelJoinHandler {
                 }
             }
 
-            if (userAudio.containsKey(user.getId()) && !BatteryChanger.getIsFireAlarmSystemEnabled()) {
-                String trackUrl = userAudio.get(user.getId());
+            if (userAudio != null && !BatteryChanger.getIsFireAlarmSystemEnabled()) {
+                String trackUrl = userAudio;
                 if (api.getYourself().getConnectedVoiceChannel(server).isEmpty()) {
                     String finalTrackUrl = trackUrl;
                     currentPlayer.setPause(true);

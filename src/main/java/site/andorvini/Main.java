@@ -6,6 +6,7 @@ import org.javacord.api.entity.channel.TextChannel;
 import org.javacord.api.entity.activity.ActivityType;
 
 import org.javacord.api.entity.intent.Intent;
+import site.andorvini.database.GreetingsDatabase;
 import site.andorvini.handlers.ButtonHandler;
 import site.andorvini.handlers.SlashCommandHandler;
 import site.andorvini.handlers.VoiceChannelJoinHandler;
@@ -88,6 +89,7 @@ public class Main {
         String youtubeApiToken = System.getenv("DP_YOUTUBE_API_KEY");
         String youtubeLogin = System.getenv("DP_YOUTUBE_LOGIN");
         String youtubePassword = System.getenv("DP_YOUTUBE_PASSWORD");
+        String ttsEnabled = System.getenv("DP_SOSANIE_TTS_ENABLED");
 
         if (token == null) {
             System.out.println("[ERROR] DP_DISCORD_TOKEN environment variable not found");
@@ -101,12 +103,17 @@ public class Main {
         } else if (youtubePassword == null) {
             System.out.println("[ERROR] DP_YOUTUBE_PASSWORD environment variable not found");
             System.exit(1);
+        } else if (ttsEnabled == null) {
+            System.out.println("[ERROR] DP_SOSANIE_TTS_ENABLED environment variable not found");
+            System.exit(1);
         } else if (System.getenv("DP_SOSANIE_TTS_ENABLED").equals("true")){
              if (ssEbloApiToken == null) {
                  System.out.println("[ERROR] DP_SOSANIE_API_KEY environment variable not found");
                  System.exit(1);
              }
         }
+
+        GreetingsDatabase.checkExist();
 
         // ============ BOT CREATION ============
         DiscordApi api = new DiscordApiBuilder().setToken(token).addIntents(Intent.MESSAGE_CONTENT).login().join();

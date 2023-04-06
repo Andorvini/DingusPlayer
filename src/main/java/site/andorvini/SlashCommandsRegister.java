@@ -100,7 +100,14 @@ public class SlashCommandsRegister {
 
         SlashCommandBuilder changeBatteriesCommand = SlashCommand.with("change","For changing batteries");
 
-        SlashCommandBuilder randomPromptCommand = SlashCommand.with("randomprompt", "Returns a random prompt from promts.txt");
+        SlashCommandBuilder addGreetingCommand = SlashCommand.with("addgreeting", "Adds your personal greeting when joining voice channel",
+                Arrays.asList(
+                        SlashCommandOption.create(SlashCommandOptionType.STRING, "greetingUrl", "URL to the direct audio file", true)
+                ));
+
+        SlashCommandBuilder removeGreetingCommand = SlashCommand.with("greetingdel", "Remove your greeting for current server");
+
+        SlashCommandBuilder greetingListCommand = SlashCommand.with("greetingls", "Shows your greeting for current server");
 
         Set<SlashCommandBuilder> builders = new HashSet<>();
 
@@ -120,8 +127,10 @@ public class SlashCommandsRegister {
         builders.add(seekCommand);
         builders.add(devCommand);
         builders.add(changeBatteriesCommand);
-        builders.add(randomPromptCommand);
         builders.add(reklamaCommand);
+        builders.add(addGreetingCommand);
+        builders.add(removeGreetingCommand);
+        builders.add(greetingListCommand);
 
         // ============ ADD /SSEBLO IF ENABLED ============
         if (System.getenv("DP_SOSANIE_TTS_ENABLED").equals("true")) {

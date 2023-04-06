@@ -116,6 +116,12 @@ public class SlashCommandHandler {
                 RandomPrompt.randomPrompt(interaction);
             } else if (fullCommandName.equals("reklama")) {
                 ReklamaCommand.reklama(api, interaction);
+            } else if (fullCommandName.equals("addgreeting")) {
+                AddGreetingCommand.greetingCommand(interaction);
+            } else if (fullCommandName.equals("greetingdel")) {
+                RemoveGreetingCommand.removeGreeting(interaction);
+            } else if (fullCommandName.equals("greetingls")) {
+                GreetingListCommand.greetingList(interaction);
             }
         });
     }
