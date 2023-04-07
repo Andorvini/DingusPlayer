@@ -14,7 +14,7 @@ import java.io.IOException;
 import java.util.LinkedList;
 import java.util.Objects;
 
-import static site.andorvini.miscellaneous.YoutubeMethods.getYoutubeVideoTitleFromUrl;
+import static site.andorvini.miscellaneous.YoutubeMethods.getYoutubeVideoTitleOrDurationFromUrl;
 
 public class Queue {
 
@@ -64,7 +64,7 @@ public class Queue {
 
                 for (String track : trackUrlQueue) {
                     try {
-                        queueEmbed.addField("", "`" + i + "`: " + "[" + getYoutubeVideoTitleFromUrl(track, true) + "]" + "(" + track + ")  | `" + getYoutubeVideoTitleFromUrl(track, false) + "`");
+                        queueEmbed.addField("", "`" + i + "`: " + "[" + getYoutubeVideoTitleOrDurationFromUrl(track, true) + "]" + "(" + track + ")  | `" + getYoutubeVideoTitleOrDurationFromUrl(track, false) + "`");
                     } catch (NullPointerException e) {
                         System.out.println("[WARN] Not youtube link");
                         queueEmbed.addField("", "`" + i + "`: " + track);

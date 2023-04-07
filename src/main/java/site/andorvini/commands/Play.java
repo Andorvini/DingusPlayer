@@ -18,7 +18,7 @@ import java.util.Optional;
 
 import static site.andorvini.miscellaneous.MiscMethods.*;
 import static site.andorvini.miscellaneous.YoutubeMethods.*;
-import static site.andorvini.miscellaneous.YoutubeMethods.getYoutubeVideoTitleFromUrl;
+import static site.andorvini.miscellaneous.YoutubeMethods.getYoutubeVideoTitleOrDurationFromUrl;
 
 public class Play {
     public static void play(DiscordApi api, SlashCommandInteraction interaction, Server interactionServer, Optional<ServerVoiceChannel> optionalUserVoiceChannel, Queue currentQueue, Optional<ServerVoiceChannel> optionalBotVoiceChannel, Player currentPlayer, ServerVoiceChannel userVoiceChannel){
@@ -51,8 +51,8 @@ public class Play {
                         String duration = null;
 
                         try {
-                            title = getYoutubeVideoTitleFromUrl(trackUrl, true);
-                            duration = getYoutubeVideoTitleFromUrl(trackUrl, false);
+                            title = getYoutubeVideoTitleOrDurationFromUrl(trackUrl, true);
+                            duration = getYoutubeVideoTitleOrDurationFromUrl(trackUrl, false);
                         } catch (IOException ignored) {
                         }
 
@@ -81,7 +81,7 @@ public class Play {
                         if (isYouTubeLink(trackUrl)) {
                             EmbedBuilder playEmbed = new EmbedBuilder()
                                     .setAuthor("Playing: ")
-                                    .addField("", "[" + YoutubeMethods.getYoutubeVideoTitleFromUrl(trackUrl, true) + "](" + trackUrl + ") | `" + getYoutubeVideoTitleFromUrl(trackUrl, false) + "`")
+                                    .addField("", "[" + YoutubeMethods.getYoutubeVideoTitleOrDurationFromUrl(trackUrl, true) + "](" + trackUrl + ") | `" + getYoutubeVideoTitleOrDurationFromUrl(trackUrl, false) + "`")
                                     .setColor(Color.GREEN)
                                     .setFooter("Track in queue: " + currentQueue.getQueueList().size());
 

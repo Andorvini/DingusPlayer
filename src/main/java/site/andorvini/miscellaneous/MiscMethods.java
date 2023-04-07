@@ -6,6 +6,7 @@ import org.javacord.api.entity.server.Server;
 import org.javacord.api.interaction.SlashCommandInteraction;
 import site.andorvini.Main;
 
+import java.net.URL;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -70,5 +71,17 @@ public class MiscMethods {
 
         api.getYourself().getConnectedVoiceChannel(server).get().disconnect();
         Main.removeAllHashmaps(serverId);
+    }
+
+    public static boolean isValidURLForGreeting(String urlString) {
+        try {
+            URL url = new URL(urlString);
+            url.toURI();
+            url.openConnection().connect();
+            String contentType = url.openConnection().getContentType();
+            return contentType.startsWith("audio/");
+        } catch (Exception e) {
+            return false;
+        }
     }
 }

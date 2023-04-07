@@ -51,7 +51,7 @@ public class AloneInChannelHandler {
         lastChannel = channel;
         reason = reasonFrom;
 
-        int leaveSeconds = 60;
+        int leaveSeconds = 10;
 
         EmbedBuilder embed = new EmbedBuilder()
                 .setColor(Color.CYAN)

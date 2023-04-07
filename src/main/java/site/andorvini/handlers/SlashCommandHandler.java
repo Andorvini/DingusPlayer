@@ -65,8 +65,6 @@ public class SlashCommandHandler {
 
             Main.addLastTextChannel(interactionServerId, interaction.getChannel().get());
 
-            TextChannel lastCommandChannel = Main.getLastCommandChannel(interactionServerId);
-
             if (!interaction.getChannel().get().getType().isServerChannelType()) {
                 interaction.createImmediateResponder()
                         .setContent("Use this bot only on server!")

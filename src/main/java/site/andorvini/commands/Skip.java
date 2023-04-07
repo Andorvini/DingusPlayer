@@ -5,7 +5,6 @@ import org.javacord.api.audio.AudioConnection;
 import org.javacord.api.entity.channel.ServerVoiceChannel;
 import org.javacord.api.entity.message.embed.EmbedBuilder;
 import org.javacord.api.entity.server.Server;
-import org.javacord.api.interaction.SlashCommand;
 import org.javacord.api.interaction.SlashCommandInteraction;
 import site.andorvini.players.Player;
 import site.andorvini.queue.Queue;
@@ -15,7 +14,7 @@ import java.io.IOException;
 import java.util.Optional;
 
 import static site.andorvini.miscellaneous.MiscMethods.respondImmediatelyWithEmbed;
-import static site.andorvini.miscellaneous.YoutubeMethods.getYoutubeVideoTitleFromUrl;
+import static site.andorvini.miscellaneous.YoutubeMethods.getYoutubeVideoTitleOrDurationFromUrl;
 
 public class Skip {
     public static void skip(DiscordApi api, SlashCommandInteraction interaction, Server interactionServer, Optional<ServerVoiceChannel> optionalBotVoiceChannel, Queue currentQueue, Player currentPlayer){
@@ -32,11 +31,11 @@ public class Skip {
             }
 
             EmbedBuilder skipEmbed = new EmbedBuilder()
-                    .addInlineField("__**Skipping:**__ ", "[" + getYoutubeVideoTitleFromUrl(currentQueue.getQueueList().peek(), true) + "](" + currentQueue.getQueueList().peek() + ")")
+                    .addInlineField("__**Skipping:**__ ", "[" + getYoutubeVideoTitleOrDurationFromUrl(currentQueue.getQueueList().peek(), true) + "](" + currentQueue.getQueueList().peek() + ")")
                     .setColor(Color.GREEN);
 
             if (secondTrackInQueue != null) {
-                skipEmbed.addInlineField("__**Next track:**__ ", "[" + getYoutubeVideoTitleFromUrl(secondTrackInQueue, true) + "](" + secondTrackInQueue + ")");
+                skipEmbed.addInlineField("__**Next track:**__ ", "[" + getYoutubeVideoTitleOrDurationFromUrl(secondTrackInQueue, true) + "](" + secondTrackInQueue + ")");
             } else {
                 skipEmbed.addInlineField("__**No next track :(**__","");
             }

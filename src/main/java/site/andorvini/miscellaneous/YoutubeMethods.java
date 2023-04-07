@@ -60,7 +60,7 @@ public class YoutubeMethods {
 
     //  ============ Returns video title from url if isTitle == true, else returns video duration ============
 
-    public static String getYoutubeVideoTitleFromUrl(String url, boolean isTitle) throws IOException {
+    public static String getYoutubeVideoTitleOrDurationFromUrl(String url, boolean isTitle) throws IOException {
 
         String newUrl = null;
 

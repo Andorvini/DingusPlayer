@@ -15,10 +15,10 @@ public class AddGreetingCommand {
         String url = interaction.getOptionByName("greetingUrl").get().getStringValue().get();
 
         if (!GreetingsDatabase.checkIfGreetingExists(userId, serverId)) {
-            if (MiscMethods.isUrl(url)) {
+            if (MiscMethods.isUrl(url) && MiscMethods.isValidURLForGreeting(url)) {
                 if (YoutubeMethods.isYouTubeLink(url)) {
                     try {
-                        if (MiscMethods.convertToMilliseconds(YoutubeMethods.getYoutubeVideoTitleFromUrl(url, false)) <= 30000) {
+                        if (MiscMethods.convertToMilliseconds(YoutubeMethods.getYoutubeVideoTitleOrDurationFromUrl(url, false)) <= 30000) {
                             GreetingsDatabase.addUrl(userId, serverId, url);
 
                             EmbedBuilder addEmbed = new EmbedBuilder()
@@ -46,7 +46,7 @@ public class AddGreetingCommand {
             } else {
                 EmbedBuilder notUrlEmbed = new EmbedBuilder()
                         .setColor(Color.red)
-                        .setAuthor("Invalid URL");
+                        .setAuthor("Invalid URL or Content Type");
 
                 MiscMethods.respondImmediatelyWithEmbed(interaction, notUrlEmbed);
             }

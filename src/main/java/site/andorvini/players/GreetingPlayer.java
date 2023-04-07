@@ -30,9 +30,9 @@ public class GreetingPlayer {
 
     public boolean isPlaying() {
         if (player.getPlayingTrack() == null) {
-            return true;
-        } else {
             return false;
+        } else {
+            return true;
         }
     }
 

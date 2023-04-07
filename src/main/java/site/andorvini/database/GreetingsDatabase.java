@@ -1,9 +1,9 @@
 package site.andorvini.database;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.Statement;
+import site.andorvini.miscellaneous.MiscMethods;
+
+import java.sql.*;
+import java.util.List;
 
 public class GreetingsDatabase {
 
@@ -13,7 +13,6 @@ public class GreetingsDatabase {
         Connection connection = null;
         Statement databaseStatement = null;
 
-        // Create Database FIle if not exists
         try {
             connection = DriverManager.getConnection(databasePath);
             connection.close();
@@ -26,10 +25,8 @@ public class GreetingsDatabase {
             databaseStatement = connection.createStatement();
 
             String greetingTableQuery = "CREATE TABLE IF NOT EXISTS greetings (server_id INTEGER, user_id INTEGER, url TEXT)";
-            String usersTableQuery = "CREATE TABLE IF NOT EXISTS users (user_id INTEGER, premium BOOLEAN)";
 
             databaseStatement.execute(greetingTableQuery);
-            databaseStatement.execute(usersTableQuery);
 
             databaseStatement.close();
             connection.close();
@@ -40,16 +37,18 @@ public class GreetingsDatabase {
     }
 
     public static void addUrl(Long userId, Long serverId, String url) {
+        String query = "INSERT INTO greetings (server_id, user_id, url) VALUES (?, ?, ?)";
         try {
-            Connection connection = DriverManager.getConnection(databasePath);
-            Statement statement = connection.createStatement();
+                Connection connection = DriverManager.getConnection(databasePath);
+                PreparedStatement preparedStatement = connection.prepareStatement(query);
 
-            String query = "INSERT INTO greetings (server_id, user_id, url) VALUES (" + serverId + "," + userId + ",'" + url + "')";
+                preparedStatement.setLong(1, serverId);
+                preparedStatement.setLong(2, userId);
+                preparedStatement.setString(3, url);
 
-            statement.execute(query);
+                preparedStatement.execute();
 
-            connection.close();
-
+                connection.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -102,6 +101,9 @@ public class GreetingsDatabase {
                 url = result.getString("url");
             }
 
+            connection.close();
+            statement.close();
+            result.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -117,6 +119,9 @@ public class GreetingsDatabase {
             String query = "DELETE FROM greetings WHERE user_id = '" + userId + "' AND server_id = '" + serverId +"'";
 
             statement.execute(query);
+
+            connection.close();
+            statement.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
