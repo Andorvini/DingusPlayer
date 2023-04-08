@@ -64,11 +64,13 @@ public class VoiceChannelJoinHandler {
                     String finalTrackUrl = trackUrl;
                     currentPlayer.setPause(true);
 
+                    currentGreetingPlayer.setInProgress(true);
                     serverVoiceChannelMemberJoinEvent.getUser().getConnectedVoiceChannel(server).get().connect().thenAccept(audioConnection -> {
                         currentGreetingPlayer.greetingPlayer(api, audioConnection, finalTrackUrl, currentPlayer, server, false);
                     });
                 } else {
                     currentPlayer.setPause(true);
+                    currentGreetingPlayer.setInProgress(true);
                     AudioConnection audioConnection = server.getAudioConnection().get();
                     currentGreetingPlayer.greetingPlayer(api, audioConnection, trackUrl, currentPlayer, server, false);
                 }
@@ -78,11 +80,12 @@ public class VoiceChannelJoinHandler {
                 String trackUrl = "https://ln.vprw.ru/f/jkuaeo40.mp3";
                 if (api.getYourself().getConnectedVoiceChannel(server).isEmpty()) {
                     String finalTrackUrl = trackUrl;
-
+                    currentGreetingPlayer.setInProgress(true);
                     serverVoiceChannelMemberJoinEvent.getUser().getConnectedVoiceChannel(server).get().connect().thenAccept(audioConnection -> {
                         currentGreetingPlayer.greetingPlayer(api, audioConnection, finalTrackUrl, currentPlayer, server, true);
                     });
                 } else {
+                    currentGreetingPlayer.setInProgress(true);
                     AudioConnection audioConnection = server.getAudioConnection().get();
                     currentGreetingPlayer.greetingPlayer(api, audioConnection, trackUrl, currentPlayer, server, true);
                 }

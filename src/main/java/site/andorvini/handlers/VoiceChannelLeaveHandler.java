@@ -55,8 +55,6 @@ public class VoiceChannelLeaveHandler {
                     if (serverVoiceChannelMemberLeaveEvent.getUser().getId() != 1074801519523807252L) {
                         if (usersInChannel == 1) {
                             if (!currentAloneInChannelHandler.isAloneTimerRunning() && !currentGreetingPlayer.getInProgress()) {
-                                System.out.println(currentGreetingPlayer.isPlaying());
-                                System.out.println("starting timer because leave");
                                 currentAloneInChannelHandler.startAloneTimer(lastCommandChannel, server, api, "I'm alone :(", currentQueue, currentPlayer);
                             }
                         }
