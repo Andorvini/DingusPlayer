@@ -79,7 +79,13 @@ public class MiscMethods {
             url.toURI();
             url.openConnection().connect();
             String contentType = url.openConnection().getContentType();
-            return contentType.startsWith("audio/");
+            if (contentType.startsWith("audio/")) {
+                return true;
+            } else if (YoutubeMethods.isYouTubeLink(urlString)) {
+                return true;
+            } else {
+                return false;
+            }
         } catch (Exception e) {
             return false;
         }
