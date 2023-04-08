@@ -27,6 +27,7 @@ public class GreetingPlayer {
     private AudioPlayer player = playerManager.createPlayer();
     private Server server;
     private DiscordApi api;
+    private boolean inProgress;
 
     public boolean isPlaying() {
         if (player.getPlayingTrack() == null) {
@@ -36,8 +37,14 @@ public class GreetingPlayer {
         }
     }
 
+    public boolean getInProgress() {
+        return inProgress;
+    }
+
     public void greetingPlayer(DiscordApi apiFrom, AudioConnection audioConnection, String trackUrl, Player playerFrom, Server serverFrom, boolean isFireAlarm){
         AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
+
+        inProgress = true;
 
         playerManager.registerSourceManager(new YoutubeAudioSourceManager());
         playerManager.registerSourceManager(new HttpAudioSourceManager());
@@ -54,6 +61,7 @@ public class GreetingPlayer {
                             server.getConnectedVoiceChannel(api.getYourself()).get().disconnect();
                             Main.removeGreetingPlayer(serverFrom.getId());
                             Main.removePlayerFromPlayers(serverFrom.getId());
+                            inProgress = false;
                         } else {
                             player.playTrack(track.makeClone());
                         }
