@@ -1,9 +1,6 @@
 package site.andorvini.database;
 
-import site.andorvini.miscellaneous.MiscMethods;
-
 import java.sql.*;
-import java.util.List;
 
 public class GreetingsDatabase {
 

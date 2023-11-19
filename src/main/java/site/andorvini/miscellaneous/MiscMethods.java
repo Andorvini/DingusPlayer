@@ -43,7 +43,7 @@ public class MiscMethods {
 // =============== Returns true if str is url ===============
 
     public static boolean isUrl(String str) {
-        Pattern urlPattern = Pattern.compile("^((https?|ftp)://)?[a-z0-9]+([\\-\\.]{1}[a-z0-9]+)*\\.[a-z]{2,5}(:[0-9]{1,5})?(/.*)?$", Pattern.CASE_INSENSITIVE);
+        Pattern urlPattern = Pattern.compile("^((https?|ftp)://)?[a-z0-9]+([\\-\\.]{1}[a-z0-9]+)*\\.[a-z]{2,12}(:[0-9]{1,5})?(/.*)?$", Pattern.CASE_INSENSITIVE);
         Matcher matcher = urlPattern.matcher(str);
         return matcher.matches();
     }
