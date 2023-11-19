@@ -109,7 +109,7 @@ public class Play {
                 currentQueue.queueController(api, audioConnection, interactionServer, currentPlayer);
             }
         } else {
-            respondImmediatelyWithString(interaction, "You are not connected to a voice channel");
+            respondImmediatelyWithString(interaction, "You are nwsqdot connected to a voice channel");
         }
     }
 }
