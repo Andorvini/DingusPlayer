@@ -27,7 +27,8 @@ public class SlashCommandsRegister {
                                         SlashCommandOption.createWithChoices(SlashCommandOptionType.STRING, "version", "Choose version of song", true,
                                                 Arrays.asList(
                                                         SlashCommandOptionChoice.create("Russian remix", "rus"),
-                                                        SlashCommandOptionChoice.create("Original", "original")))
+                                                        SlashCommandOptionChoice.create("Original", "original"),
+                                                        SlashCommandOptionChoice.create("German", "german")))
                                 ));
 
         SlashCommandBuilder loopCommand = SlashCommand.with("loop","Loop music");

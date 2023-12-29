@@ -23,6 +23,8 @@ public class Phony {
                 trackUrl.set("https://storage.rferee.dev/assets/media/audio/phony-ru.flac");
             } else if (interactionOption.equals("original")) {
                 trackUrl.set("https://storage.rferee.dev/assets/media/audio/phony-jp.flac");
+            } else if (interactionOption.equals("german")) {
+                trackUrl.set("https://storage.rferee.dev/assets/media/audio/phony-de.mp3");
             }
 
             currentPlayer.setPause(true);
