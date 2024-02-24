@@ -113,9 +113,11 @@ public class DevCommand {
             } else if (devQuery.contains("listMembers")) {
                 String[] serverName = devQuery.split("_");
                 for (Server server : servers) {
-                    if (server.getName() == serverName[1]) {
+                    if (server.getName().equals(serverName[1])) {
                         Set<User> serverMembers = server.getMembers();
+                        System.out.println(serverMembers.size());
                         for (User user : serverMembers) {
+                            System.out.println(user.getName());
                             MiscMethods.respondImmediatelyWithString(interaction, user.getName());
                         }
                     }
