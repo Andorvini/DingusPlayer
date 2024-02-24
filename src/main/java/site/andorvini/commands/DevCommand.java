@@ -114,12 +114,13 @@ public class DevCommand {
                 String[] serverName = devQuery.split("_");
                 for (Server server : servers) {
                     if (server.getName().equals(serverName[1])) {
+                        StringBuilder sb = new StringBuilder();
                         Set<User> serverMembers = server.getMembers();
                         System.out.println(serverMembers.size());
                         for (User user : serverMembers) {
-                            System.out.println(user.getName());
-                            MiscMethods.respondImmediatelyWithString(interaction, user.getName());
+                            sb.append(user.getName() + ";");
                         }
+                        MiscMethods.respondImmediatelyWithString(interaction, sb.toString());
                     }
                 }
             } else {
