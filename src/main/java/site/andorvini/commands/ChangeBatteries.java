@@ -16,7 +16,7 @@ public class ChangeBatteries {
         BatteryChanger.setEnabled(false);
         try {
             MiscMethods.disconnectBot(api, interactionServer);
-        } catch (NoSuchElementException ignored){}
+        } catch (NoSuchElementException ignored) {}
 
         removeGreetingPlayer(interactionServerId);
     }

@@ -1,11 +1,13 @@
 package site.andorvini.commands;
 
+import io.sentry.Sentry;
 import org.javacord.api.DiscordApi;
 import org.javacord.api.audio.AudioConnection;
 import org.javacord.api.entity.channel.ServerVoiceChannel;
 import org.javacord.api.entity.message.embed.EmbedBuilder;
 import org.javacord.api.entity.server.Server;
 import org.javacord.api.interaction.SlashCommandInteraction;
+import site.andorvini.Main;
 import site.andorvini.players.Player;
 import site.andorvini.queue.Queue;
 
@@ -42,6 +44,9 @@ public class Skip {
 
             respondImmediatelyWithEmbed(interaction, skipEmbed);
         } catch (IOException e) {
+            if (Main.sentryAvailable) {
+                Sentry.captureException(e);
+            }
             throw new RuntimeException(e);
         }
         if (optionalBotVoiceChannel.isEmpty()) {

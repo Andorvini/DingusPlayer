@@ -1,5 +1,6 @@
 package site.andorvini;
 
+import io.sentry.Sentry;
 import org.javacord.api.DiscordApi;
 import org.javacord.api.DiscordApiBuilder;
 import org.javacord.api.entity.channel.TextChannel;
@@ -80,6 +81,7 @@ public class Main {
     }
 
     // ============ Main ============
+    public static boolean sentryAvailable = false;
 
     public static void main(String[] args) {
 
@@ -90,6 +92,12 @@ public class Main {
         String youtubeLogin = System.getenv("DP_YOUTUBE_LOGIN");
         String youtubePassword = System.getenv("DP_YOUTUBE_PASSWORD");
         String ttsEnabled = System.getenv("DP_SOSANIE_TTS_ENABLED");
+
+        String sentryDsn = System.getenv("DP_SENTRY_DSN");
+        if (sentryDsn != null) {
+            Sentry.init(sentryDsn);
+            sentryAvailable = true;
+        }
 
         if (token == null) {
             System.out.println("[ERROR] DP_DISCORD_TOKEN environment variable not found");
