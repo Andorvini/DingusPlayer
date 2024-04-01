@@ -95,7 +95,11 @@ public class Main {
 
         String sentryDsn = System.getenv("DP_SENTRY_DSN");
         if (sentryDsn != null) {
-            Sentry.init(sentryDsn);
+            Sentry.init(options -> {
+                options.setDsn(sentryDsn);
+                options.setTracesSampleRate(1.0);
+                options.setDebug(true);
+            });
             sentryAvailable = true;
         }
 
