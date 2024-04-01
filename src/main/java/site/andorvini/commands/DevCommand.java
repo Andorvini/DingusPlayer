@@ -19,6 +19,7 @@ import java.awt.*;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.lang.reflect.Member;
 import java.util.*;
 import java.util.List;
 
@@ -110,6 +111,19 @@ public class DevCommand {
 //                try {
 //                   System.out.println(new GsonBuilder().setPrettyPrinting().create().toJson(SsebloVoicesListModel.getSsebloVoices()));
 //                } catch (IOException e){}
+            } else if (devQuery.contains("listMembers")) {
+                String[] serverName = devQuery.split("_");
+                for (Server server : servers) {
+                    if (server.getName().equals(serverName[1])) {
+                        StringBuilder sb = new StringBuilder();
+                        Set<User> serverMembers = server.getMembers();
+                        System.out.println(serverMembers.size());
+                        for (User user : serverMembers) {
+                            sb.append(user.getName() + ";");
+                        }
+                        MiscMethods.respondImmediatelyWithString(interaction, sb.toString());
+                    }
+                }
             } else {
                 MiscMethods.respondImmediatelyWithString(interaction, "There is no such query");
             }
