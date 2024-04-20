@@ -9,10 +9,10 @@ public class Loop {
     public static void loop(SlashCommandInteraction interaction, Player currentPlayer){
         if (!currentPlayer.getLoopVar()){
             currentPlayer.setLoopVar(true);
-            respondImmediatelyWithString(interaction,"Looping is now enabled");
+            respondImmediatelyWithString(interaction,"Loping is now enabled");
         } else {
             currentPlayer.setLoopVar(false);
-            respondImmediatelyWithString(interaction,"Looping is now disabled");
+            respondImmediatelyWithString(interaction,"Loping is now disabled");
         }
     }
 }
