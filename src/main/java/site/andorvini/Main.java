@@ -128,7 +128,7 @@ public class Main {
         GreetingsDatabase.checkExist();
 
         // ============ BOT CREATION ============
-        DiscordApi api = new DiscordApiBuilder().setToken(token).addIntents(Intent.MESSAGE_CONTENT,Intent.GUILD_MEMBERS).login().join();
+        DiscordApi api = new DiscordApiBuilder().setToken(token).addIntents(Intent.MESSAGE_CONTENT).login().join();
 
         // ============ ACTIVITY SET ============
         api.updateActivity(ActivityType.LISTENING,"\"Antipathy World\"");
