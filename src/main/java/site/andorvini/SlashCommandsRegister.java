@@ -31,7 +31,7 @@ public class SlashCommandsRegister {
                                                         SlashCommandOptionChoice.create("German", "german")))
                                 ));
 
-        SlashCommandBuilder loopCommand = SlashCommand.with("loop","Loop music");
+        SlashCommandBuilder loopCommand = SlashCommand.with("loop","Lop music");
 
         SlashCommandBuilder leaveCommand =
                 SlashCommand.with("leave","Leave voice channel");
