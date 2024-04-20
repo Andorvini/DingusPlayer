@@ -15,6 +15,10 @@
     </properties>
 
     <repositories>
+        <repository>
+            <id>sonatype</id>
+            <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
+        </repository>
          <repository>
             <id>dv8tion</id>
             <name>m2-dv8tion</name>
@@ -40,10 +44,15 @@
             <version>3.8.0</version>
             <type>pom</type>
         </dependency>
+<!--        <dependency>-->
+<!--            <groupId>com.github.walkyst</groupId>-->
+<!--            <artifactId>lavaplayer-fork</artifactId>-->
+<!--            <version>LATEST</version>-->
+<!--        </dependency>-->
         <dependency>
-            <groupId>com.github.walkyst</groupId>
-            <artifactId>lavaplayer-fork</artifactId>
-            <version>1.4.3</version>
+            <groupId>dev.arbjerg</groupId>
+            <artifactId>lavaplayer</artifactId>
+            <version>727959e9f621fc457b3a5adafcfffb55fdeaa538-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.google.code.gson</groupId>
