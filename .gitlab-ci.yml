@@ -10,34 +10,36 @@ maven-build:
     - mvn package
   artifacts:
     name: "andorvini-discord-dingus-player-maven_package-full_jar-$CI_COMMIT_REF_NAME-$CI_COMMIT_SHORT_SHA-$CI_JOB_ID"
+    when: on_success
+    expire_in: 2 weeks
     paths:
       - target/*-spring-boot.jar
   rules:
-    - if: $CI_COMMIT_BRANCH == "master"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
 docker-image-build:
   needs:
-    - maven-build
-  dependencies:
-    - maven-build
+    - job: maven-build
+      artifacts: true
   stage: build-image
   image: docker.io/library/docker:git
-  script:
-    - docker build --no-cache -t $CI_REGISTRY_IMAGE/bot:latest .
+  before_script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
+    - docker build --no-cache --pull --tag $CI_REGISTRY_IMAGE/bot:latest ./
     - docker image push --all-tags $CI_REGISTRY_IMAGE/bot
   rules:
-    - if: $CI_COMMIT_BRANCH == "master"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
 portainer-trigger:
   needs:
-    - docker-image-build
-  dependencies:
-    - docker-image-build
-  when: on_success
+    - job: docker-image-build
   stage: deploy
   image: docker.io/library/alpine:latest
   before_script:
+    - apk update
     - apk add --no-cache curl
   script:
-    - curl -f -X POST $PORTAINER_WEBHOOK
+    - curl -f -X POST "$PORTAINER_WEBHOOK"
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
