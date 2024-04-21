@@ -7,6 +7,11 @@ services:
     restart: unless-stopped
     environment:
       DP_DISCORD_TOKEN: ???
+  prosloyka:
+    image: rg.gl.vprw.ru/vapronva/youtube-prosloyka/api:latest
+    restart: unless-stopped
+    expose:
+      - 8000
 
 networks:
   default:
