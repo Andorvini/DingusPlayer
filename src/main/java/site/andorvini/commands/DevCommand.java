@@ -1,6 +1,5 @@
 package site.andorvini.commands;
 
-import io.sentry.Sentry;
 import org.javacord.api.DiscordApi;
 import org.javacord.api.entity.channel.ServerVoiceChannel;
 import org.javacord.api.entity.message.embed.EmbedBuilder;
@@ -143,11 +142,7 @@ public class DevCommand {
             }
             reader.close();
         } catch (IOException e) {
-            if (Main.sentryAvailable) {
-                Sentry.captureException(e);
-            } else {
-                e.printStackTrace();
-            }
+            e.printStackTrace();
         }
         return lines;
     }

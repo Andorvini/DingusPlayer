@@ -1,7 +1,6 @@
 package site.andorvini.miscellaneous;
 
 import com.google.gson.Gson;
-import io.sentry.Sentry;
 import okhttp3.*;
 import java.net.URLEncoder;
 import site.andorvini.Main;
@@ -33,9 +32,6 @@ public class YoutubeProsloykaMethod {
             ProsloykaResponse prosloykaResponse = new Gson().fromJson(responseBody, ProsloykaResponse.class);
             return prosloykaResponse.result.data.url;
         } catch (Exception e) {
-            if (Main.sentryAvailable) {
-                Sentry.captureException(e);
-            }
             e.printStackTrace();
         }
         return null;

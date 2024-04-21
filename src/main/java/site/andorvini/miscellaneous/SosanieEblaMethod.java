@@ -1,6 +1,5 @@
 package site.andorvini.miscellaneous;
 
-import io.sentry.Sentry;
 import okhttp3.*;
 import site.andorvini.Main;
 
@@ -35,9 +34,6 @@ public class SosanieEblaMethod {
             return responseBody;
 
         } catch (Exception e) {
-            if (Main.sentryAvailable) {
-                Sentry.captureException(e);
-            }
             e.printStackTrace();
         }
 

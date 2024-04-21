@@ -1,6 +1,5 @@
 package site.andorvini.commands;
 
-import io.sentry.Sentry;
 import org.javacord.api.DiscordApi;
 import org.javacord.api.audio.AudioConnection;
 import org.javacord.api.entity.channel.ServerVoiceChannel;
@@ -44,9 +43,6 @@ public class Skip {
 
             respondImmediatelyWithEmbed(interaction, skipEmbed);
         } catch (IOException e) {
-            if (Main.sentryAvailable) {
-                Sentry.captureException(e);
-            }
             throw new RuntimeException(e);
         }
         if (optionalBotVoiceChannel.isEmpty()) {

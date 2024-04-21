@@ -1,6 +1,5 @@
 package site.andorvini.commands;
 
-import io.sentry.Sentry;
 import org.javacord.api.entity.channel.TextChannel;
 import org.javacord.api.entity.message.MessageSet;
 import org.javacord.api.interaction.SlashCommandInteraction;
@@ -20,11 +19,7 @@ public class Clear {
         try {
             Thread.sleep(2000);
         } catch (InterruptedException e) {
-            if (Main.sentryAvailable) {
-                Sentry.captureException(e);
-            } else {
-                e.printStackTrace();
-            }
+            e.printStackTrace();
 
             throw new RuntimeException(e);
         }

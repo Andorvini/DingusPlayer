@@ -1,6 +1,5 @@
 package site.andorvini.handlers;
 
-import io.sentry.Sentry;
 import org.javacord.api.DiscordApi;
 import org.javacord.api.audio.AudioConnection;
 import org.javacord.api.entity.server.Server;
@@ -41,9 +40,6 @@ public class VoiceChannelJoinHandler {
                 try {
                     Thread.sleep(2000);
                 } catch (InterruptedException e) {
-                    if (Main.sentryAvailable) {
-                        Sentry.captureException(e);
-                    }
                     throw new RuntimeException(e);
                 }
                 if (api.getYourself().getConnectedVoiceChannel(server).isPresent()) {

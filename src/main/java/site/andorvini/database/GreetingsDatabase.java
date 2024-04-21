@@ -1,6 +1,5 @@
 package site.andorvini.database;
 
-import io.sentry.Sentry;
 import site.andorvini.Main;
 
 import java.sql.*;
@@ -17,9 +16,6 @@ public class GreetingsDatabase {
             connection = DriverManager.getConnection(databasePath);
             connection.close();
         } catch (Exception e) {
-            if (Main.sentryAvailable) {
-                Sentry.captureException(e);
-            }
             e.printStackTrace();
         }
 
@@ -35,9 +31,6 @@ public class GreetingsDatabase {
             connection.close();
 
         } catch (Exception e) {
-            if (Main.sentryAvailable) {
-                Sentry.captureException(e);
-            }
             e.printStackTrace();
         }
     }
@@ -56,9 +49,6 @@ public class GreetingsDatabase {
 
                 connection.close();
         } catch (Exception e) {
-            if (Main.sentryAvailable) {
-                Sentry.captureException(e);
-            }
             e.printStackTrace();
         }
     }
@@ -88,9 +78,6 @@ public class GreetingsDatabase {
                 return true;
             }
         } catch (Exception e) {
-            if (Main.sentryAvailable) {
-                Sentry.captureException(e);
-            }
             e.printStackTrace();
         }
 
@@ -117,9 +104,6 @@ public class GreetingsDatabase {
             statement.close();
             result.close();
         } catch (Exception e) {
-            if (Main.sentryAvailable) {
-                Sentry.captureException(e);
-            }
             e.printStackTrace();
         }
 
@@ -138,9 +122,6 @@ public class GreetingsDatabase {
             connection.close();
             statement.close();
         } catch (Exception e) {
-            if (Main.sentryAvailable) {
-                Sentry.captureException(e);
-            }
             e.printStackTrace();
         }
 

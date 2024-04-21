@@ -1,6 +1,5 @@
 package site.andorvini.handlers;
 
-import io.sentry.Sentry;
 import org.javacord.api.DiscordApi;
 import org.javacord.api.entity.channel.ServerVoiceChannel;
 import org.javacord.api.entity.channel.TextChannel;
@@ -101,9 +100,6 @@ public class SlashCommandHandler {
                 try {
                     respondImmediatelyWithEmbed(interaction, currentQueue.getQueueEmbed());
                 } catch (IOException e) {
-                    if (Main.sentryAvailable) {
-                        Sentry.captureException(e);
-                    }
                     throw new RuntimeException(e);
                 }
             } else if (fullCommandName.equals("skip")) {

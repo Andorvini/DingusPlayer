@@ -1,6 +1,5 @@
 package site.andorvini;
 
-import io.sentry.Sentry;
 import org.javacord.api.DiscordApi;
 import org.javacord.api.DiscordApiBuilder;
 import org.javacord.api.entity.channel.TextChannel;
@@ -81,8 +80,6 @@ public class Main {
     }
 
     // ============ Main ============
-    public static boolean sentryAvailable = false;
-
     public static void main(String[] args) {
 
         // ============ TOKEN PROCESSING ============
@@ -93,16 +90,6 @@ public class Main {
         String youtubePassword = System.getenv("DP_YOUTUBE_PASSWORD");
         String ttsEnabled = System.getenv("DP_SOSANIE_TTS_ENABLED");
         String prosloykaApiUrl = System.getenv("DP_PROSLOYKA_API_URL");
-
-        String sentryDsn = System.getenv("DP_SENTRY_DSN");
-        if (sentryDsn != null) {
-            Sentry.init(options -> {
-                options.setDsn(sentryDsn);
-                options.setTracesSampleRate(1.0);
-                options.setDebug(true);
-            });
-            sentryAvailable = true;
-        }
 
         if (token == null) {
             System.out.println("[ERROR] DP_DISCORD_TOKEN environment variable not found");
@@ -118,9 +105,6 @@ public class Main {
             System.exit(1);
         } else if (ttsEnabled == null) {
             System.out.println("[ERROR] DP_SOSANIE_TTS_ENABLED environment variable not found");
-            System.exit(1);
-        } else if (prosloykaApiUrl == null) {
-            System.out.println("[ERROR] DP_PROSLOYKA_API_URL environment variable not found");
             System.exit(1);
         } else if (System.getenv("DP_SOSANIE_TTS_ENABLED").equals("true")){
              if (ssEbloApiToken == null) {
