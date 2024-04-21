@@ -3,6 +3,7 @@ package site.andorvini.miscellaneous;
 import com.google.gson.Gson;
 import io.sentry.Sentry;
 import okhttp3.*;
+import java.net.URLEncoder;
 import site.andorvini.Main;
 
 class ProsloykaResponse {
@@ -24,7 +25,8 @@ public class YoutubeProsloykaMethod {
         try {
             OkHttpClient okHttpClient = new OkHttpClient();
             String requestUrl = System.getenv("DP_PROSLOYKA_API_URL") + ("/petrushka");
-            Request.Builder requestBuilder = new Request.Builder().url(requestUrl + "?url=" + videoUrl).get();
+            String encodedUrl = URLEncoder.encode(videoUrl, "UTF-8");
+            Request.Builder requestBuilder = new Request.Builder().url(requestUrl + "?url=" + encodedUrl).get();
             Call call = okHttpClient.newCall(requestBuilder.build());
             Response response = call.execute();
             String responseBody = response.body().string();
