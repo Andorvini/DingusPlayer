@@ -21,6 +21,9 @@ import org.javacord.api.entity.server.Server;
 import site.andorvini.miscellaneous.LavaplayerAudioSource;
 import site.andorvini.queue.Queue;
 
+import static site.andorvini.miscellaneous.YoutubeMethods.isYouTubeLink;
+import static site.andorvini.miscellaneous.YoutubeProsloykaMethod.getYoutubePlayingUrl;
+
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Player {
@@ -123,6 +126,10 @@ public class Player {
 
         source = new LavaplayerAudioSource(api, playerGlobal);
         audioConnection.setAudioSource(source);
+
+        if (isYouTubeLink(trackUrl)) {
+            trackUrl = getYoutubePlayingUrl(trackUrl);
+        }
 
         playerManager.loadItem(trackUrl, new AudioLoadResultHandler() {
             @Override
