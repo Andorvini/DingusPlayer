@@ -1,4 +1,4 @@
-FROM docker.io/library/amazoncorretto:19
+FROM docker.io/library/amazoncorretto:21
 
 WORKDIR /usr/src/app
 
