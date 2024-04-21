@@ -3,6 +3,20 @@ stages:
   - build-image
   - deploy
 
+maven-build-branch:
+  stage: build-artifact
+  image: docker.io/library/maven:3-amazoncorretto-21
+  script:
+    - mvn package
+  artifacts:
+    name: "dingus_player-maven_package-full_jar-$CI_COMMIT_BRANCH-$CI_COMMIT_REF_NAME-$CI_COMMIT_SHORT_SHA-$CI_JOB_ID"
+    when: on_success
+    expire_in: 1 week
+    paths:
+      - target/*-spring-boot.jar
+  rules:
+    - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
+
 maven-build:
   stage: build-artifact
   image: docker.io/library/maven:3-amazoncorretto-21
